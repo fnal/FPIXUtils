@@ -7,7 +7,7 @@ Usage: python dbUpload.py <input dir>
 """
 
 DEBUG=False
-makePlots=True
+makePlots=False
 
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.etree import ElementTree
@@ -464,9 +464,9 @@ def analyzePreTest(inputDir, outputDir, log, data):
     
         if 'PixTestPretest::setVthrCompCalDel() done' in line:
             line=next(f)
-            calDels=[int(i) for i in line.split('CalDel:')[1].split()]
+            calDels=[int(i) for i in line.replace('_','').split('CalDel:')[1].split()]
             line=next(f)
-            VthrComps=[int(i) for i in line.split('VthrComp:')[1].split()]
+            VthrComps=[int(i) for i in line.replace('_','').split('VthrComp:')[1].split()]
 
     ct=SE(test,'CAN_TIME')
     ct.text=str(int(canTime))
