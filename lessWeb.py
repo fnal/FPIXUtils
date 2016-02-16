@@ -7,7 +7,7 @@ Usage: python dbUpload.py <input dir>
 """
 
 DEBUG=False
-makePlots=False
+makePlots=True
 
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.etree import ElementTree
