@@ -6,7 +6,7 @@ import sys
 
 XrayInDir = sys.argv[1]
 
-inDate = int(raw_input('Enter date of X-ray results (MMDD):'))
+inDate = int(raw_input('Enter date of desired X-ray results (MMDD): '))
 inDateStr = str('%04d'%inDate)
 print inDateStr
 
