@@ -7,6 +7,7 @@ Usage: python dbUpload.py <input dir>
 """
 
 DEBUG=False
+makePlots=True
 
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.etree import ElementTree
@@ -63,8 +64,6 @@ def getHAHDPlot(f, outputDir):
     attachName(pic)
     file=SE(pic, 'FILE')
     file.text='HA.png'
-    #txt=SE(pic, 'TXT')
-    #txt.text='HA.txt'
     part=SE(pic,'PART')
     part.text='sidet_p'
 
@@ -79,8 +78,6 @@ def getHAHDPlot(f, outputDir):
     attachName(pic)
     file=SE(pic, 'FILE')
     file.text='HD.png'
-    #txt=SE(pic, 'TXT')
-    #txt.text='HD.txt'
     part=SE(pic,'PART')
     part.text='sidet_p'
 
@@ -104,13 +101,9 @@ def getProgramROCPlot(f, deadROCs, outputDir):
     comment=open(outputDir+'/'+txt.text,'w')
     comment.write('\ndeadROCs='+str(deadROCs)+'\n')
     
-    #to do:
-    # -list of non-programmable ROCs needs to be searchable
-    # -number of non-programmable ROCs needs to be searchable
-
 #---------------------------------------------------------------
 
-def getVthrCompCalDelPlot(f, VthrComps, CalDels, outputDir):
+def getVthrCompCalDelPlot(f, CalDels, VthrComps, outputDir):
     
     c=TCanvas()
     for key in f.Get('Pretest').GetListOfKeys():
@@ -206,25 +199,8 @@ def getPixelAlivePlots(f, nDeadPixels, nMaskDefectPixels, nAddressDefectPixels, 
                 print '       From root file:',len(deadPixels)
                 exit()
 
-            """
-            pic=SE(top, 'PIC')
-            attachName(pic)
-            file=SE(pic, 'FILE')
-            file.text=h.GetName()+'.png'
-            txt=SE(pic, 'TXT')
-            txt.text=h.GetName()+'.txt'
-            part=SE(pic,'PART')
-            part.text='sidet_p'
+            defectivePixels.append(deadPixels)
 
-            comment=open(outputDir+'/'+txt.text,'w')
-            comment.write('\nnDeadPixels='+str(nDeadPixels[n])+'\n')
-            comment.write('\ndeadPixels=[')
-            for i in range(len(deadPixels)):
-                x,y=deadPixels[i][0],deadPixels[i][1]
-                comment.write('['+str(x)+','+str(y)+']')
-                if i!=len(deadPixels)-1: comment.write(', ')
-            comment.write(']\n')
-            """
             # - - - - - - - - - - - - - - - - - - - - - - - - -
 
             h=f.Get('PixelAlive/'+h.GetName().replace('PixelAlive','MaskTest'))
@@ -236,34 +212,16 @@ def getPixelAlivePlots(f, nDeadPixels, nMaskDefectPixels, nAddressDefectPixels, 
             for xBin in range(1,h.GetNbinsX()+1):
                 for yBin in range(1,h.GetNbinsY()+1):
                     if [xBin-1,yBin-1] in deadPixels: continue
-                    if h.GetBinContent(xBin, yBin)<0: maskDefectPixels.append([xBin-1,yBin-1])
-
+                    if h.GetBinContent(xBin, yBin)<0: 
+                        maskDefectPixels.append([xBin-1,yBin-1])
+                        defectivePixels[n].append([xBin-1,yBin-1])
+                                                
             if len(maskDefectPixels)!=nMaskDefectPixels[n]:
                 print 'ERROR: Wrong number of un-maskable pixels found'
                 print '       From pXar log:', nMaskDefectPixels[n]
                 print '       From root file:',len(maskDefectPixels)
                 exit()
 
-            """
-            pic=SE(top, 'PIC')
-            attachName(pic)
-            file=SE(pic, 'FILE')
-            file.text=h.GetName()+'.png'
-            txt=SE(pic, 'TXT')
-            txt.text=h.GetName()+'.txt'
-            part=SE(pic,'PART')
-            part.text='sidet_p'
-
-
-            comment=open(outputDir+'/'+txt.text,'w')
-            comment.write('\nnUnmaskable='+str(nMaskDefectPixels[n])+'\n')
-            comment.write('\nunmaskablePixels=[')
-            for i in range(len(maskDefectPixels)):
-                x,y=maskDefectPixels[i][0],maskDefectPixels[i][1]
-                comment.write('['+str(x)+','+str(y)+']')
-                if i!=len(maskDefectPixels)-1: comment.write(', ')
-            comment.write(']\n')
-            """
             # - - - - - - - - - - - - - - - - - - - - - - - - -   
 
             h=f.Get('PixelAlive/'+h.GetName().replace('MaskTest','AddressDecodingTest'))
@@ -275,7 +233,9 @@ def getPixelAlivePlots(f, nDeadPixels, nMaskDefectPixels, nAddressDefectPixels, 
             for xBin in range(1,h.GetNbinsX()+1):
                 for yBin in range(1,h.GetNbinsY()+1):
                     if [xBin-1,yBin-1] in deadPixels: continue
-                    if h.GetBinContent(xBin, yBin)<0: addressDefectPixels.append([xBin-1,yBin-1])
+                    if h.GetBinContent(xBin, yBin)<0: 
+                        addressDefectPixels.append([xBin-1,yBin-1])
+                        defectivePixels[n].append([xBin-1,yBin-1])
 
             if len(addressDefectPixels)!=nAddressDefectPixels[n]:
                 print 'ERROR: Wrong number of un-addressable pixels found'
@@ -283,55 +243,28 @@ def getPixelAlivePlots(f, nDeadPixels, nMaskDefectPixels, nAddressDefectPixels, 
                 print '       From root file:',len(addressDefectPixels)
                 exit()
 
-            """
-            pic=SE(top, 'PIC')
-            attachName(pic)
-            file=SE(pic, 'FILE')
-            file.text=h.GetName()+'.png'
-            txt=SE(pic, 'TXT')
-            txt.text=h.GetName()+'.txt'
-            part=SE(pic,'PART')
-            part.text='sidet_p'
-
-            comment=open(outputDir+'/'+txt.text,'w')
-            comment.write('\nnUnadressable='+str(nAddressDefectPixels[n])+'\n')
-            comment.write('\nunaddressablePixels=[')
-            for i in range(len(addressDefectPixels)):
-                x,y=addressDefectPixels[i][0],addressDefectPixels[i][1]
-                comment.write('['+str(x)+','+str(y)+']')
-                if i!=len(addressDefectPixels)-1: comment.write(', ')
-            comment.write(']\n')
-            """
 #---------------------------------------------------------------
 
 #def getBumpBondingPlots(f, badBumpsFromLog, bbCuts, outputDir):
-def getBumpBondingPlots(f, badBumpsFromLog, outputDir):
+def getBumpBondingPlots(f, outputDir):
 
     c=TCanvas()
-    #summary=doIt(f, 'BB3', 'rescaledThr', 0)
-    #summary.SaveAs(outputDir+'/BBSummary.png')
-
-    # pic=SE(top, 'PIC')
-    # attachName(pic)
-    # file=SE(pic, 'FILE')
-    # file.text='BBSummary.png'
-    # part=SE(pic,'PART')
-    # part.text='sidet_p'
 
     for key in f.Get('BB3').GetListOfKeys():
 
         if 'dist_rescaledThr_C' in key.GetName():
-            c.SetLogy(True)
-            key.ReadObj().Draw()
-            c.SaveAs(outputDir+'/'+key.GetName()+'.png')
-            c.SetLogy(False)
-            
-            pic=SE(top, 'PIC')
-            attachName(pic)
-            file=SE(pic, 'FILE')
-            file.text=key.GetName()+'.png'
-            part=SE(pic,'PART')
-            part.text='sidet_p'
+            if makePlots:
+                c.SetLogy(True)
+                key.ReadObj().Draw()
+                c.SaveAs(outputDir+'/'+key.GetName()+'.png')
+                c.SetLogy(False)
+
+                pic=SE(top, 'PIC')
+                attachName(pic)
+                file=SE(pic, 'FILE')
+                file.text=key.GetName()+'.png'
+                part=SE(pic,'PART')
+                part.text='sidet_p'
 
         # - - - - - - - - - - - - - - - - - - - - - - - - -
         
@@ -341,75 +274,63 @@ def getBumpBondingPlots(f, badBumpsFromLog, outputDir):
             c.SaveAs(outputDir+'/'+key.GetName()+'.png')
             n=int(key.GetName().split('_')[1][1:])
 
-            badBumps=[]
+            badBumps.append([])
             for xBin in range(1, h.GetNbinsX()+1):
                 for yBin in range(1, h.GetNbinsY()+1):
-                    #if h.GetBinContent(xBin,yBin)+1>=bbCuts[n]:
                     if h.GetBinContent(xBin,yBin)>=5:
-                        badBumps.append([xBin-1,yBin-1])
-            if DEBUG: print badBumps, badBumpsFromLog[n]
+                        pix=[xBin-1,yBin-1]
+                        if pix not in defectivePixels[n]:                                                                                                                                              
+                            badBumps[n].append(pix)
+                            defectivePixels[n].append(pix)
             
-            if len(badBumps)!=badBumpsFromLog[n]:
-                print 'ERROR: Wrong number of bad bump bonds found'
-                print '       From pXar log:', badBumpsFromLog[n]
-                print '       From root file:',len(badBumps)
-                print n
-                exit()                        
-
-            """
-            pic=SE(top, 'PIC')
-            attachName(pic)
-            file=SE(pic, 'FILE')
-            file.text=key.GetName()+'.png'
-            txt=SE(pic, 'TXT')
-            txt.text=key.GetName()+'.txt'
-            part=SE(pic,'PART')
-            part.text='sidet_p'
-
-            comment=open(outputDir+'/'+txt.text,'w')
-            comment.write('\nnBadBumps='+str(badBumpsFromLog[n])+'\n')
-            comment.write('\nbadBumps=[')
-            for i in range(len(badBumps)):
-                x,y=badBumps[i][0],badBumps[i][1]
-                comment.write('['+str(x)+','+str(y)+']')
-                if i!=len(badBumps)-1: comment.write(', ')
-            comment.write(']\n')
-            """
 #---------------------------------------------------------------
 
 def getSCurvePlots(f, outputDir):
     
     goodPlots=['adjustVcal_C',
                'thr_scurveVthrComp_VthrComp_C','sig_scurveVthrComp_VthrComp_C','thn_scurveVthrComp_VthrComp_C',
-               #'dist_thr_scurveVthrComp_VthrComp_C','dist_sig_scurveVthrComp_VthrComp_C','dist_thn_scurveVthrComp_VthrComp_C', #not needed since the preceeding strings also match
                'thr_scurveVcal_Vcal_C','sig_scurveVcal_Vcal_C',
-               #'dist_thr_scurveVcal_Vcal_C','dist_sig_scurveVcal_Vcal_C' #not needed since the preceeding strings also match
                ]
 
     c=TCanvas()
     for key in f.Get('Scurves').GetListOfKeys():
-        for plot in goodPlots:
-            if plot in key.GetName():
-                if 'dist' in key.GetName(): key.ReadObj().Draw()
-                else: key.ReadObj().Draw('COLZ')
-                c.SaveAs(outputDir+'/'+key.GetName()+'.png')
-                
-                is2D=(type(key.ReadObj())==type(TH2D()))
-                if not is2D:
-                    pic=SE(top, 'PIC')
-                    attachName(pic)
-                    file=SE(pic, 'FILE')
-                    file.text=key.GetName()+'.png'
-                    part=SE(pic,'PART')
-                    part.text='sidet_p'
+        if makePlots:
+            for plot in goodPlots:
+                if plot in key.GetName():
+                    if 'dist' in key.GetName(): key.ReadObj().Draw()
+                    else: key.ReadObj().Draw('COLZ')
+                    c.SaveAs(outputDir+'/'+key.GetName()+'.png')
+
+                    is2D=(type(key.ReadObj())==type(TH2D()))
+                    if not is2D:
+                        pic=SE(top, 'PIC')
+                        attachName(pic)
+                        file=SE(pic, 'FILE')
+                        file.text=key.GetName()+'.png'
+                        part=SE(pic,'PART')
+                        part.text='sidet_p'
+
+        #get pixels which can't be trimmed
+        if key.GetName().startswith('thr_scurveVcal_Vcal_C'):
+            h=key.ReadObj()
+            n=int(key.GetName().split('_')[3][1:])
+
+            trimDefectPixels.append([])
+
+            for xBin in range(1,h.GetNbinsX()+1):
+                for yBin in range(1,h.GetNbinsY()+1):
+                    if h.GetBinContent(xBin, yBin)<25 or h.GetBinContent(xBin, yBin)>45: 
+                        pix=[xBin-1,yBin-1]
+                        if pix not in defectivePixels[n]:
+                            trimDefectPixels[n].append(pix)
+                            defectivePixels[n].append(pix)
 
 #---------------------------------------------------------------
 
 def getTrimPlots(f, outputDir):
-    
-    goodPlots=[#'TrimMap_C',   not needed, summary plot instead
-               'dist_TrimMap_C',
-               #'thr_TrimThrFinal_vcal_C','dist_thr_TrimThrFinal_vcal_C'
+    if not makePlots: return
+
+    goodPlots=['dist_TrimMap_C',
                ]
 
     c=TCanvas()
@@ -432,10 +353,9 @@ def getTrimPlots(f, outputDir):
 #---------------------------------------------------------------
 
 def getPulseHeightOptPlots(f, outputDir):
+    if not makePlots: return
 
-    goodPlots=[#'PH_mapHiVcal_C',   not needed, summary plot instead
-               'dist_PH_mapHiVcal_C',
-               #'PH_mapLowVcal_C',   not needed, summary plot instead
+    goodPlots=['dist_PH_mapHiVcal_C',
                'dist_PH_mapLowVcal_C']
 
     c=TCanvas()
@@ -458,12 +378,9 @@ def getPulseHeightOptPlots(f, outputDir):
 #---------------------------------------------------------------
 
 def getGainPedestalPlots(f,outputDir):
+    if not makePlots: return
 
     goodPlots=['gainPedestalNonLinearity',
-               #'gainPedestalP0_C',
-               #'gainPedestalP1_C',
-               #'gainPedestalP2_C',
-               #'gainPedestalP3_C'
                ]
 
     c=TCanvas()
@@ -483,6 +400,8 @@ def getGainPedestalPlots(f,outputDir):
 ################################################################
 
 def makeSummaryPlots(inputDir, outputDir, log, data):
+    if not makePlots: return
+
     data=TFile(data['fulltest'])
 
     produceLessWebSummaryPlot(data,'BB3/rescaledThr',outputDir,zRange=(-5,5), isBB3=True)
@@ -500,7 +419,6 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
     for hist in ['PixelAlive/PixelAlive','PixelAlive/MaskTest','PixelAlive/AddressDecodingTest',
                  'PhOptimization/PH_mapLowVcal','PhOptimization/PH_mapHiVcal',
                  'Scurves/sig_scurveVcal_Vcal','Scurves/thr_scurveVcal_Vcal',
-                 #'Trim/thr_TrimThrFinal_vcal'
                  ]:
 
         produceLessWebSummaryPlot(data,hist,outputDir)
@@ -535,16 +453,11 @@ def analyzePreTest(inputDir, outputDir, log, data):
 
     f=iter(open(log,'r'))
 
-    #canTime=True
+    canTime=True
     for line in f:
 
-        """
-        if 'No good timings found' in line or 'error setting delay  base' in line: canTime=False
-        elif 'Default timings are good' in line or 'Good Timings Found' in line: canTime=True
-        """
         if 'INFO: TBM phases:  160MHz:' in line:
             if '-1' in line: canTime=False
-            else: canTime=True
 
         if 'ROCs are all programmable' in line: deadROCs=[]
         elif 'cannot be programmed! Error' in line: deadROCs=[int(i) for i in line[line.find('ROCs')+len('ROCs'):line.find('cannot')].split()]
@@ -554,24 +467,17 @@ def analyzePreTest(inputDir, outputDir, log, data):
             calDels=[int(i) for i in line.split('CalDel:')[1].split()]
             line=next(f)
             VthrComps=[int(i) for i in line.split('VthrComp:')[1].split()]
-            
+
     ct=SE(test,'CAN_TIME')
     ct.text=str(int(canTime))
 
-    getHAHDPlot(data, outputDir)
-    getProgramROCPlot(data, deadROCs, outputDir)
-    getVanaPlot(data, outputDir)
-    getIanaPlot(data, outputDir)
-    getVthrCompCalDelPlot(data, calDels, VthrComps, outputDir)
-
-    """
-    dr=SE(test,'DEAD_ROCS')
-    for n in deadROCs: SE(dr,'ROC').text=str(n)
-    
-    lr=SE(test,'LIVE_ROCS')
-    for n in range(16): 
-        if n not in deadROCs: SE(lr,'ROC').text=str(n)
-    """ 
+    if makePlots:
+        getHAHDPlot(data, outputDir)
+        getProgramROCPlot(data, deadROCs, outputDir)
+        getVanaPlot(data, outputDir)
+        getIanaPlot(data, outputDir)
+        getVthrCompCalDelPlot(data, calDels, VthrComps, outputDir)
+        
 ################################################################
 
 def analyzeIV(inputDir, outputDir, log, data):
@@ -640,7 +546,8 @@ def analyzeIV(inputDir, outputDir, log, data):
     scan=SE(top,'SCAN')
     attachName(scan)
     level=SE(scan,'LEVEL')
-    level.text='FNAL'
+    if doCold: level.text='FNAL'
+    else: level.text='FNAL_17C'
     type=SE(scan,'TYPE')
     type.text='IV'
     file=SE(scan,'FILE')
@@ -651,7 +558,7 @@ def analyzeIV(inputDir, outputDir, log, data):
     
     nBins=len(values)
     xMin=0
-    xMax=nBins*round(values[1][0]-xMin,0) #values[-1][0]
+    xMax=nBins*round(values[1][0]-xMin,0)
     binWidth=float(xMax-xMin)/nBins
     xMin-=binWidth/2
     xMax-=binWidth/2
@@ -669,27 +576,25 @@ def analyzeIV(inputDir, outputDir, log, data):
     compliance=SE(scan,'COMPLIANCE')
     compliance.text=str(round(c,1))
     #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    
-    c=TCanvas()
-    c.SetLogy()
-    h.Draw()
-    l=TLine(b,h.GetYaxis().GetXmin(),b,h.GetMaximum()); l.SetLineColor(kRed)
-    l.Draw('same')
-    c.SaveAs(outputName.replace('xml','png'))
 
-    pic=SE(top,'PIC')
-    attachName(pic)
-    file=SE(pic,'FILE')
-    file.text=os.path.basename(outputName.replace('xml','png'))
-    txt=SE(pic,'TXT')
-    txt.text=os.path.basename(outputName).replace('xml','txt')
-    part=SE(pic,'PART')
-    part.text='sidet_p'
-    comment=open(outputDir+'/'+txt.text,'w')
-    comment.write('\nbreakdown='+str(b)+'\n')
+    if doCold and makePlots:
+        c=TCanvas()
+        c.SetLogy()
+        h.Draw()
+        l=TLine(b,h.GetYaxis().GetXmin(),b,h.GetMaximum()); l.SetLineColor(kRed)
+        l.Draw('same')
+        c.SaveAs(outputName.replace('xml','png'))
 
-    #to do:
-    # -V(100uA)
+        pic=SE(top,'PIC')
+        attachName(pic)
+        file=SE(pic,'FILE')
+        file.text=os.path.basename(outputName.replace('xml','png'))
+        txt=SE(pic,'TXT')
+        txt.text=os.path.basename(outputName).replace('xml','txt')
+        part=SE(pic,'PART')
+        part.text='sidet_p'
+        comment=open(outputDir+'/'+txt.text,'w')
+        comment.write('\nbreakdown='+str(b)+'\n')
 
 #---------------------------------------------------------------
 
@@ -725,47 +630,7 @@ def getBreakdown(h):
         l1=TLine(h2.GetXaxis().GetXmin(),tolerance,h2.GetXaxis().GetXmax(),tolerance); l1.Draw('same')
         l2=TLine(h2.GetXaxis().GetXmin(),-tolerance,h2.GetXaxis().GetXmax(),-tolerance); l2.Draw('same')
         c_debug.SaveAs('debug.pdf')
-    """
-    depletion=0
-    breakdown=0
 
-    firstBin=0
-    lastBin=0
-    for binNo in range(width+2,lastFilledBin-width-1):
-        if abs(h2.GetBinContent(binNo))<tolerance:
-            if not firstBin:
-                if h0.GetBinCenter(binNo)<200:
-                    firstBin=binNo
-            else:   lastBin =binNo
-        elif firstBin:
-            if lastBin-firstBin>breakdown-depletion:
-                depletion=firstBin
-                breakdown=lastBin
-            firstBin=0
-            lastBin=0
-
-        #handle the case of no breakdown
-        if binNo==lastFilledBin-width-2 and firstBin:
-            if lastBin-firstBin>breakdown-depletion:
-                depletion=firstBin
-                breakdown=binNo+1
-
-        if DEBUG: print 'binNo:',binNo,'   firstBin:',firstBin,'   lastBin:',lastBin,'   depletion:',depletion,'   breakdown:',breakdown
-
-    depletion-=width-1
-    breakdown+=width+1
-
-    if DEBUG: print 'breakdown:',h0.GetBinCenter(breakdown)
-
-    return h0.GetBinCenter(breakdown)
-    """
-    """
-    I100=h.GetBinContent(h.FindBin(100))
-    print I100
-    result=h.GetBinCenter(h.FindFirstBinAbove(2*I100))
-    print result
-    return result
-    """
     above=False
     for binNo in range(lastFilledBin-width-1,width+2,-1):
         if h2.GetBinContent(binNo)>tolerance:
@@ -783,8 +648,6 @@ def getCompliance(values):
     v=values[-1][0]
     i=values[-1][1]
         
-    #if abs(abs(i)-1.0000e-04)<.01*1.0000e-04: c=v
-    #else: c=6000
     c=v
 
     if DEBUG: print 'compliance:',c
@@ -816,10 +679,6 @@ def analyzeFullTest(inputDir, outputDir, log, data):
             addressDefectPixels=[int(x) for x in line.split()[-16:]]
             print 'addressDefectPixels:',addressDefectPixels
 
-        if 'number of dead bumps (per ROC)' in line:
-            badBumps=[int(x) for x in line.split()[-16:]]
-            print 'badBumps:',badBumps
-            
         if 'Final Module Temperature:' in line:
             finalTemp=line.split('Temperature:')[1].split()[0]
             print 'finalTemp:',finalTemp
@@ -832,23 +691,30 @@ def analyzeFullTest(inputDir, outputDir, log, data):
             finalIdig=line.split('Current:')[1].strip()
             print 'finalIdig:',finalIdig
 
-        """
-        if 'separation cut       (per ROC):' in line:
-            bbCuts=[int(x) for x in line.split()[-16:]]
-            if DEBUG: print 'bbCuts:',bbCuts
-        """
-
-    try: deadPixels, maskDefectPixels, addressDefectPixels, badBumps#, bbCuts
+    try: deadPixels, maskDefectPixels, addressDefectPixels
     except: 
-        print 'WARNING: Missing data - some subset of deadPixels, maskDefectPixels, addressDefectPixels, badBumps'
+        print 'WARNING: Missing data - some subset of deadPixels, maskDefectPixels, addressDefectPixels'
         print deadPixels
         print maskDefectPixels 
         print addressDefectPixels
-        print badBumps
-        #print bbCuts
 
     RTD_TEMP=SE(test,'RTD_TEMP')
     RTD_TEMP.text=str(finalTemp)
+
+    getPixelAlivePlots(data, deadPixels, maskDefectPixels, addressDefectPixels, outputDir)
+    getTrimPlots(data,outputDir)
+    getSCurvePlots(data,outputDir)
+    getPulseHeightOptPlots(data,outputDir)
+    getGainPedestalPlots(data,outputDir)
+    getBumpBondingPlots(data, outputDir)
+
+    global badBumps
+    badBumps=[len(e) for e in badBumps]
+    print 'badBumps:',badBumps
+
+    global trimDefectPixels
+    trimDefectPixels=[len(e) for e in trimDefectPixels]
+    print 'trimDefectPixels:',trimDefectPixels
 
     ROCS=SE(test,'ROCS')
     for i in range(16):
@@ -865,49 +731,20 @@ def analyzeFullTest(inputDir, outputDir, log, data):
         UNMASKABLE_PIX.text=str(maskDefectPixels[i])
         UNADDRESSABLE_PIX=SE(ROC,'UNADDRESSABLE_PIX')
         UNADDRESSABLE_PIX.text=str(addressDefectPixels[i])
+        VCAL_THRESH=SE(ROC,'VCAL_THRESH')
+        VCAL_THRESH.text=str(trimDefectPixels[i])
 
-    """
-    n=0
-    for i in deadPixels: n+=i
-    dead_pix=SE(test,'DEAD_PIX')
-    dead_pix.text=str(n)
-
-    n=0
-    for i in badBumps: n+=i
-    dead_bumps_elec=SE(test,'DEAD_BUMPS_ELEC')
-    dead_bumps_elec.text=str(n)
-    """
-    
-    """
-    n=0
-    for i in maskDefectPixels: n+=i
-    unmaskable_pix=SE(test,'UNMASKABLE_PIX')
-    unmaskable_pix.text=str(n)
-
-    n=0
-    for i in addressDefectPixels: n+=i
-    unaddressable_pix=SE(test,'UNADDRESSABLE_PIX')
-    unaddressable_pix.text=str(n)
-    """
-
-    getPixelAlivePlots(data, deadPixels, maskDefectPixels, addressDefectPixels, outputDir)
-    #getBumpBondingPlots(data, badBumps, bbCuts, outputDir)
-    getBumpBondingPlots(data, badBumps, outputDir)
-    getSCurvePlots(data,outputDir)
-    getTrimPlots(data,outputDir)
-    getPulseHeightOptPlots(data,outputDir)
-    getGainPedestalPlots(data,outputDir)
-    
 #---------------------------------------------------------------
 
 def getConfigs(inputDir, outputDir, log, data):
+    if not makePlots: return
+
     for config in ['configParameters.dat', 
                    'tbParameters.dat', 
                    'tbmParameters_C*a.dat','tbmParameters_C*b.dat', 
                    'testParameters.dat', 
                    'testPatterns.dat', 
                    'defaultMaskFile.dat', 
-                   #'SCurveData_C*.dat', 
                    'trimParameters35_C*.dat', 
                    'phCalibration_C*.dat', 
                    'phCalibrationFitErr35_C*.dat', 
@@ -935,11 +772,12 @@ def makeXML(inputDir):
     print 
     moduleName=os.path.basename(inputDir.split('_')[0])
     print 'moduleName:',moduleName
+    
+    global doCold
+    doCold='m20C' in inputDir
 
     outputDir=os.environ['HOME']+'/dbUploads/'+moduleName
     if os.path.exists(outputDir):
-        #print 'WARNING: outputDir exists'
-        #if not DEBUG: exit()
         rmtree(outputDir)
     
     os.makedirs(outputDir)
@@ -954,7 +792,6 @@ def makeXML(inputDir):
     data['fulltest']=log['fulltest'].replace('.log','.root')
     
     log['iv']=inputDir+'/*_IV_*/ivCurve.log'
-    #data['iv']=log['iv'].replace('.log','.root')
     
     for key in log.keys():
         try:
@@ -978,19 +815,33 @@ def makeXML(inputDir):
     global test
     test=SE(top,'TEST')
     attachName(test)
+    
     notes=SE(test,'NOTES')
-    notes.text='Test results and config files can be found in: '+os.path.basename(inputDir)
+    if makePlots:
+        notes.text='Test results and config files can be found in: '+os.path.basename(inputDir)
+    else:
+        notes.text='Re-uploading new data from: '+os.path.basename(inputDir)
 
-    for f in [analyzeIV,
+    if doCold: tests=[analyzeIV,
               makeSummaryPlots,
               analyzePreTest,
               analyzeFullTest,
               getConfigs,
-              ]:
-        try:
-            f(inputDir, outputDir, log, data)
-        except: 
-            print 'WARNING: unable to run',f.__name__
+              ]
+    else:
+        tests=[analyzeIV]
+
+    global defectivePixels, badBumps, trimDefectPixels
+    defectivePixels=[]
+    badBumps=[]
+    trimDefectPixels=[]
+    
+    for f in tests:
+        #try:
+        f(inputDir, outputDir, log, data)
+        #except Exception,e: 
+        #print 'WARNING: unable to run',f.__name__
+        #print str(e)
 
     output=open(outputDir+'/master.xml','w')
     output.write(prettify(top))

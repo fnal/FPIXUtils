@@ -24,28 +24,33 @@
 #include <string>
 #include <numeric>
 
-// .x efficiency.cpp+("/path/to/your/files")
-// /path/to/your/files/000_sometest_p17/...
-// /path/to/your/files/001_HREfficiency_50/... <-- commander_HREfficiency.root, defaultMaskFile.dat, testParameters.dat
-// /path/to/your/files/002_HREfficiency_100/... <-- "
-// /path/to/your/files/003_HREfficiency_150/... <--  "
-
-
-int eff() {
+int eff( string newmod, string fileDesg ){
     
     	cout << "Starting Efficency Script" << endl;
 
+	cout << "Usage:  eff( module_name_string , starting_hr_file_string )" << endl;
+	cout << "for defaults enter \"hr\" for starting hr file designator. " << endl;
+
 	char chpath[256];
     	getcwd(chpath, 255);
-	std::string path = chpath; 
-
-    	std::string mod("pa243"); //<<<<<  set this string to folder/module name config files are in.
+	std::string path = chpath;
+    	std::string mod("pa315");//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+	if( newmod != "" )  mod = newmod;
+	// <<<<<< change folder/module name to run in 
 	//std::string mod("yhc691015sn3p35");
 
-	std::string dataPath =  path + "/" + mod + "data";  //<< adds "data" to end of config file name to create data directory name 
+	std::string dataPath =  path + "/" + mod + "data";
+    	//std::string measurementFolder =  mod + "data";
 	std::string configPath = path + "/" + mod; 
-
-	std::string HighRateFileName( "hr" ); //<<< search sring to find high rate files in directory 
+	std::string HighRateSaveFileName( "Results_Hr" );
+	std::string HighRateFileName( "hr" );//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+	if( fileDesg != "" ) HighRateFileName = fileDesg;                
+	int namelength = HighRateFileName.length();
+	// <<<<<<<<<<<<<<<<<<<  change Highrate File name to use
+    	//  assumes something like hr08ma_pa225_082715.root
+    	//  10 or 08 or 06 or 04 or 02 required after hr
+    	//      --   looks for a root file  with "HighRateFileName" followed by 10 or 08 or ect....
+    	//      --   so will parse hr10****.root and hr08**********.root ect...  with above settings
     	std::string moduleName = mod;
 
 	std::string maskFileName("defaultMaskFile.dat");
@@ -64,7 +69,7 @@ int eff() {
 	
 	std::string directoryList = mod;
 
-	std::string outFileName = dataPath + "/efficiency.log";
+	std::string outFileName = dataPath + "/" + HighRateFileName + "Efficiency.log";
         std::ofstream log(outFileName.c_str());
 
 
@@ -81,7 +86,7 @@ int eff() {
         		fname = file->GetName();
 			std::cout << fname << endl;
          		std::string filename = fname.Data();
-			if (filename.substr(0,2) == HighRateFileName ) {
+			if (filename.substr(0,namelength) == HighRateFileName ) {
 				if( filename.substr(( filename.length() - 4 ), 4)  == "root" ){
          				fileList.push_back(filename);
 					std::cout << "---Added to fileList" << endl;
@@ -90,35 +95,95 @@ int eff() {
       		}
     	}
 
+
+        std::vector<double> ylist;
+        ylist.push_back(1.0);
+        ylist.push_back(0.8);
+        ylist.push_back(0.6);
+        ylist.push_back(0.4);
+        ylist.push_back(0.2);
+
+	std::cout << " Declaring vectors" << endl;
+
     	std::vector< std::vector< std::pair< int,int > > > maskedPixels;
-
-    	//cout << "Sort HR File list " << endl;
-	//std::sort(fileList.begin(), fileList.end());
-
 	std::vector< std::vector< double > > efficiencies;
 	std::vector< std::vector< double > > efficiencyErrors;
 	std::vector< std::vector< double > > rates;
 	std::vector< std::vector< double > > rateErrors;
-        std::vector< std::vector< double > > dcolHits;
-        std::vector< std::vector< double > > dcolNumList;
-        std::vector< std::vector< double > > dcolUniformity;
+        std::vector< std::vector< std::vector< double > > > byAmpEfficiencies;
+        std::vector< std::vector< std::vector< double > > > byAmpEfficiencyErrors;
+        std::vector< std::vector< std::vector< double > > > byAmpRates;
+        std::vector< std::vector< std::vector< double > > > byAmpRateErrors;
+	std::vector< std::vector< std::vector< double > > > dcolHits;
+	std::vector< std::vector< std::vector< double > > > dcolHitErrors;
+	std::vector< std::vector< std::vector< double > > > dcolRates;
+        std::vector< std::vector< std::vector< double > > > dcolRateErrors;
 
-	std::vector< double > empty; 
+	std::vector< std::vector< double > > lineList;
 
-	dcolNumList.push_back(empty);
+	std::vector< std::vector< double > > bigempty; 
+	std::vector< double > empty;
 
-	for (int i=0;i<(nRocs+1)*6;i++) {
+	std::cout << " Line Lists" << endl;
+	for( int i=0; i <4; i++ ){
+		lineList.push_back(empty);
+	}
+
+	for( int i = 0; i<201;i++){
+		lineList[1].push_back(.98);
+		lineList[0].push_back(i);
+	}
+
+	for( int i = 0; i<= 100; i++ ){
+		lineList[3].push_back(i/100);
+		lineList[2].push_back(120.0);
+	} 
+
+	std::cout << "byamp inits" << endl;
+
+	for (int i=0;i<=5;i++){
+		byAmpEfficiencies.push_back(bigempty);
+                byAmpEfficiencyErrors.push_back(bigempty);
+                byAmpRates.push_back(bigempty);
+                byAmpRateErrors.push_back(bigempty);
+	}
+
+	std::cout << "initilizing 2 tier" << endl;
+
+	for( int i=0; i<=5; i++){
+		for( int j=0;j<=nRocs;j++){
+                        byAmpEfficiencies[i].push_back(empty);
+                        byAmpEfficiencyErrors[i].push_back(empty);
+                        byAmpRates[i].push_back(empty);
+                        byAmpRateErrors[i].push_back(empty);
+                }
+	}
+	
+        std::cout << "initilizing 1 tier" << endl;
+
+	for (int i=0;i<=nRocs;i++) {
 		efficiencies.push_back(empty);
 		efficiencyErrors.push_back(empty);
 		rates.push_back(empty);
 		rateErrors.push_back(empty);
-		dcolHits.push_back(empty);
-		dcolUniformity.push_back(empty);
+		dcolHits.push_back(bigempty);
+         	dcolHitErrors.push_back(bigempty);
+	        dcolRates.push_back(bigempty);
+                dcolRateErrors.push_back(bigempty);
 	}
 	
-	for ( int i=1; i < (nDCol+1); i++ ) { dcolNumList[0].push_back(i); }
 
-	cout << "loop over all commander_HREfficiency.root root files" << endl;
+	for( int i=0; i<=nRocs; i++){
+		for( int j=0; j<=nDCol; j++){
+			dcolHits[i].push_back(empty);
+			dcolHitErrors[i].push_back(empty);
+	                dcolRates[i].push_back(empty);
+	                dcolRateErrors[i].push_back(empty);
+		}
+	}
+
+
+	std::cout << "loop over all commander_HREfficiency.root root files" << endl;
 	for (int i=0;i<1;++i) {
 		chdir(path.c_str());
 		std::cout << "looking in directory <" << directoryList << ">" << std::endl;
@@ -131,12 +196,9 @@ int eff() {
 	
 		while (getline(testParameters, line2)) {
 			cout << line2 << endl;
-			//line2 = line2.toLowerCase();
-			//std::transform(line2.begin(), line2.end(), line2.begin(), ::tolower);
 			if (line2.find("HighRate") != std::string::npos) {
 				while (getline(testParameters, line2)) {
 					if (line2.size() < 1) break;
-					//std::transform(line2.begin(), line2.end(), line2.begin(), ::tolower);
 					size_t pos = line2.find("Ntrig");
 					std::cout << line2 << " " << pos << endl;
 					if (pos != std::string::npos) {
@@ -187,24 +249,54 @@ int eff() {
 		}
 		maskFile.close();
 	}
-	
-	
-        chdir( dataPath.c_str() );
-	int len = fileList.size();
-	std::cout<< "Going Over HR files: quanity: " << len << endl;	                                
+
+	chdir( dataPath.c_str() );
+        int len = fileList.size();
+	std::string blank(" ");
+	std::vector< std::string > listTFile;
+	listTFile.push_back( blank );
+        listTFile.push_back( blank );
+        listTFile.push_back( blank );
+        listTFile.push_back( blank );
+        listTFile.push_back( blank );
+
+	cout << "Sorting T file list " << endl;
+
+	for( int i=0; i<len; i++){
+
+		std::string currentRootFile = fileList[i];		
+		std::string fileRate = currentRootFile.substr(namelength,2);
+		std::cout<< " Looking for: " << fileRate << endl;
+		if(fileRate == "10") { rateIndex = 0;}
+		else if( fileRate == "08"){ rateIndex = 1;}
+		else if( fileRate == "06"){ rateIndex = 2;}
+		else if( fileRate == "04"){ rateIndex = 3;}
+		else if( fileRate == "02"){ rateIndex = 4;}
+		else {
+			std::cout << "could not read rate: " << currentRootFile << " .";
+			exit(0);
+		}
+		listTFile[rateIndex]=currentRootFile;
+	}
+
+	std::cout<< "Processing  HR files: quanity: " << len << endl;	                                
 	log << "Double Column's with Efficency < 90 % " << endl;
 	for (int i=0; i<len ; ++i) {
 
-		std::string currentRootFile = fileList[i];	
+		int rateIndex = 0;		
+                int dColModCount = 0;
+
+		std::string currentRootFile = listTFile[i];	
 		std::cout << "Working file : " << currentRootFile << endl;
 
-		TFile f(currentRootFile.c_str());
-		if (f.IsZombie()) {
+		TFile curTfile(currentRootFile.c_str());
+		if (curTfile.IsZombie()) {
 			std::cout << "could not read: " << currentRootFile << " .";
 			exit(0);
 		}
+
 		std::cout << "list keys:" << std::endl;
-		TIter next(f.GetListOfKeys());
+		TIter next(curTfile.GetListOfKeys());
 		bool highRateFound = false;
 	
 		TKey *obj;
@@ -222,43 +314,47 @@ int eff() {
 			char xraymapName[256];
 			std::ofstream output;
            
-			std::cout << "calculating rates and efficiencies" << std::endl;
+//			std::cout << "calculating rates and efficiencies" << std::endl;
 
 			for (int iRoc=0;iRoc<nRocs;iRoc++) {
 
-				std::cout << "ROC" << iRoc << std::endl;
+//				std::cout << "ROC" << iRoc << std::endl;
 				sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);
-				f.GetObject(xraymapName, xraymap);
+				curTfile.GetObject(xraymapName, xraymap);
 				if (xraymap == 0) {
 					std::cout << "ERROR: x-ray hitmap not found!" << std::endl;
 				}
 				int nBinsX = xraymap->GetXaxis()->GetNbins();
 				int nBinsY = xraymap->GetYaxis()->GetNbins();
-
+				
 				sprintf(calmapName, "HighRate/highRate_C%d_V0;1", iRoc);
-				f.GetObject(calmapName, calmap);
+				curTfile.GetObject(calmapName, calmap);
 				if (calmap == 0) {
 					sprintf(calmapName, "HighRate/highRate_calmap_C%d_V0;1", iRoc);
-					f.GetObject(calmapName, calmap);
+					curTfile.GetObject(calmapName, calmap);
 					if (calmap == 0) {
 						std::cout << "ERROR: calibration hitmap not found!" << std::endl;
 					}
 				}
 
-				std::cout << nBinsX << "x" << nBinsY << std::endl;
-				//float rate, efficiency;
-				for (int doubleColumn = 1; doubleColumn <= 25; doubleColumn++) {
-					//std::cout << "reading dc " << doubleColumn << std::endl;
+//				std::cout << nBinsX << "x" << nBinsY << std::endl;
+				for (int dcol = 0; dcol < nDCol; dcol++) {
+//					std::cout << "reading dc " << dcol << std::endl;
 
 					std::vector<double> hits;
 					std::vector<double> xray_hits;
-					
+					double totCHits = 0;
+					double totXHits = 0;						
+					double totXHitErrors = 0;					
+
+//					std::cout<<"Getting data from Histograms" << endl;
+
 					for (int y = 0; y < 160; y++) {
 
 						bool masked = false;
 						//std::cout << " Masking " << endl;
 						for (int iMaskedPixels=0; iMaskedPixels < maskedPixels[iRoc].size(); iMaskedPixels++) {
-							int locFirst = doubleColumn * 2 + (int)(y/80);
+							int locFirst = dcol * 2 + (int)(y/80);
 							int locSecond = y%80;
 							if ( (maskedPixels[iRoc][iMaskedPixels].first == locFirst) && (maskedPixels[iRoc][iMaskedPixels].second == locSecond)) {
 								masked = true;
@@ -267,11 +363,15 @@ int eff() {
 						}
 
 						if ((!FIDUCIAL_ONLY || ((y % 80) > 0 && (y % 80) < 79)) && !masked) {
-							//std::cout << " get " << (doubleColumn * 2 + (int)(y / 80) + 1) << " / " <<  ((y % 80) + 1) << std::endl;
-
-							hits.push_back( calmap->GetBinContent(doubleColumn * 2 + (int)(y / 80) + 1, (y % 80) + 1) );
-							xray_hits.push_back( xraymap->GetBinContent(doubleColumn * 2 + (int)(y / 80) + 1, (y % 80) + 1) );
-
+							//std::cout << " get " << (dcol * 2 + (int)(y / 80) + 1) << " / " <<  ((y % 80) + 1) << std::endl;
+							double trans =0;
+							trans =  calmap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
+							hits.push_back(trans);
+							totCHits += trans;
+							trans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
+							xray_hits.push_back( trans );
+							totXHits += trans;
+							totXHitErrors += trans/100;
 						}
 					}
 
@@ -279,115 +379,105 @@ int eff() {
 					double totHits = 0;
 					if (nPixelsDC < 1) nPixelsDC = 1;
 					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
-					//std::cout << rate << endl;
 					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
-					//std::cout << efficiency << endl;
 					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
-					//std::cout << rateError << endl;
 					double efficiencyError = TMath::RMS(nPixelsDC, &hits[0]) / std::sqrt(nPixelsDC) / nTrigPerPixel;
-					//std::cout << "totaling Hits"  << endl;
-					for( int h = 0; h < nPixelsDC; h++){ totHits = totHits + xray_hits[0][h]; }
 					
-					std::cout << "Assigning vales" << endl;
+//					std::cout << "Assigning vales" << endl;
 					efficiencies[iRoc].push_back(efficiency);
 					efficiencyErrors[iRoc].push_back(efficiencyError);
 					rates[iRoc].push_back(rate);
 					rateErrors[iRoc].push_back(rateError);
-                                        dcolHits[iRoc].push_back(totHits);
-
-					efficiencies[nRocs*(1+i)+iRoc+1].push_back(efficiency);
-                                        efficiencyErrors[nRocs*(1+i)+iRoc+1].push_back(efficiencyError);
-                                        rates[nRocs*(1+i)+iRoc+1].push_back(rate);
-                                        rateErrors[nRocs*(1+i)+iRoc+1].push_back(rateError);
-                                        dcolHits[nRocs*(1+i)+iRoc+1].push_back(totHits);
+                                        dcolHits[iRoc][dcol].push_back(totXHits);
+                                        dcolHitErrors[iRoc][dcol].push_back(totXHitErrors);
+					dcolRates[iRoc][dcol].push_back(rate);
+                                        dcolRateErrors[iRoc][dcol].push_back(rateError);
 
                                         efficiencies[nRocs].push_back(efficiency);
                                         efficiencyErrors[nRocs].push_back(efficiencyError);
                                         rates[nRocs].push_back(rate);
                                         rateErrors[nRocs].push_back(rateError);
-                                        dcolHits[nRocs].push_back(totHits);
+					dcolRates[nRocs][0].push_back(rate);
+					dcolRates[nRocs][1].push_back(dColModCount);		
+			
+					byAmpEfficiencies[rateIndex][iRoc].push_back(efficiency);
+                                        byAmpEfficiencyErrors[rateIndex][iRoc].push_back(efficiencyError);
+                                        byAmpRates[rateIndex][iRoc].push_back(rate);
+					byAmpRateErrors[rateIndex][iRoc].push_back(rateError);
 					
-					efficiencies[nRocs*(2+i)].push_back(efficiency);
-                                        efficiencyErrors[nRocs*(2+i)].push_back(efficiencyError);
-                                        rates[nRocs*(2+i)].push_back(rate);
-                                        rateErrors[nRocs*(2+i)].push_back(rateError);        				
-                                        dcolHits[nRocs*(2+i)].push_back(totHits);
+					dColModCount++;		
 
 					if( efficiency < 0.9 ){	
-						log << "Roc: " << iRoc << " dc: " << doubleColumn << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " eff: " << efficiency << std::endl;
+						log << "Roc: " << iRoc << " dc: " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " eff: " << efficiency << std::endl;
 					}
 					if (VERBOSE) {
-						std::cout << "dc " << doubleColumn << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
-					}
+//						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
 				}
+//					std::cout<<"next dcol"<<endl;
+				}
+//				std::cout << "next roc" << endl;
 			}
-
-
-
-	  		//output.open (Form("%s/output_%d.txt",the_path,i), std::ofstream::out);
-			//output.close();
-
+//			std::cout<<"next file"<<endl;
 		} else {
-			std::cout << "high rate test not found";
+//			std::cout << "high rate test not found" << std::endl;
 			return 1;
 		}
+//	std:cout << "end of Data Collection" << endl;
 	}
 
-	for( int ir = 0; ir < nRocs; ir++){
-		for( int dc = 0; dc < nDCol; dc++){
-			dcolUniformity[ir].push_back( dcolHits[nRocs*(4)+ir+1][dc] / dcolHits[nRocs+ir+1][dc] );
-		}			
-	}
-
-
-	std::cout << "Output Phase" << endl;
+	std::cout << "Output Phase" << std::endl;
 
 	std::ofstream outfile("efficiency.csv");
+        std::vector<double> slopes;
+        std::vector<double> slope_err;
 
 	for (int iRoc=0;iRoc<nRocs;iRoc++) {
 		
 		std::cout << "Working in ROC " << iRoc << endl;
 		TCanvas *c1 = new TCanvas("c1", "efficiency", 200, 10, 700, 500);
+		c1->Range(0,0,1, 300);
 		TGraphErrors* TGE = new TGraphErrors(efficiencies[iRoc].size(), &rates[iRoc][0], &efficiencies[iRoc][0], &rateErrors[iRoc][0] , &efficiencyErrors[iRoc][0]);
+		TGraph* tge2 = new TGraph( lineList[0].size(), &lineList[0][0], &lineList[1][0] );
+                TGraph* tge3 = new TGraph( lineList[2].size(), &lineList[2][0], &lineList[3][0] );
+
 		char graphTitle[256];
 		sprintf(graphTitle, "Fiducial Efficiency vs Rate for %s ROC %d", moduleName.c_str(), iRoc);
 		TGE->SetTitle(graphTitle);
 		TGE->SetMarkerStyle(3);
 		TGE->SetMarkerSize(1);
-	//	TGE->GetXaxis->SetTitle("Rate: MHz/cm^2");
-	//	TGE->GetYaxis->SetTitle("Efficency 1.00 = 100%");
+		TGE->GetXaxis()->SetTitle("Rate: MHz/cm^2");
+		TGE->GetYaxis()->SetTitle("Efficency 1.00 = 100%");
 		TGE->Draw("ap");
+		
+		tge2->SetMarkerColor( kRed );
+		tge2->SetMarkerStyle(21);
+ 
+		tge3->SetMarkerColor( kRed );
+		tge3->SetMarkerStyle(21);
 
 		TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 70, 170);
 		myfit->SetParameter(0, 1);
 		myfit->SetParLimits(0, 0.9, 1.1);
 		myfit->SetParameter(1, 5e-9);
 		myfit->SetParLimits(1, 1e-10, 5e-8);			
-
+	
+		tge2->Draw("same");
+		tge3->Draw("same");	
 		TGE->Fit(myfit, "BR");
-
-		double minimumEfficiency = TMath::MinElement(efficiencies[iRoc].size(), &efficiencies[iRoc][0]);
-
-//		TLegend* leg = new TLegend(0.13,0.3,0.75,0.2);
-
-  // 		leg->SetTextFont(62);
-//		leg->SetTextSize(0.03);
+		c1->Update();
+		
 		double p0= myfit->GetParameter(0);
 		double p1= myfit->GetParameter(1);
 		double p0_err = myfit->GetParError(0);
 		double p1_err = myfit->GetParError(1);
 		double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
-//		leg->AddEntry("", Form("eff at 120Mhz/cm2: %f +/- %f", p0 - p1 * 120*120*120, eff_err) );
 		outfile << (p0 - p1 * 120*120*120) << std::endl;
 		log << "Eff at 120MHz/cm^2 : ROC : " << iRoc << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl; 
-//   		leg->SetTextFont(62);
-//		leg->AddEntry("fitfun",Form("cubic fit: %f - %e *x^3", p0, p1),"l");
-//		leg->Draw();
 
 		c1->Modified();
 		gPad->Modified();
 		char saveFileName[256];
-		sprintf(saveFileName, "Efficiency_C%d.png", iRoc);
+		sprintf(saveFileName, "%s_Eff_C%d.png",HighRateSaveFileName.c_str(), iRoc);
 		c1->SaveAs(saveFileName);
 		c1->Clear();
 		TGE->Clear();
@@ -395,50 +485,31 @@ int eff() {
 		myfit->Clear();
 		delete myfit;
 		delete c1;
-//		delete leg;
-
-		cout << "making c2" << endl;
-                TCanvas *c2 = new TCanvas("c2", "hitsperdcol", 200, 10, 700, 500);
-            	
-
-		cout <<"making th"<< endl;
-	//	cout << dcolHits.size() << " " << (nRocs*2)+iRoc+1 << " " << dcolHits[(nRocs*2)+iRoc+1].size() << " "  << dcolNumList[0].size()<<endl;
-  	//	cout << dcolUniformity[iRoc].size() << " " << dcolNumList[0].size()<<endl;
-		TGraph* Tdcol = new TGraph( dcolNumList[0].size(), &dcolNumList[0][0], &dcolHits[(nRocs*2)+iRoc+1][0] );//        &dcolUniformity[iRoc][0] );\
-		cout << "Title and Save" << endl;
-		char graphTitle2[256];
-                sprintf(graphTitle2, "Hits vs DCol for Module: %s ROC %d", moduleName.c_str(), iRoc);
-                Tdcol->SetTitle(graphTitle);
-            //    Tdcol->GetXaxis->SetTitle("Double Column");
-            //    Tdcol->GetYaxis->SetTitle("Number of Hits");
-                Tdcol->SetMarkerStyle(3);
-                Tdcol->SetMarkerSize(1);
-                Tdcol->Draw("ap");
-
-                c2->Modified();
-                gPad->Modified();
-		               
-		char saveFileName2[256];
-		sprintf(saveFileName2, "HitsPerDCol_C%d.png", iRoc);
-                c2->SaveAs(saveFileName2);
-                c2->Clear();
-                Tdcol->Clear();
-                delete c2;
-
-
+		
 	}
 
         std::cout << "Working on Module" << endl;
-      	TCanvas *c1 = new TCanvas("c1", "Efficiency", 200, 10, 700, 500);
+      	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	TCanvas *c1 = new TCanvas("c1", "Efficiency", 200, 10, 700, 500);
         TGraphErrors* TGE = new TGraphErrors( efficiencies[nRocs].size(), &rates[nRocs][0], &efficiencies[nRocs][0], &rateErrors[nRocs][0], &efficiencyErrors[nRocs][0] );
-        char graphTitle[256];
-        sprintf(graphTitle, "Fiducial Efficiency vs Rate  for %s", moduleName.c_str());
+        TGraph* tge2 = new TGraph( lineList[0].size(), &lineList[0][0], &lineList[1][0] );
+        TGraph* tge3 = new TGraph( lineList[2].size(), &lineList[2][0], &lineList[3][0] );
+
+	char graphTitle[256];
+        sprintf(graphTitle, "%s Fiducial Efficiency vs Rate  for %s", HighRateFileName.c_str() , moduleName.c_str());
         TGE->SetTitle(graphTitle);
-//	TGE->GetXaxis->SetTitle("Rate: MHz/cm^2");
-//	TGE->GetYaxis->SetTitle("Efficency 1.00 = 100%");
-        TGE->SetMarkerStyle(3);
+	TGE->GetXaxis()->SetTitle("Rate: MHz/cm^2");
+	TGE->GetYaxis()->SetTitle("Efficency 1.00 = 100%");
+        TGE->SetMarkerStyle(7);
         TGE->SetMarkerSize(1);
         TGE->Draw("ap");
+
+
+        tge2->SetMarkerColor(2 );
+        tge2->SetMarkerStyle(21);
+
+        tge3->SetMarkerColor(2 );
+        tge3->SetMarkerStyle(21);
 
         TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 70, 170);
         myfit->SetParameter(0, 1);
@@ -446,39 +517,54 @@ int eff() {
         myfit->SetParameter(1, 5e-9);
         myfit->SetParLimits(1, 1e-10, 5e-8);
 
-     	TGE->Fit(myfit, "BR");
+        tge2->Draw("same");
+        tge3->Draw("same");
+        TGE->Fit(myfit, "BR");
+        c1->Update();
 
-        double minimumEfficiency = TMath::MinElement(efficiencies[0].size(), &efficiencies[0][0]);
-
- //       TLegend* leg = new TLegend(0.3,0.4,0.8,0.5);
-
-   //     leg->SetTextFont(62);
-     //   leg->SetTextSize(0.03);
         double p0= myfit->GetParameter(0);
         double p1= myfit->GetParameter(1);
         double p0_err = myfit->GetParError(0);
         double p1_err = myfit->GetParError(1);
         double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
-//        leg->AddEntry("", Form("eff at 120Mhz/cm2: %f +/- %f", p0 - p1 * 120*120*120, eff_err) );
-        outfile << (p0 - p1 * 120*120*120) << std::endl;
-        log << "Eff at 120MHz/cm^2 : Mod : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
-//        leg->SetTextFont(62);
- //       leg->AddEntry("fitfun",Form("cubic fit: %f - %e *x^3", p0, p1),"l");
-  //      leg->Draw();
+        
+	outfile << (p0 - p1 * 120*120*120) << std::endl;
+	log << "High Rate Run: " << HighRateFileName << endl;
+        log << "Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
 
         c1->Modified();
       	gPad->Modified();
  	char saveFileName[256];
-  	sprintf(saveFileName, "Efficiency_%s.png",moduleName.c_str());
+  	sprintf(saveFileName, "%s_Eff_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
         c1->SaveAs(saveFileName);
         c1->Clear();
         TGE->Clear();
         myfit->Clear();
        	delete myfit;
         delete c1;
-//        delete leg;
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	TCanvas *c2 = new TCanvas("c2", "DColRate", 200, 10, 700, 500);
+        TGraph* tg1 = new TGraph( dcolRates[nRocs][1].size(), &dcolRates[nRocs][1][0], &dcolRates[nRocs][0][0] );
+        char graphTitle[256];
+        sprintf(graphTitle, "%s Rate by DCol for %s", HighRateFileName.c_str() , moduleName.c_str());
+        tg1->SetTitle(graphTitle);
+        tg1->GetXaxis()->SetTitle("DCol Number");
+        tg1->GetYaxis()->SetTitle("Rate: MHa/cm^2");
+        tg1->SetMarkerStyle(7);
+        tg1->SetMarkerSize(1);
+        tg1->Draw("ap");
 
+        char saveFileName3[256];
+        sprintf(saveFileName3, "%s_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        c2->SaveAs(saveFileName3);
+        c2->Clear();
+        tg1->Clear();
+        delete c2;
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	outfile.close();
-
+	std::cout <<"Thats all folks!!!" << endl; 
 	return 0;
+
+
 }
+

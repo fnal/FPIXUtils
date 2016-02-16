@@ -68,6 +68,9 @@ def analyze(inputFile, outputDir):
 
     test = SE(top, 'TEST')
     attachName(test)
+    
+    xraytested = SE(test,'XRAY_TESTED')
+    xraytested.text=str(1)
 
     rocs=SE(test, 'ROCS')
 

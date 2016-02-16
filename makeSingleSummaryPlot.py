@@ -26,16 +26,26 @@ if not arguments.pathToHistogram:
     sys.exit(0)
 
 from moduleSummaryPlottingTools import *
+from ROOT import TFile
 
 gROOT.SetBatch()
+
+if not os.path.exists(arguments.inputFileName):
+    print "invalid input file, quitting"
+    sys.exit(0)
+
 
 canvas = produce2DSummaryPlot(arguments.inputFileName,
                               arguments.pathToHistogram,
                               arguments.version)
+
+if canvas is None:
+    sys.exit(0)
+
 if arguments.outputFileName:
     name = arguments.outputFileName
 else:
-    name = canvas.GetName()
+    name = arguments.pathToHistogram.replace("/","_") + "_V" + str(arguments.version)
 if arguments.logZ:
     canvas.SetLogz()
 
