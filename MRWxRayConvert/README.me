@@ -1,21 +1,26 @@
 MRWxRayConvert_2_1.py is the newest converter, used for data taken using the BPIX procedure.
 
-Usage: python MRWxRayConvert_2_1.py [elComandante directory containing Xray results]
+- Usage: 
 
-Example: python MRWxRayConvert_2_1.py M-B-5-25_FPIXTest-17C-FNAL-160203-1352_2016-02-03_13h52m_1454529147/
+python MRWxRayConvert_2_1.py [elComandante directory containing Xray results]
 
-The user will be prompted to enter the date of desired results. 4 digit date (MMDD) should be the last string in the names of root files containing HRData and HREfficiency results. 
-A date must be specified because a module may be Xray tested more than once. 
+- Example: 
 
-Example:
+python MRWxRayConvert_2_1.py M-B-5-25_FPIXTest-17C-FNAL-160203-1352_2016-02-03_13h52m_1454529147/
 
-If the desired root files are  hr15ma_mb525_0216.root
-			       hr15ma_mb525_0216.root
-			       hr15ma_mb525_0216.root
-			       dc05_mb525_0216.root
-			       dc15_mb525_0216.root
-Input will be:
+- The user will be prompted to enter the date of desired results. 4 digit date (MMDD) should be the last string in the names of root files containing HRData and HREfficiency results. 
+- A date must be specified because a module may be Xray tested more than once. 
+
+- Example:
+
+- If the desired root files are  hr15ma_mb525_0216.root
+-				 hr10ma_mb525_0216.root
+- 			         hr05ma_mb525_0216.root
+- 			         dc05_mb525_0216.root
+- 			         dc15_mb525_0216.root
+
+- Input will be:
 
 Enter date of desired X-ray results (MMDD): 0216
 
-The script will create a new directory readable by MoReWeb and compressed .tar.gz of the directory. 
+- The root files must be named as in the above format with correct currents, lower case module name, and date. They must be in the 000_FPIXTest_p17 subdirectory. The script will abort if the right format is not found. The script will create a new directory readable by MoReWeb and compressed .tar.gz of the directory. 
