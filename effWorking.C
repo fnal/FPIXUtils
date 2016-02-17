@@ -427,17 +427,17 @@ int eff( string newmod, string fileDesg ){
 					
 					dColModCount++;		
 
-					if( (worstDColEff[iRoc] <= efficiency) and ( rate <= 120) ) { 
+					if( (worstDColEff[iRoc] <= efficiency) && ( rate <= 120) ) { 
 						worstDColEff[iRoc] = efficiency; 
 						worstDCol[iRoc] = dcol; 
 					}
 					if( i == 0 ){ 
-						hitslow.push_back(xray_hits);
+						hitslow.push_back(totXHits);
 						efflow.push_back(efficiency);
 					}
 
 					if( i == ( len - 1 )){
-						hitshigh.push_back(xray_hits);
+						hitshigh.push_back(totXHits);
 						effhigh.pushback(efficiency);
 					}     
 				
