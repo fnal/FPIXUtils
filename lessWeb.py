@@ -716,6 +716,20 @@ def analyzeFullTest(inputDir, outputDir, log, data):
     trimDefectPixels=[len(e) for e in trimDefectPixels]
     print 'trimDefectPixels:',trimDefectPixels
 
+    try: deadROCs
+    except:
+        print 3*'\nERROR'
+        print 'No Pretest results found! Notfiy expert on call.'
+        print 3*'ERROR\n'
+        exit()
+
+    try: trimDefectPixels[15]
+    except:
+        print 3*'\nERROR'
+        print 'No Scurves results found! Notfiy expert on call.'
+        print 3*'ERROR\n'
+        exit()
+
     ROCS=SE(test,'ROCS')
     for i in range(16):
         ROC=SE(ROCS,'ROC')
