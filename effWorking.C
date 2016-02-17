@@ -70,9 +70,9 @@ int eff( string newmod, string fileDesg ){
 	const int nDCol = 25;
 	
 	double worstDCol[nRocs];
-	for( int i = 0; i<nRocs; i++) worstDCol[i] = 0;
+	for( int i = 0; i<nRocs; i++) worstDCol[i] = -1;
 	double worstDColEff[nRocs];
-        for( int i = 0; i<nRocs; i++) worstDColEff[i] = 100.0;
+        for( int i = 0; i<nRocs; i++) worstDColEff[i] = 1.2;
 
 	std::string directoryList = mod;
 
@@ -298,7 +298,7 @@ int eff( string newmod, string fileDesg ){
 	}
 
 	std::cout<< "Processing  HR files: quanity: " << len << endl;	                                
-	log << "Double Column's with Efficency < 90 % " << endl;
+	log << "Double Column's with Efficency < 98 % under 120 MHz/cm^2" << endl;
 	for (int i=0; i<len ; ++i) {
 
 		int rateIndex = 0;		
@@ -427,7 +427,7 @@ int eff( string newmod, string fileDesg ){
 					
 					dColModCount++;		
 
-					if( (worstDColEff[iRoc] <= efficiency) && ( rate <= 120) ) { 
+					if( ( efficiency < worstDColEff[iRoc]) && ( rate < 120) ) { 
 						worstDColEff[iRoc] = efficiency; 
 						worstDCol[iRoc] = dcol; 
 					}
@@ -438,11 +438,11 @@ int eff( string newmod, string fileDesg ){
 
 					if( i == ( len - 1 )){
 						hitshigh.push_back(totXHits);
-						effhigh.pushback(efficiency);
+						effhigh.push_back(efficiency);
 					}     
 				
-					if( efficiency < 0.98 ){	
-						log << "Roc: " << iRoc << " dc: " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " eff: " << efficiency << std::endl;
+					if( efficiency < 0.98 && rate < 120 ){	
+						log << "Roc: " << iRoc << " dc: " << dcol << " rate: " << rate << " eff: " << efficiency << std::endl;
 					}
 					if (VERBOSE) {
 //						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
@@ -466,16 +466,18 @@ int eff( string newmod, string fileDesg ){
         std::vector<double> slope_err;
 
 	int dc = 0;
-	for( int i=0; i<=nRocs; i++){
-                for( int j=0; j<=nDCol; j++){
+	for( int i=0; i<nRocs; i++){
+                for( int j=0; j<nDCol; j++){
 			dc = (i*nDCol)+j;
 			DCUni.push_back((hitslow[dc]/hitslow[dc])/(efflow[dc]/effhigh[dc]));
 			DCUniNum.push_back(dc);
                 }
         }
 
-	double lowestdceff = 100;
-	int lowestdc = 0;
+	double lowestdceff = 1.2;
+	int lowestdc = -1;
+	int lowestroc = 25;
+	log << endl;
 
 	for (int iRoc=0;iRoc<nRocs;iRoc++) {
 		
@@ -501,7 +503,7 @@ int eff( string newmod, string fileDesg ){
 		tge3->SetMarkerColor( kRed );
 		tge3->SetMarkerStyle(21);
 
-		TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 70, 170);
+		TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
 		myfit->SetParameter(0, 1);
 		myfit->SetParLimits(0, 0.9, 1.1);
 		myfit->SetParameter(1, 5e-9);
@@ -518,12 +520,13 @@ int eff( string newmod, string fileDesg ){
 		double p1_err = myfit->GetParError(1);
 		double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
 		outfile << (p0 - p1 * 120*120*120) << std::endl;
-		log << "Effiency at 120MHz/cm^2 for      ROC:" << iRoc << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl; 
-		log << "Lowest DC Eff Below 120MHz/cm^2: DC :" << worstDCol[iRoc] << " Eff: " << worstDColEff[iRoc] << endl;
+		log << "Estimated Effiency at 120MHz/cm^2 for ROC:" << iRoc << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl; 
+		log << "Lowest DC Eff Below 120MHz/cm^2 for   ROC:" << iRoc << "  DC :" << worstDCol[iRoc] << " Eff: " << worstDColEff[iRoc] << endl;
 
 		if( worstDColEff[iRoc] < lowestdceff ){
 			lowestdceff = worstDColEff[iRoc];
 			lowestdc = worstDCol[iRoc];
+			lowestroc = iRoc;
 		}
 
 		c1->Modified();
@@ -560,7 +563,7 @@ int eff( string newmod, string fileDesg ){
                 tge3->SetMarkerColor( kRed );
                 tge3->SetMarkerStyle(21);
 
-                TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 70, 170);
+                TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
                 myfit->SetParameter(0, 1);
                 myfit->SetParLimits(0, 0.9, 1.1);
                 myfit->SetParameter(1, 5e-9);
@@ -609,7 +612,7 @@ int eff( string newmod, string fileDesg ){
         tge3->SetMarkerColor(2 );
         tge3->SetMarkerStyle(21);
 
-        TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 40, 120);
+        TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
         myfit->SetParameter(0, 1);
         myfit->SetParLimits(0, 0.9, 1.1);
         myfit->SetParameter(1, 5e-9);
@@ -627,9 +630,9 @@ int eff( string newmod, string fileDesg ){
         double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
         
 	outfile << (p0 - p1 * 120*120*120) << std::endl;
-	log << "High Rate Run: " << HighRateFileName << endl;
-        log << "Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
-	log << "Lowest DC Efficency : DC " << lowestdc  << " Efficency: " << lowestdceff << endl;
+	log << endl;
+        log << "Estimated Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
+	log << "Lowest DC Efficency under 120MHz/cm^2 : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
 
         c1->Modified();
       	gPad->Modified();
@@ -643,7 +646,7 @@ int eff( string newmod, string fileDesg ){
         delete c1;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c4 = new TCanvas("c4", "DColUniformity", 200, 10, 700, 500);
-        TGraph* tg4 = new TGraph( DCUni.size(), &DCUni[0], &DCUniNum[0] );
+        TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
         char graphTitle[256];
         sprintf(graphTitle, "%s DC Uniformity for %s", HighRateFileName.c_str() , moduleName.c_str());
         tg4->SetTitle(graphTitle);
@@ -651,7 +654,7 @@ int eff( string newmod, string fileDesg ){
         tg4->GetYaxis()->SetTitle("DC Uniformity");
         tg4->SetMarkerStyle(7);
         tg4->SetMarkerSize(1);
-        tg4->Draw("ap");
+        tg4->Draw("apl");
 
         char saveFileName3[256];
         sprintf(saveFileName3, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
