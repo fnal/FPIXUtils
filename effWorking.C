@@ -24,23 +24,30 @@
 #include <string>
 #include <numeric>
 
-int eff(){
-    
-    	cout << "Starting Efficency Script" << endl;
 
-	char chpath[256];
-    	getcwd(chpath, 255);
-	std::string path = chpath;
-    	std::string mod("mh143");//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-	// <<<<<< change folder/module name to run in 
-	//std::string mod("yhc691015sn3p35");
+int eff( string newmod, string fileDesg ){
 
-	std::string dataPath =  path + "/" + mod + "data";
-    	//std::string measurementFolder =  mod + "data";
-	std::string configPath = path + "/" + mod; 
-	std::string HighRateSaveFileName( "Results_"+ mod );
-	std::string HighRateFileName( "hr" );//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<                 
-	int namelength = HighRateFileName.length();
+        cout << "Starting Efficency Script" << endl;
+
+        cout << "Usage:  eff( module_name_string , starting_hr_file_string )" << endl;
+        cout << "for defaults enter \"hr\" for starting hr file designator. " << endl;
+
+        char chpath[256];
+        getcwd(chpath, 255);
+        std::string path = chpath;
+        std::string mod("pa315");//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+        if( newmod != "" )  mod = newmod;
+        // <<<<<< change folder/module name to run in 
+        //std::string mod("yhc691015sn3p35");
+        
+        std::string dataPath =  path + "/" + mod + "data";
+        //std::string measurementFolder =  mod + "data";
+        std::string configPath = path + "/" + mod;
+        std::string HighRateSaveFileName( "Results_Hr" );
+        std::string HighRateFileName( "hr" );//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+        if( fileDesg != "" ) HighRateFileName = fileDesg;
+        int namelength = HighRateFileName.length();
+
 	// <<<<<<<<<<<<<<<<<<<  change Highrate File name to use
     	//  assumes something like hr08ma_pa225_082715.root
     	//  10 or 08 or 06 or 04 or 02 required after hr
