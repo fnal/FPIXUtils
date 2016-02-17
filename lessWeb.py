@@ -718,10 +718,10 @@ def analyzeFullTest(inputDir, outputDir, log, data):
 
     try: deadROCs
     except:
-        print 3*'\nERROR'
+        print 3*'\nWARNING'
         print 'No Pretest results found! Notfiy expert on call.'
-        print 3*'ERROR\n'
-        exit()
+        print 3*'WARNING\n'
+        #exit()
 
     try: trimDefectPixels[15]
     except:
