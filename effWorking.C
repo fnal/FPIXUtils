@@ -24,23 +24,30 @@
 #include <string>
 #include <numeric>
 
-int eff(){
-    
-    	cout << "Starting Efficency Script" << endl;
 
-	char chpath[256];
-    	getcwd(chpath, 255);
-	std::string path = chpath;
-    	std::string mod("mh143");//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-	// <<<<<< change folder/module name to run in 
-	//std::string mod("yhc691015sn3p35");
+int eff( string newmod, string fileDesg ){
 
-	std::string dataPath =  path + "/" + mod + "data";
-    	//std::string measurementFolder =  mod + "data";
-	std::string configPath = path + "/" + mod; 
-	std::string HighRateSaveFileName( "Results_"+ mod );
-	std::string HighRateFileName( "hr" );//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<                 
-	int namelength = HighRateFileName.length();
+        cout << "Starting Efficency Script" << endl;
+
+        cout << "Usage:  eff( module_name_string , starting_hr_file_string )" << endl;
+        cout << "for defaults enter \"hr\" for starting hr file designator. " << endl;
+
+        char chpath[256];
+        getcwd(chpath, 255);
+        std::string path = chpath;
+        std::string mod("pa315");//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+        if( newmod != "" )  mod = newmod;
+        // <<<<<< change folder/module name to run in 
+        //std::string mod("yhc691015sn3p35");
+        
+        std::string dataPath =  path + "/" + mod + "data";
+        //std::string measurementFolder =  mod + "data";
+        std::string configPath = path + "/" + mod;
+        std::string HighRateSaveFileName( "Results_Hr" );
+        std::string HighRateFileName( "hr" );//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+        if( fileDesg != "" ) HighRateFileName = fileDesg;
+        int namelength = HighRateFileName.length();
+
 	// <<<<<<<<<<<<<<<<<<<  change Highrate File name to use
     	//  assumes something like hr08ma_pa225_082715.root
     	//  10 or 08 or 06 or 04 or 02 required after hr
@@ -63,9 +70,9 @@ int eff(){
 	const int nDCol = 25;
 	
 	double worstDCol[nRocs];
-	for( int i = 0; i<nRocs; i++) worstDCol[i] = 0;
+	for( int i = 0; i<nRocs; i++) worstDCol[i] = -1;
 	double worstDColEff[nRocs];
-        for( int i = 0; i<nRocs; i++) worstDColEff[i] = 1.0;
+        for( int i = 0; i<nRocs; i++) worstDColEff[i] = 1.2;
 
 	std::string directoryList = mod;
 
@@ -110,6 +117,12 @@ int eff(){
 	std::vector< std::vector< double > > efficiencyErrors;
 	std::vector< std::vector< double > > rates;
 	std::vector< std::vector< double > > rateErrors;
+	std::vector< double > hitslow;
+	std::vector< double > hitshigh;
+	std::vector< double > efflow;
+	std::vector< double > effhigh;
+        std::vector< double > DCUni;
+        std::vector< double > DCUniNum;
         std::vector< std::vector< std::vector< double > > > byAmpEfficiencies;
         std::vector< std::vector< std::vector< double > > > byAmpEfficiencyErrors;
         std::vector< std::vector< std::vector< double > > > byAmpRates;
@@ -174,8 +187,7 @@ int eff(){
                 dcolRateErrors.push_back(bigempty);
                 dcolEff.push_back(bigempty);
                 dcolEffErrors.push_back(bigempty);
-	}
-	
+	 }
 
 	for( int i=0; i<=nRocs; i++){
 		for( int j=0; j<=nDCol; j++){
@@ -286,7 +298,7 @@ int eff(){
 	}
 
 	std::cout<< "Processing  HR files: quanity: " << len << endl;	                                
-	log << "Double Column's with Efficency < 90 % " << endl;
+	log << "Double Column's with Efficency < 98 % under 120 MHz/cm^2" << endl;
 	for (int i=0; i<len ; ++i) {
 
 		int rateIndex = 0;		
@@ -415,10 +427,22 @@ int eff(){
 					
 					dColModCount++;		
 
-					if( (worstDColEff[iRoc] < efficiency) && ( rate < 125) ) { worstDColEff[iRoc] = efficiency; worstDCol[iRoc] = dcol; }
+					if( ( efficiency < worstDColEff[iRoc]) && ( rate < 120) ) { 
+						worstDColEff[iRoc] = efficiency; 
+						worstDCol[iRoc] = dcol; 
+					}
+					if( i == 0 ){ 
+						hitslow.push_back(totXHits);
+						efflow.push_back(efficiency);
+					}
 
-					if( efficiency < 0.98 ){	
-						log << "Roc: " << iRoc << " dc: " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " eff: " << efficiency << std::endl;
+					if( i == ( len - 1 )){
+						hitshigh.push_back(totXHits);
+						effhigh.push_back(efficiency);
+					}     
+				
+					if( efficiency < 0.98 && rate < 120 ){	
+						log << "Roc: " << iRoc << " dc: " << dcol << " rate: " << rate << " eff: " << efficiency << std::endl;
 					}
 					if (VERBOSE) {
 //						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
@@ -440,6 +464,20 @@ int eff(){
 	std::ofstream outfile("efficiency.csv");
         std::vector<double> slopes;
         std::vector<double> slope_err;
+
+	int dc = 0;
+	for( int i=0; i<nRocs; i++){
+                for( int j=0; j<nDCol; j++){
+			dc = (i*nDCol)+j;
+			DCUni.push_back((hitslow[dc]/hitslow[dc])/(efflow[dc]/effhigh[dc]));
+			DCUniNum.push_back(dc);
+                }
+        }
+
+	double lowestdceff = 1.2;
+	int lowestdc = -1;
+	int lowestroc = 25;
+	log << endl;
 
 	for (int iRoc=0;iRoc<nRocs;iRoc++) {
 		
@@ -465,7 +503,7 @@ int eff(){
 		tge3->SetMarkerColor( kRed );
 		tge3->SetMarkerStyle(21);
 
-		TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 70, 170);
+		TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
 		myfit->SetParameter(0, 1);
 		myfit->SetParLimits(0, 0.9, 1.1);
 		myfit->SetParameter(1, 5e-9);
@@ -482,7 +520,14 @@ int eff(){
 		double p1_err = myfit->GetParError(1);
 		double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
 		outfile << (p0 - p1 * 120*120*120) << std::endl;
-		log << "Eff at 120MHz/cm^2 : ROC : " << iRoc << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl; 
+		log << "Estimated Effiency at 120MHz/cm^2 for ROC:" << iRoc << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl; 
+		log << "Lowest DC Eff Below 120MHz/cm^2 for   ROC:" << iRoc << "  DC :" << worstDCol[iRoc] << " Eff: " << worstDColEff[iRoc] << endl;
+
+		if( worstDColEff[iRoc] < lowestdceff ){
+			lowestdceff = worstDColEff[iRoc];
+			lowestdc = worstDCol[iRoc];
+			lowestroc = iRoc;
+		}
 
 		c1->Modified();
 		gPad->Modified();
@@ -518,7 +563,7 @@ int eff(){
                 tge3->SetMarkerColor( kRed );
                 tge3->SetMarkerStyle(21);
 
-                TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 70, 170);
+                TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
                 myfit->SetParameter(0, 1);
                 myfit->SetParLimits(0, 0.9, 1.1);
                 myfit->SetParameter(1, 5e-9);
@@ -567,7 +612,7 @@ int eff(){
         tge3->SetMarkerColor(2 );
         tge3->SetMarkerStyle(21);
 
-        TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 40, 120);
+        TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
         myfit->SetParameter(0, 1);
         myfit->SetParLimits(0, 0.9, 1.1);
         myfit->SetParameter(1, 5e-9);
@@ -585,8 +630,9 @@ int eff(){
         double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
         
 	outfile << (p0 - p1 * 120*120*120) << std::endl;
-	log << "High Rate Run: " << HighRateFileName << endl;
-        log << "Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
+	log << endl;
+        log << "Estimated Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
+	log << "Lowest DC Efficency under 120MHz/cm^2 : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
 
         c1->Modified();
       	gPad->Modified();
@@ -598,6 +644,24 @@ int eff(){
         myfit->Clear();
        	delete myfit;
         delete c1;
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	TCanvas *c4 = new TCanvas("c4", "DColUniformity", 200, 10, 700, 500);
+        TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
+        char graphTitle[256];
+        sprintf(graphTitle, "%s DC Uniformity for %s", HighRateFileName.c_str() , moduleName.c_str());
+        tg4->SetTitle(graphTitle);
+        tg4->GetXaxis()->SetTitle("DCol Number");
+        tg4->GetYaxis()->SetTitle("DC Uniformity");
+        tg4->SetMarkerStyle(7);
+        tg4->SetMarkerSize(1);
+        tg4->Draw("apl");
+
+        char saveFileName3[256];
+        sprintf(saveFileName3, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        c4->SaveAs(saveFileName3);
+        c4->Clear();
+        tg4->Clear();
+        delete c4;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c2 = new TCanvas("c2", "DColRate", 200, 10, 700, 500);
         TGraph* tg1 = new TGraph( dcolRates[nRocs][1].size(), &dcolRates[nRocs][1][0], &dcolRates[nRocs][0][0] );
@@ -611,7 +675,7 @@ int eff(){
         tg1->Draw("ap");
 
         char saveFileName3[256];
-        sprintf(saveFileName3, "%s_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        sprintf(saveFileName3, "%s_Hr_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
         c2->SaveAs(saveFileName3);
         c2->Clear();
         tg1->Clear();
