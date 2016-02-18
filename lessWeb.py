@@ -725,10 +725,10 @@ def analyzeFullTest(inputDir, outputDir, log, data):
 
     try: trimDefectPixels[15]
     except:
-        print 3*'\nERROR'
+        print 3*'\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         print 'No Scurves results found! Notfiy expert on call.'
-        print 3*'ERROR\n'
-        exit()
+        print 3*'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n'
+        #exit()
 
     ROCS=SE(test,'ROCS')
     for i in range(16):
