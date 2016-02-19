@@ -72,7 +72,20 @@ int eff( string newmod, string fileDesg ){
 	double worstDCol[nRocs];
 	for( int i = 0; i<nRocs; i++) worstDCol[i] = -1;
 	double worstDColEff[nRocs];
-        for( int i = 0; i<nRocs; i++) worstDColEff[i] = 1.2;
+        for( int i = 0; i<nRocs; i++) worstDColEff[i] = 10;
+
+	double bestDCol[nRocs];
+        for( int i = 0; i<nRocs; i++) bestDCol[i] = -1;
+        double bestDColEff[nRocs];
+        for( int i = 0; i<nRocs; i++) bestDColEff[i] = -10;
+
+	double lowestdceff = 10;
+        int lowestdc = -1;
+        int lowestroc = 25;
+
+        double highdceff = -10;
+        int highdc = -1;
+        int highroc = 25;
 
 	std::string directoryList = mod;
 
@@ -336,8 +349,8 @@ int eff( string newmod, string fileDesg ){
 
 			for (int iRoc=0;iRoc<nRocs;iRoc++) {
 
-//				std::cout << "ROC" << iRoc << std::endl;
-				sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);
+//				std::cout << "ROC" << iRoc << std::endl;                                 to move to single root file:  use same file name all files;
+				sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);i//<<  add index to "V0" "V1" ect string say:string version[3]; = {"V0", "V1", "V2"}  sync file index
 				curTfile.GetObject(xraymapName, xraymap);
 				if (xraymap == 0) {
 					std::cout << "ERROR: x-ray hitmap not found!" << std::endl;
@@ -345,7 +358,7 @@ int eff( string newmod, string fileDesg ){
 				int nBinsX = xraymap->GetXaxis()->GetNbins();
 				int nBinsY = xraymap->GetYaxis()->GetNbins();
 				
-				sprintf(calmapName, "HighRate/highRate_C%d_V0;1", iRoc);
+				sprintf(calmapName, "HighRate/highRate_C%d_V0;1", iRoc);//<<<<  do same thing as above<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 				curTfile.GetObject(calmapName, calmap);
 				if (calmap == 0) {
 					sprintf(calmapName, "HighRate/highRate_calmap_C%d_V0;1", iRoc);
@@ -427,10 +440,14 @@ int eff( string newmod, string fileDesg ){
 					
 					dColModCount++;		
 
-					if( ( efficiency < worstDColEff[iRoc]) && ( rate < 120) ) { 
+					if( ( efficiency < worstDColEff[iRoc]) && ( i == 1 ) ) { 
 						worstDColEff[iRoc] = efficiency; 
 						worstDCol[iRoc] = dcol; 
 					}
+					if( ( efficiency > bestDColEff[iRoc]) && ( i == (len-1)) ) {
+                                                bestDColEff[iRoc] = efficiency;
+                                                bestDCol[iRoc] = dcol;
+                                        }
 					if( i == 0 ){ 
 						hitslow.push_back(rate);
 						efflow.push_back(totCHits);
@@ -466,20 +483,24 @@ int eff( string newmod, string fileDesg ){
         std::vector<double> slope_err;
 
 	int dc = 0;
-	for( int i=0; i<nRocs; i++){
-                for( int j=0; j<nDCol; j++){
-			dc = (i*nDCol)+j;
-			DCUni.push_back((efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]));
-			DCUniNum.push_back(dc);
-                }
-        }
-
-	double lowestdceff = 1.2;
-	int lowestdc = -1;
-	int lowestroc = 25;
+	double lowUni = 2.0;
+	double highUni = 0.0;
+	int lowUDC = 0;
+	int highUDC = 0;
+	double udceff = 0;
+	
 	log << endl;
 
 	for (int iRoc=0;iRoc<nRocs;iRoc++) {
+
+		for( int j=0; j<nDCol; j++){
+                        dc = (iRoc*nDCol)+j;
+                        udceff = (efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]);
+                        DCUni.push_back(udceff);
+                        DCUniNum.push_back(dc);
+                        if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
+                        if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
+                }
 		
 		std::cout << "Working in ROC " << iRoc << endl;
 		TCanvas *c1 = new TCanvas("c1", "efficiency", 200, 10, 700, 500);
@@ -521,13 +542,22 @@ int eff( string newmod, string fileDesg ){
 		double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
 		outfile << (p0 - p1 * 120*120*120) << std::endl;
 		log << "Estimated Effiency at 120MHz/cm^2 for ROC:" << iRoc << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl; 
-		log << "Lowest DC Eff Below 120MHz/cm^2 for   ROC:" << iRoc << "  DC :" << worstDCol[iRoc] << " Eff: " << worstDColEff[iRoc] << endl;
+		log << "Lowesest DC Eff at High Rate for  ROC:" << iRoc << "  DC :" << worstDCol[iRoc] << " Eff: " << worstDColEff[iRoc] << endl;
+                log << "Lowest DC Eff at Low Rate for  ROC:" << iRoc << "  DC :" << bestDCol[iRoc] <<  " Eff: " << bestDColEff[iRoc] << endl;
+                log << "Highest  DC Uni  for  ROC:" << iRoc << "  DC :" << highUDC << " Uniformity: " << highUni << endl;
+                log << "Lowest DC Uni for  ROC:" << iRoc << "  DC :" << lowUDC <<  " Uniformity: " << lowUni << endl;
 
 		if( worstDColEff[iRoc] < lowestdceff ){
 			lowestdceff = worstDColEff[iRoc];
 			lowestdc = worstDCol[iRoc];
 			lowestroc = iRoc;
 		}
+
+		if( bestDColEff[iRoc] > highdceff ){
+                        highdceff = bestDColEff[iRoc];
+                        highdc = bestDCol[iRoc];
+                        highroc = iRoc;
+                }
 
 		c1->Modified();
 		gPad->Modified();
@@ -586,6 +616,12 @@ int eff( string newmod, string fileDesg ){
                 delete myfit;
                 delete c1;
 
+		dc = 0;
+        	lowUni = 2.0;
+        	highUni = 0.0;
+        	lowUDC = 0;
+        	highUDC = 0;
+        	udceff = 0;
 		
 	}
 
