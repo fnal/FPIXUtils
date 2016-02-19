@@ -432,13 +432,13 @@ int eff( string newmod, string fileDesg ){
 						worstDCol[iRoc] = dcol; 
 					}
 					if( i == 0 ){ 
-						hitslow.push_back(totXHits);
-						efflow.push_back(efficiency);
+						hitslow.push_back(rate);
+						efflow.push_back(totCHits);
 					}
 
 					if( i == ( len - 1 )){
-						hitshigh.push_back(totXHits);
-						effhigh.push_back(efficiency);
+						hitshigh.push_back(rate);
+						effhigh.push_back(totCHits);
 					}     
 				
 					if( efficiency < 0.98 && rate < 120 ){	
@@ -469,7 +469,7 @@ int eff( string newmod, string fileDesg ){
 	for( int i=0; i<nRocs; i++){
                 for( int j=0; j<nDCol; j++){
 			dc = (i*nDCol)+j;
-			DCUni.push_back((hitslow[dc]/hitslow[dc])/(efflow[dc]/effhigh[dc]));
+			DCUni.push_back((efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]));
 			DCUniNum.push_back(dc);
                 }
         }
