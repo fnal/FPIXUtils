@@ -343,6 +343,8 @@ int eff( string newmod, string fileDesg ){
 			TH2D* calmap;
 			char calmapName[256];
 			char xraymapName[256];
+			double rocratehigh[nRocs];
+			double rocratelow(nRocs);
 			std::ofstream output;
            
 //			std::cout << "calculating rates and efficiencies" << std::endl;
@@ -367,7 +369,8 @@ int eff( string newmod, string fileDesg ){
 						std::cout << "ERROR: calibration hitmap not found!" << std::endl;
 					}
 				}
-
+				double totRPixs = 0;
+				double totRHits = 0;
 //				std::cout << nBinsX << "x" << nBinsY << std::endl;
 				for (int dcol = 0; dcol < nDCol; dcol++) {
 //					std::cout << "reading dc " << dcol << std::endl;
@@ -376,7 +379,7 @@ int eff( string newmod, string fileDesg ){
 					std::vector<double> xray_hits;
 					double totCHits = 0;
 					double totXHits = 0;						
-					double totXHitErrors = 0;					
+					//double totXHitErrors = 0;					
 
 //					std::cout<<"Getting data from Histograms" << endl;
 
@@ -402,13 +405,15 @@ int eff( string newmod, string fileDesg ){
 							trans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
 							xray_hits.push_back( trans );
 							totXHits += trans;
-							totXHitErrors += trans/100;
+							//totXHitErrors += trans/100;
 						}
 					}
 
 					int nPixelsDC = hits.size();
-					double totHits = 0;
+					//double totHits = 0;
 					if (nPixelsDC < 1) nPixelsDC = 1;
+					totRPixs = totRPixs + nPixelsDC;
+					totRHits = totRHits + totXHits;
 					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
 					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
@@ -449,12 +454,12 @@ int eff( string newmod, string fileDesg ){
                                                 bestDCol[iRoc] = dcol;
                                         }
 					if( i == 0 ){ 
-						hitslow.push_back(rate);
+						hitslow.push_back(totXHits);
 						efflow.push_back(totCHits);
 					}
 
 					if( i == ( len - 1 )){
-						hitshigh.push_back(rate);
+						hitshigh.push_back(totXHits);
 						effhigh.push_back(totCHits);
 					}     
 				
@@ -464,15 +469,17 @@ int eff( string newmod, string fileDesg ){
 					if (VERBOSE) {
 //						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
 				}
-//					std::cout<<"next dcol"<<endl;
-				}
-//				std::cout << "next roc" << endl;
+//					std::cout<<"end of  dcols"<<endl;
+					if( i == 0 ) rocratelow[iRoc]  = ( totRHits / totRPixs ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+	                                if( i == ( len - 1 ) ) rocratehigh[iRoc]  = ( totRHits / totRPixs ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 			}
-//			std::cout<<"next file"<<endl;
-		} else {
-//			std::cout << "high rate test not found" << std::endl;
-			return 1;
+//				std::cout << "end of  rocs" << endl;
 		}
+//			std::cout<<"end of files"<<endl;
+	} else {
+//		std::cout << "high rate test not found" << std::endl;
+		return 1;
+	}
 //	std:cout << "end of Data Collection" << endl;
 	}
 
@@ -495,7 +502,7 @@ int eff( string newmod, string fileDesg ){
 
 		for( int j=0; j<nDCol; j++){
                         dc = (iRoc*nDCol)+j;
-                        udceff = (efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]);
+                        udceff = ( hitslow[dc] * (rocratehigh[iRoc]/rocratelow[iRoc]) )/ hitshigh[dc]; //(efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]);
                         DCUni.push_back(udceff);
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
