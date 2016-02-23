@@ -352,7 +352,7 @@ int eff( string newmod, string fileDesg ){
 			for (int iRoc=0;iRoc<nRocs;iRoc++) {
 
 //				std::cout << "ROC" << iRoc << std::endl;                                 to move to single root file:  use same file name all files;
-				sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);i//<<  add index to "V0" "V1" ect string say:string version[3]; = {"V0", "V1", "V2"}  sync file index
+				sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);//<<  add index to "V0" "V1" ect string say:string version[3]; = {"V0", "V1", "V2"}  sync file index
 				curTfile.GetObject(xraymapName, xraymap);
 				if (xraymap == 0) {
 					std::cout << "ERROR: x-ray hitmap not found!" << std::endl;
@@ -379,7 +379,6 @@ int eff( string newmod, string fileDesg ){
 					std::vector<double> xray_hits;
 					double totCHits = 0;
 					double totXHits = 0;						
-					//double totXHitErrors = 0;					
 
 //					std::cout<<"Getting data from Histograms" << endl;
 
@@ -405,15 +404,13 @@ int eff( string newmod, string fileDesg ){
 							trans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
 							xray_hits.push_back( trans );
 							totXHits += trans;
-							//totXHitErrors += trans/100;
 						}
 					}
 
 					int nPixelsDC = hits.size();
-					//double totHits = 0;
 					if (nPixelsDC < 1) nPixelsDC = 1;
-					totRPixs = totRPixs + nPixelsDC;
-					totRHits = totRHits + totXHits;
+					totRPixs += nPixelsDC;
+					totRHits += TMath::Mean(nPixelsDC, &xray_hits[0]);
 					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
 					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
@@ -453,12 +450,12 @@ int eff( string newmod, string fileDesg ){
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
                                         }
-					if( i == 0 ){ 
+					if( i == (len - 1) ){ 
 						hitslow.push_back(totXHits);
 						efflow.push_back(totCHits);
 					}
 
-					if( i == ( len - 1 )){
+					if( i == 1 ){
 						hitshigh.push_back(totXHits);
 						effhigh.push_back(totCHits);
 					}     
@@ -468,19 +465,22 @@ int eff( string newmod, string fileDesg ){
 					}
 					if (VERBOSE) {
 //						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
+					}
 				}
-//					std::cout<<"end of  dcols"<<endl;
-					if( i == 0 ) rocratelow[iRoc]  = ( totRHits / totRPixs ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
-	                                if( i == ( len - 1 ) ) rocratehigh[iRoc]  = ( totRHits / totRPixs ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+				cout << "roc rate :" << totRHits << " : " << totRPixs << " : " << i << endl;
+				if( i == ( len -1 ) ){
+					rocratelow[iRoc]  = ( totRHits / nDCol ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+				}
+				if( i == 1 ){ 
+					rocratehigh[iRoc]  = ( totRHits / nDCol ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+				}
 			}
-//				std::cout << "end of  rocs" << endl;
-		}
-//			std::cout<<"end of files"<<endl;
-	} else {
+//
+		} else {
 //		std::cout << "high rate test not found" << std::endl;
 		return 1;
-	}
-//	std:cout << "end of Data Collection" << endl;
+		}
+//		std:cout << "end of Data Collection" << endl;
 	}
 
 	std::cout << "Output Phase" << std::endl;
@@ -502,11 +502,12 @@ int eff( string newmod, string fileDesg ){
 
 		for( int j=0; j<nDCol; j++){
                         dc = (iRoc*nDCol)+j;
-                        udceff = ( hitslow[dc] * (rocratehigh[iRoc]/rocratelow[iRoc]) )/ hitshigh[dc]; //(efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]);
+                        udceff =  hitshigh[dc] / hitslow[dc] / rocratehigh[iRoc] * rocratelow[iRoc]; //(efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]);
                         DCUni.push_back(udceff);
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
+			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratehigh[iRoc] << endl;
                 }
 		
 		std::cout << "Working in ROC " << iRoc << endl;
