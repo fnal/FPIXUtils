@@ -725,6 +725,7 @@ def analyzeFullTest(inputDir, outputDir, log, data):
 
     try: trimDefectPixels[15]
     except:
+        trimDefectPixels=16*[4160]
         print 3*'\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         print 'No Scurves results found! Notfiy expert on call.'
         print 3*'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n'
