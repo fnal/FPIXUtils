@@ -277,18 +277,18 @@ class Comparison:
             if input=='':
                 badModules=[x for x in range(nModules) if x not in goodModules]
                 for i in badModules:
-                    #try: 
-                    gROOT.SetBatch(True)
-                    c2=TCanvas()
-                    if self.hName=='IV/IV' or 'BB3' in self.hName: c2.SetLogy()
-                    is2D=(type(histograms[i])==type(TH2D()))
-                    histograms[i].Draw('COLZ'*is2D)
+                    try: 
+                        gROOT.SetBatch(True)
+                        c2=TCanvas()
+                        if self.hName=='IV/IV' or 'BB3' in self.hName: c2.SetLogy()
+                        is2D=(type(histograms[i])==type(TH2D()))
+                        histograms[i].Draw('COLZ'*is2D)
 
-                    debugDir=os.path.dirname(self.testFiles[i])+'/debug'
-                    if not os.path.isdir(debugDir): os.makedirs(debugDir)
-                    c2.SaveAs(debugDir+'/'+histograms[i].GetName()+'.pdf')
-                    gROOT.SetBatch(False)
-                    #except: pass
+                        debugDir=os.path.dirname(self.testFiles[i])+'/debug'
+                        if not os.path.isdir(debugDir): os.makedirs(debugDir)
+                        c2.SaveAs(debugDir+'/'+histograms[i].GetName()+'.pdf')
+                        gROOT.SetBatch(False)
+                    except: pass
                 badModuleNames=[self.goodModuleNames[i] for i in badModules]
 
                 #for i in range(nModules):
