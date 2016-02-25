@@ -58,7 +58,7 @@ def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = 
         { type : 'BL', 'location' : [0,0,n,n]},
         { type : 'BR', 'location' : [5*n,0,1,n]}
     ]
-    padIndices = { 
+    padIndices = {
         'TT' : 1,
         'FL' : 2,
         'LL' : 3,
@@ -617,7 +617,7 @@ def setZRange(plot, range):
 # input a summary merged plot and draw it on a canvas
 # add axis ticks and labels
 # return canvas
-def setupSummaryCanvas(summaryPlot):
+def setupSummaryCanvas(summaryPlot, moduleName = None):
 
     pathToHistogram = summaryPlot.GetName()
     splitPath = pathToHistogram.split("/")
@@ -829,15 +829,30 @@ def setupSummaryCanvas(summaryPlot):
                       (SENSOR_WIDTH + leftMargin)/canvasWidth,
                       (SENSOR_HEIGHT + bottomMargin + 0.95*topMargin)/canvasHeight,
                       "NDC NB")
+    # this is true except for MoReWeb, when we don't want to draw a title
     if dirName is not None:
         title.AddText(dirName + ": " + plotName)
     title.SetFillColor(0)
     title.SetTextAlign(22)
     title.SetTextFont(42)
     title.SetBorderSize(0)
-
     title.Draw()
     SetOwnership(title,False)  # avoid going out of scope at return statement
+
+
+    if dirName is not None and moduleName is not None:
+        moduleLabel = TPaveText(leftMargin/canvasWidth,
+                          (SENSOR_HEIGHT + bottomMargin + 0.6*topMargin)/canvasHeight,
+                          (3 * leftMargin)/canvasWidth,
+                          (SENSOR_HEIGHT + bottomMargin + 0.95*topMargin)/canvasHeight,
+                          "NDC NB")
+        moduleLabel.AddText(moduleName)
+        moduleLabel.SetFillColor(0)
+        moduleLabel.SetTextAlign(22)
+        moduleLabel.SetTextFont(42)
+        moduleLabel.SetBorderSize(0)
+        moduleLabel.Draw()
+        SetOwnership(moduleLabel,False)  # avoid going out of scope at return statement
 
     return canvas
 
@@ -1075,13 +1090,13 @@ def add1DDistributions(inputFileName, histogramDictionary):
 
 # pass in the input file and location of relevant histogram
 # return the canvas with the finished summary plot
-def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar', zRange=()):
+def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar', zRange=(), moduleName = None):
 
     plots = produce2DPlotList(inputFileName, pathToHistogram, version, mode)
     summaryPlot = makeMergedPlot(plots)
     if not zRange: zRange = findZRange(plots)
     setZRange(summaryPlot,zRange)
-    summaryCanvas = setupSummaryCanvas(summaryPlot)
+    summaryCanvas = setupSummaryCanvas(summaryPlot, moduleName=moduleName)
 
     return summaryCanvas
 
@@ -1241,12 +1256,12 @@ def produce1DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar')
 ###############################################################################
 
 # temporary altered version of produceSummaryPlot for use in lessWeb.py
-def produceLessWebSummaryPlot(inputFile, pathToHistogram, outputDir, zRange=(), isBB3=False, version=0):
+def produceLessWebSummaryPlot(inputFile, pathToHistogram, outputDir, zRange=(), isBB3=False, version=0, moduleName = None):
 
-    summaryCanvas=produce2DSummaryPlot(inputFile.GetName(), pathToHistogram, zRange=zRange)
+    summaryCanvas=produce2DSummaryPlot(inputFile.GetName(), pathToHistogram, zRange=zRange, moduleName=moduleName)
 
-    if summaryPlot is None:
-        continue
+    if summaryCanvas is None:
+        return
 
     if isBB3 and zRange:
         colors = array("i",[51+i for i in range(40)] + [kRed])
