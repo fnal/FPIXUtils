@@ -9,7 +9,6 @@ gROOT.SetBatch()
 moduleReportFile = '/Users/lantonel/FPIXUtils/modulereport.csv'
 resultsDirectory = '/Users/lantonel/PlotsAndTables/ModuleTestResults/'
 
-
 # parse list of module components
 partsDictionary = producePartsDictionary(moduleReportFile)
 
@@ -26,10 +25,7 @@ counter = 1
 for name in glob.glob(resultsDirectory + 'M*.root'):
     moduleName = name.split("/")[5].split("_")[0]
 
-#    if "M-I-2" not in moduleName:
-#        continue
-
-    print "module #" + str(counter) + ": " +  name
+    print "module #" + str(counter) + ": " +  moduleName
     counter += 1
 
     sensorCoordinates = getSensorCoordinates(partsDictionary, moduleName)
@@ -37,9 +33,6 @@ for name in glob.glob(resultsDirectory + 'M*.root'):
     position = sensorCoordinates[1]
     if wafer == "?":
         continue
-
-#    if wafer != '028':
-#        continue
 
 # choose histogram to use for summary plot
 #    inputPath = 'Scurves/sig_scurveVcal_Vcal'
