@@ -1245,6 +1245,9 @@ def produceLessWebSummaryPlot(inputFile, pathToHistogram, outputDir, zRange=(), 
 
     summaryCanvas=produce2DSummaryPlot(inputFile.GetName(), pathToHistogram, zRange=zRange)
 
+    if summaryPlot is None:
+        continue
+
     if isBB3 and zRange:
         colors = array("i",[51+i for i in range(40)] + [kRed])
         gStyle.SetPalette(len(colors), colors);
