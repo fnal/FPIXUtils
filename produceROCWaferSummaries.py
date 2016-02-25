@@ -21,9 +21,12 @@ for wafer in listOfWafers:
     # each wafer contains a list of histograms and locations
     plotDictionary[wafer] = []
 
-
+counter = 1
 for name in glob.glob(resultsDirectory + 'M*.root'):
     moduleName = name.split("/")[5].split("_")[0]
+
+    print "module #" + str(counter) + ": " +  moduleName
+    counter += 1
 
 # choose histogram to use for summary plot
 #    inputPath = 'Scurves/sig_scurveVcal_Vcal'
@@ -55,4 +58,4 @@ for name in glob.glob(resultsDirectory + 'M*.root'):
 
 for wafer in listOfWafers:
     if len(plotDictionary[wafer]):
-        saveROCWaferCanvas(wafer, inputPath, plotDictionary, 0, 1)
+        saveROCWaferCanvas(wafer, inputPath, plotDictionary, -5, 5)
