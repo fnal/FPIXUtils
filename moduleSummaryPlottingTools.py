@@ -279,7 +279,7 @@ def saveROCWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = Non
     width = 0.03
     height = 0.03
     line = TLine()
-    line.SetLineColor(1)
+    line.SetLineColor(920)
     line.SetLineWidth(3)
 
     for x in range(cols):
