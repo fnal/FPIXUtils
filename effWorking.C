@@ -25,7 +25,7 @@
 #include <numeric>
 
 //
-//    Jack W King III  AAS BA BE - 13:17 022616
+//  Jack W King AAS BA BE(May 2016) 02/26/2016
 //
 
 int eff( string newmod, string fileDesg ){
@@ -105,7 +105,7 @@ int eff( string newmod, string fileDesg ){
       		TSystemFile *file;
       		TString fname;
       		TIter next(files);
-      		while ((file=(TSystemFile*)next())) {
+      		while (file=(TSystemFile*)next()) {
         		fname = file->GetName();
 			std::cout << fname << endl;
          		std::string filename = fname.Data();
@@ -139,10 +139,10 @@ int eff( string newmod, string fileDesg ){
 	std::vector< double > effhigh;
         std::vector< double > DCUni;
         std::vector< double > DCUniNum;
-        std::vector< std::vector< std::vector< double > > > byAmpEfficiencies;
-        std::vector< std::vector< std::vector< double > > > byAmpEfficiencyErrors;
-        std::vector< std::vector< std::vector< double > > > byAmpRates;
-        std::vector< std::vector< std::vector< double > > > byAmpRateErrors;
+//      std::vector< std::vector< std::vector< double > > > byAmpEfficiencies;
+//      std::vector< std::vector< std::vector< double > > > byAmpEfficiencyErrors;
+//      std::vector< std::vector< std::vector< double > > > byAmpRates;
+//      std::vector< std::vector< std::vector< double > > > byAmpRateErrors;
 	std::vector< std::vector< std::vector< double > > > dcolHits;
 	std::vector< std::vector< std::vector< double > > > dcolHitErrors;
 	std::vector< std::vector< std::vector< double > > > dcolRates;
@@ -170,18 +170,18 @@ int eff( string newmod, string fileDesg ){
 		lineList[2].push_back(120.0);
 	} 
 
-	std::cout << "byamp inits" << endl;
+//	std::cout << "byamp inits" << endl;
 
-	for (int i=0;i<=5;i++){
+/*	for (int i=0;i<=5;i++){
 		byAmpEfficiencies.push_back(bigempty);
                 byAmpEfficiencyErrors.push_back(bigempty);
                 byAmpRates.push_back(bigempty);
                 byAmpRateErrors.push_back(bigempty);
 	}
+*/
+//	std::cout << "initilizing 2 tier" << endl;
 
-	std::cout << "initilizing 2 tier" << endl;
-
-	for( int i=0; i<=5; i++){
+/*	for( int i=0; i<=5; i++){
 		for( int j=0;j<=nRocs;j++){
                         byAmpEfficiencies[i].push_back(empty);
                         byAmpEfficiencyErrors[i].push_back(empty);
@@ -189,8 +189,8 @@ int eff( string newmod, string fileDesg ){
                         byAmpRateErrors[i].push_back(empty);
                 }
 	}
-	
-        std::cout << "initilizing 1 tier" << endl;
+*/	
+        std::cout << "initilizing vectors" << endl;
 
 	for (int i=0;i<=nRocs;i++) {
 		efficiencies.push_back(empty);
@@ -347,14 +347,16 @@ int eff( string newmod, string fileDesg ){
 			char calmapName[256];
 			char xraymapName[256];
 			double rocratehigh[nRocs];
-			double rocratelow(nRocs);
+			double rocratelow[nRocs];
+			double rocratehits = 0;
+			double rocratenum = 0;
 			std::ofstream output;
            
-//			std::cout << "calculating rates and efficiencies" << std::endl;
+			std::cout << "calculating rates and efficiencies" << std::endl;
 
 			for (int iRoc=0;iRoc<nRocs;iRoc++) {
 
-//				std::cout << "ROC" << iRoc << std::endl;                                 to move to single root file:  use same file name all files;
+				//std::cout << "ROC" << iRoc << std::endl;        //                         to move to single root file:  use same file name all files;
 				sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);//<<  add index to "V0" "V1" ect string say:string version[3]; = {"V0", "V1", "V2"}  sync file index
 				curTfile.GetObject(xraymapName, xraymap);
 				if (xraymap == 0) {
@@ -372,18 +374,19 @@ int eff( string newmod, string fileDesg ){
 						std::cout << "ERROR: calibration hitmap not found!" << std::endl;
 					}
 				}
+                                std::vector<double> roc_xhits;
 				double totRPixs = 0;
 				double totRHits = 0;
-//				std::cout << nBinsX << "x" << nBinsY << std::endl;
+				//std::cout << nBinsX << "x" << nBinsY << std::endl;
 				for (int dcol = 0; dcol < nDCol; dcol++) {
-//					std::cout << "reading dc " << dcol << std::endl;
+				//	std::cout << "reading dc " << dcol << std::endl;
 
 					std::vector<double> hits;
 					std::vector<double> xray_hits;
 					double totCHits = 0;
 					double totXHits = 0;						
 
-//					std::cout<<"Getting data from Histograms" << endl;
+				//	std::cout<<"Getting data from Histograms" << endl;
 
 					for (int y = 0; y < 160; y++) {
 
@@ -412,8 +415,11 @@ int eff( string newmod, string fileDesg ){
 
 					int nPixelsDC = hits.size();
 					if (nPixelsDC < 1) nPixelsDC = 1;
-					totRPixs += nPixelsDC;
-					totRHits += TMath::Mean(nPixelsDC, &xray_hits[0]);
+					//totRPixs += nPixelsDC;
+					totRHits = TMath::Mean(nPixelsDC, &xray_hits[0]);
+					rocratehits += totXHits;
+					rocratenum += nPixelsDC;
+					roc_xhits.push_back( totRHits );
 					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
 					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
@@ -438,10 +444,10 @@ int eff( string newmod, string fileDesg ){
 					dcolRates[nRocs][0].push_back(rate);
 					dcolRates[nRocs][1].push_back(dColModCount);		
 			
-					byAmpEfficiencies[rateIndex][iRoc].push_back(efficiency);
-                                        byAmpEfficiencyErrors[rateIndex][iRoc].push_back(efficiencyError);
-                                        byAmpRates[rateIndex][iRoc].push_back(rate);
-					byAmpRateErrors[rateIndex][iRoc].push_back(rateError);
+//					byAmpEfficiencies[rateIndex][iRoc].push_back(efficiency);
+//                                      byAmpEfficiencyErrors[rateIndex][iRoc].push_back(efficiencyError);
+//                                      byAmpRates[rateIndex][iRoc].push_back(rate);
+//					byAmpRateErrors[rateIndex][iRoc].push_back(rateError);
 					
 					dColModCount++;		
 
@@ -470,12 +476,16 @@ int eff( string newmod, string fileDesg ){
 //						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
 					}
 				}
-				cout << "roc rate :" << totRHits << " : " << totRPixs << " : " << i << endl;
 				if( i == ( len -1 ) ){
-					rocratelow[iRoc]  = ( totRHits / nDCol ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+					int dcnum = roc_xhits.size();
+					//cout << "here"<<endl;
+					rocratelow[iRoc]  = TMath::Mean( dcnum, &roc_xhits[0] ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+//	log << "Rate low Roc: " << iRoc << " : " << rocratelow[iRoc] << " : totals : " << (rocratehits/rocratenum)/(nTrig * triggerDuration * pixelArea) * 1.0e-6 << endl; 
 				}
-				if( i == 1 ){ 
-					rocratehigh[iRoc]  = ( totRHits / nDCol ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+				if( i == 1 ){
+                                        int dcnum = roc_xhits.size();
+                                        rocratehigh[iRoc]  = TMath::Mean( dcnum, &roc_xhits[0] ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6; 
+//	log << "Rate high Roc: " << iRoc << " : " << rocratehigh[iRoc] << " : totals : " << (rocratehits/rocratenum)/(nTrig * triggerDuration * pixelArea) * 1.0e-6 << endl;
 				}
 			}
 //
@@ -505,15 +515,13 @@ int eff( string newmod, string fileDesg ){
 
 		for( int j=0; j<nDCol; j++){
                         dc = (iRoc*nDCol)+j;
-                        udceff =  hitshigh[dc] / hitslow[dc] / rocratehigh[iRoc] * rocratelow[iRoc]; //(efflow[dc]/efflow[dc])/(hitslow[dc]/hitshigh[dc]);
+                        udceff =  hitshigh[dc] / hitslow[dc] / rocratehigh[iRoc] * rocratelow[iRoc];
                         DCUni.push_back(udceff);
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
-			log << "DCUniformity for DC " << j << " : " << udceff << endl;
-	
-		}
-		log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratehigh[iRoc] << endl;
+//			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
+                }
 		
 		std::cout << "Working in ROC " << iRoc << endl;
 		TCanvas *c1 = new TCanvas("c1", "efficiency", 200, 10, 700, 500);
@@ -701,6 +709,7 @@ int eff( string newmod, string fileDesg ){
         tg4->SetTitle(graphTitle);
         tg4->GetXaxis()->SetTitle("DCol Number");
         tg4->GetYaxis()->SetTitle("DC Uniformity");
+	tg4->GetYaxis()->SetRangeUser( 0.0, 2.0 );
         tg4->SetMarkerStyle(7);
         tg4->SetMarkerSize(1);
         tg4->Draw("apl");
