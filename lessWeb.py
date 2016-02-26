@@ -404,7 +404,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
 
     data=TFile(data['fulltest'])
 
-    produceLessWebSummaryPlot(data,'BB3/rescaledThr',outputDir,zRange=(-5,5), isBB3=True)
+    produceLessWebSummaryPlot(data,'BB3/rescaledThr',outputDir,zRange=(-5,5), isBB3=True, moduleName = moduleName)
     pic=SE(top, 'PIC')
     attachName(pic)
     file=SE(pic, 'FILE')
@@ -421,7 +421,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
                  'Scurves/sig_scurveVcal_Vcal','Scurves/thr_scurveVcal_Vcal',
                  ]:
 
-        produceLessWebSummaryPlot(data,hist,outputDir)
+        produceLessWebSummaryPlot(data,hist,outputDir, moduleName = moduleName)
         pic=SE(top, 'PIC')
         attachName(pic)
         file=SE(pic, 'FILE')
@@ -433,7 +433,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
         comment=open(outputDir+'/'+txt.text,'w')
         comment.write('\n'+file.text.split('.')[0])
 
-    produceLessWebSummaryPlot(data,'Trim/TrimMap',outputDir,zRange=(0,15))
+    produceLessWebSummaryPlot(data,'Trim/TrimMap',outputDir,zRange=(0,15), moduleName = moduleName)
     pic=SE(top, 'PIC')
     attachName(pic)
     file=SE(pic, 'FILE')
@@ -464,9 +464,9 @@ def analyzePreTest(inputDir, outputDir, log, data):
     
         if 'PixTestPretest::setVthrCompCalDel() done' in line:
             line=next(f)
-            calDels=[int(i) for i in line.split('CalDel:')[1].split()]
+            calDels=[int(i) for i in line.replace('_','').split('CalDel:')[1].split()]
             line=next(f)
-            VthrComps=[int(i) for i in line.split('VthrComp:')[1].split()]
+            VthrComps=[int(i) for i in line.replace('_','').split('VthrComp:')[1].split()]
 
     ct=SE(test,'CAN_TIME')
     ct.text=str(int(canTime))
@@ -715,6 +715,21 @@ def analyzeFullTest(inputDir, outputDir, log, data):
     global trimDefectPixels
     trimDefectPixels=[len(e) for e in trimDefectPixels]
     print 'trimDefectPixels:',trimDefectPixels
+
+    try: deadROCs
+    except:
+        print 3*'\nWARNING'
+        print 'No Pretest results found! Notfiy expert on call.'
+        print 3*'WARNING\n'
+        #exit()
+
+    try: trimDefectPixels[15]
+    except:
+        trimDefectPixels=16*[4160]
+        print 3*'\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        print 'No Scurves results found! Notfiy expert on call.'
+        print 3*'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n'
+        #exit()
 
     ROCS=SE(test,'ROCS')
     for i in range(16):
