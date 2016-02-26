@@ -362,7 +362,7 @@ def flipTopRow(plots):
         histo.Reset()
         nBinsX = histo.GetNbinsX()
         nBinsY = histo.GetNbinsY()
-        for x in range(1,nBinsX+1):
+        for x in range(1, nBinsX+1):
             for y in range(1, nBinsY+1):
                 content = plots[roc].GetBinContent(x,y)
                 error   = plots[roc].GetBinError(x,y)
@@ -839,7 +839,6 @@ def setupSummaryCanvas(summaryPlot, moduleName = None):
     title.Draw()
     SetOwnership(title,False)  # avoid going out of scope at return statement
 
-
     if dirName is not None and moduleName is not None:
         moduleLabel = TPaveText(leftMargin/canvasWidth,
                           (SENSOR_HEIGHT + bottomMargin + 0.6*topMargin)/canvasHeight,
@@ -1093,6 +1092,8 @@ def add1DDistributions(inputFileName, histogramDictionary):
 def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar', zRange=(), moduleName = None):
 
     plots = produce2DPlotList(inputFileName, pathToHistogram, version, mode)
+    if plots is None:
+        return None
     summaryPlot = makeMergedPlot(plots)
     if not zRange: zRange = findZRange(plots)
     setZRange(summaryPlot,zRange)
@@ -1154,7 +1155,7 @@ def makeBinaryPlots(plots, min=0, max=1):
         histo.Reset()
         nBinsX = histo.GetNbinsX()
         nBinsY = histo.GetNbinsY()
-        for x in range(1,nBinsX+1):
+        for x in range(1, nBinsX+1):
             for y in range(1, nBinsY+1):
                 content = plots[roc].GetBinContent(x,y)
                 if plots[roc].GetEntries() == 0:
@@ -1165,6 +1166,7 @@ def makeBinaryPlots(plots, min=0, max=1):
                     histo.SetBinContent(x, y, 1)
                 else:
                     histo.SetBinContent(x, y, 0)
+
         plots[roc] = histo
 
 
@@ -1217,6 +1219,8 @@ def produce1DPlotList(inputFileName, pathToHistogram, version=0, mode='pxar'):
 def produce1DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar'):
 
     plots = produce1DPlotList(inputFileName, pathToHistogram, version, mode)
+    if plots is None:
+        return None
 
     summaryPlot = plots[0].Clone()
     summaryPlot.SetDirectory(0)
