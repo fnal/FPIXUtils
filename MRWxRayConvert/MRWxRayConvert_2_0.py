@@ -6,50 +6,58 @@ import sys
 
 XrayInDir = sys.argv[1]
 
-inDate = int(raw_input('Enter date of desired X-ray results (MMDD): '))
-inDateStr = str('%04d'%inDate)
-print inDateStr
-
 hrFluxesUsed = [40,80,120]
 dataFluxesUsed = [40,120]
+dcNames = ['DCLowRate','DCHighRate']
+
+def createRootFiles(hrFluxes, dataFluxes):
+  for hrFlux in hrFluxes:
+    outFile = TFile('hrEff_' + str(hrFlux) + '.root', "RECREATE")
+    outFile.mkdir('HighRate')
+    outFile.Close()
+  for dataFlux in dataFluxes:
+    outFile = TFile('hrData_' + str(dataFlux) + '.root', "RECREATE")
+    outFile.mkdir('Xray')
+    outFile.Close()
+
+def splitRootFile(rootFile, hrFluxes, dataFluxes):
+  inputFile = TFile(rootFile)
+  inputFile.cd('Xray')
+  for i in range(0,2):
+    for plotKey in gDirectory.GetListOfKeys():
+      if dcNames[i] in plotKey.GetName():
+        outFile = TFile('hrData_' + str(dataFluxes[i]) + '.root', "UPDATE")
+        inputHisto = inputFile.Get('Xray/' + plotKey.GetName())
+        outFile.cd('Xray')
+        inputHisto.Write(plotKey.GetName().split(dcNames[i])[0] + 'Ag' + plotKey.GetName().split(dcNames[i])[1])
+        outFile.Close()
+        inputFile.cd('Xray')
+  inputFile.cd('HighRate')
+  for j in range(0,3):
+    for plotKey in gDirectory.GetListOfKeys():
+      if 'V' + str(j) in plotKey.GetName():
+        outFile = TFile('hrEff_' + str(hrFluxes[j]) + '.root', "UPDATE")
+        inputHisto = inputFile.Get('HighRate/' + plotKey.GetName())
+        histoTitle = plotKey.GetName()
+        if 'V1' in histoTitle:
+            histoTitle = histoTitle.replace("V1","V0")
+        elif 'V2' in histoTitle:
+            histoTitle = histoTitle.replace("V2","V0")
+        outFile.cd('HighRate')
+        inputHisto.Write(histoTitle)
+        outFile.Close()
+        inputFile.cd('HighRate')
+  inputFile.Close()
 
 def placeNewFiles(hrFluxes,dataFluxes):
-  fileCounter = 0
-  for f in os.listdir(XrayInDir + '/000_FPIXTest_p17/'):
-    for i in range(0,2):
-      if 'dc' + '%02d'%((i-1)*10 + 15) + '_' + lowerModule + '_' + str(inDateStr) in f:
-        subprocess.call('cp ' + XrayInDir + '/000_FPIXTest_p17/' + f + ' ' + str(topDir) + '/%03d'%i + '_HRData_' + str(dataFluxes[i]) + '/', shell = True)
-        fileCounter += 1
-        changeFile = TFile(str(topDir) + '/%03d'%i + '_HRData_' + str(dataFluxes[i]) + '/dc' + '%02d'%((i-1)*10 + 15) + '_' + lowerModule + '_' + str(inDateStr) + '.root', "UPDATE")
-        changeFile.cd('Xray')
-        for plotKey in gDirectory.GetListOfKeys():
-            histoTitle = plotKey.GetName()
-            if 'DCLowRate' in histoTitle:
-                histoTitle = histoTitle.replace("DCLowRate","Ag")
-                plotKey.SetName(histoTitle)
-            elif 'DCHighRate' in histoTitle:
-                histoTitle = histoTitle.replace("DCHighRate","Ag")
-                plotKey.SetName(histoTitle)
-        changeFile.Close()
-    for j in range(0,3):
-      if 'hr' + '%02d'%((j+1)*5) + 'ma_' + lowerModule +'_' + str(inDateStr) in f:
-        subprocess.call('cp ' + XrayInDir + '/000_FPIXTest_p17/' + f + ' ' + str(topDir) + '/%03d'%(j+2) + '_HREfficiency_' + str(hrFluxes[j]) + '/', shell = True)
-        fileCounter += 1
-        changeFile = TFile(str(topDir) + '/%03d'%(j+2) + '_HREfficiency_' + str(hrFluxes[j]) + '/hr' + '%02d'%((j+1)*5) + 'ma_' + lowerModule + '_' + str(inDateStr) + '.root', "UPDATE")
-        changeFile.cd('HighRate')
-        for plotKey in gDirectory.GetListOfKeys():
-            histoTitle = plotKey.GetName()
-            if 'V1' in histoTitle:
-                histoTitle = histoTitle.replace("V1","V0")
-                plotKey.SetName(histoTitle)
-            elif 'V2' in histoTitle:
-                histoTitle = histoTitle.replace("V2","V0")
-                plotKey.SetName(histoTitle)
-        changeFile.Close()
-  if fileCounter != 5:
-    sys.exit('Abort: Desired root files not found')
-    subprocess.call('rm -r ' + topDir, shell = True)
-
+  for i in range(0,2):
+    for f in os.listdir('.'):
+      if str(dataFluxes[i]) in f and 'hrData' in f:
+        subprocess.call('mv ' + f + ' ' + str(topDir) + '/%03d'%i + '_HRData_' + str(dataFluxes[i]) + '/', shell = True)
+  for j in range(0,3):
+    for f in os.listdir('.'):
+      if str(hrFluxes[j]) in f and 'hrEff' in f:
+        subprocess.call('mv ' + f + ' ' + str(topDir) + '/%03d'%(j+2) + '_HREfficiency_' + str(hrFluxes[j]) + '/', shell = True)
 
 def writeIniFile(hrFluxes, dataFluxes):
   inTmpFile = open('elComandante.ini.tmp')
@@ -67,14 +75,11 @@ date = XrayInDir.split('_')[2]
 time = XrayInDir.split('_')[3]
 number = XrayInDir.split('_')[4]
 
-lowerModule = module.replace("-","").lower()
-print lowerModule
-
 if '/' in number:
   number = int(number.replace("/", ""))
 else:
   number = int(number)
-number += 30 + inDate  #gives new id number if new results for same module
+number += 30
 
 topDir = module + '_XrayQualification_' + date + '_' + time + '_' + str(number)
 print 'Creating directory:' + topDir
@@ -93,6 +98,9 @@ for i in range (0, len(mainDirList)):
 subprocess.call('mkdir ' + topDir + '/configfiles', shell = True)
 subprocess.call('mkdir ' + topDir + '/logfiles', shell = True)
 
+createRootFiles(hrFluxesUsed,dataFluxesUsed)
+splitRootFile(XrayInDir + '/000_FPIXTest_p17/highrate.root',hrFluxesUsed,dataFluxesUsed)
 placeNewFiles(hrFluxesUsed,dataFluxesUsed)
 writeIniFile(hrFluxesUsed,dataFluxesUsed)
+
 subprocess.call('tar -zcvf ' + topDir + '.tar.gz ' + topDir, shell = True)
