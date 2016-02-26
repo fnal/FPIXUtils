@@ -507,8 +507,10 @@ int eff( string newmod, string fileDesg ){
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
-			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratehigh[iRoc] << endl;
-                }
+			log << "DCUniformity for DC " << j << " : " << udceff << endl;
+	
+		}
+		log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratehigh[iRoc] << endl;
 		
 		std::cout << "Working in ROC " << iRoc << endl;
 		TCanvas *c1 = new TCanvas("c1", "efficiency", 200, 10, 700, 500);
