@@ -24,6 +24,9 @@
 #include <string>
 #include <numeric>
 
+//
+//    Jack W King III  AAS BA BE - 13:17 022616
+//
 
 int eff( string newmod, string fileDesg ){
 
@@ -102,7 +105,7 @@ int eff( string newmod, string fileDesg ){
       		TSystemFile *file;
       		TString fname;
       		TIter next(files);
-      		while (file=(TSystemFile*)next()) {
+      		while ((file=(TSystemFile*)next())) {
         		fname = file->GetName();
 			std::cout << fname << endl;
          		std::string filename = fname.Data();
