@@ -27,12 +27,12 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "floro_mg246_08022016.root" #"pa207_071615.root"
+myfilename1 = "fluoro_mj39_022616.root" #"pa207_071615.root"
 myfilename2 = myfilename1; #"floro_122915.root"
 myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
 myfilename4 = myfilename1; #"floro2_122915.root"
-myfileoutname = "XRFResult_mg246"
-rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
+myfileoutname = "XRFResult_mj309"
+rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15 ]
 
 
 parser.add_option('--setup', type='string', action='store',
@@ -94,7 +94,7 @@ parser.add_option('--nrocs', type='int', action='store',
                   dest='nrocs',
                   help='Number or rocs')
 parser.add_option('--badrocs', type='string', action='store',
-                  default='17',
+                  default='10',
                   dest='badrocs',
                   help='List of bad rocs, for example [2,4,5]')
 (options, args) = parser.parse_args()
@@ -378,13 +378,10 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
 #Comments on  : 
 def PlotSameNStats(arrayfithisto1, arrayfithisto2, arrayfithisto3, arrayfithisto4, rocs, output, XRSource):
     grocs = len(rocs)   
-    for i in xrange(0,16):
+    for i in range(0,grocs):
         if i not in rocs:
             print 'Skipping roc', i
-            stats= open(output+material+'C_'+str(i)+'_stats.txt','w')
-            stats.writelines(["Mean_Mo_C"+str(i)+":\t"+"0.0"+"\n", "Sigma_Mo_C"+str(i)+":\t"+"0.0"+"\n","Mean_"+material+"_C"+str(i)+":\t"+"0.0"+"\n", "Sigma_"+material+"_C"+str(i)+":\t"+"0.0"+"\n"])
-            continue
-        stats= open(output+material+'C_'+str(i)+'_stats.txt','w')
+            continue  
         c1 = TCanvas('c1',"Fluorescence test",1)
         gStyle.SetOptStat(0)
         c1.cd()     
@@ -527,7 +524,7 @@ def PlotSameNStats(arrayfithisto1, arrayfithisto2, arrayfithisto3, arrayfithisto
         c1.Close()
     return 
 
-def ConversionPlot(rocs,badrocs,output, XRSource):
+def ConversionPlot(rocs,output, XRSource):
     grocs = len(rocs)   
     convfactcu = 8048/3.6
     convfactmo = 17479/3.6
@@ -541,315 +538,312 @@ def ConversionPlot(rocs,badrocs,output, XRSource):
     n_oh = TH1F('n_oh','N_o', 100,0,1000)
     slopeh = TH1F('Slope','Slope',100, 0,100)
     qmatrix = np.zeros((16,5))
-    for i in xrange(0,16):
-        if i in badrocs:
-            sumout.write( "C_" + str(i) + " "+ "0.0" + " +/- " + "0.0" +" " + "0.0 "+ " +/- " + "0.0"+ '\n' )
-        else:
-            mu_cu =[]
-            sig_cu=[]
-            mu_mo = []
-            sig_mo = []
-            mu_ag =[]
-            sig_ag =[]
-            mu_sn =[]
-            sig_sn = []
-            mu_in =[]
-            sig_in = []
-            for file in glob.glob("*_"+str(i)+"_stats.txt"):
-                name = os.path.splitext(file)[0]
-                print "Opening:",name
-                if XRSource =='Mo':
-                    if('CuC_' in name):
-                        material = 'Cu'
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Mo" in line[k]:
-                                if "Mean_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meanmo = words[1].strip('\n')
-                                    mu_mo.append(meanmo)
-                                elif "Sigma_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmamo = words[1].strip('\n') 
-                                    sig_mo.append(sigmamo)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    mean = words[1].strip('\n')
-                                    mu_cu.append(mean)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_cu.append(sigma)
+    for i in rocs:
+        mu_cu =[]
+        sig_cu=[]
+        mu_mo = []
+        sig_mo = []
+        mu_ag =[]
+        sig_ag =[]
+        mu_sn =[]
+        sig_sn = []
+        mu_in =[]
+        sig_in = []
+        for file in glob.glob("*_"+str(i)+"_stats.txt"):
+            name = os.path.splitext(file)[0]
+            print "Opening:",name
+            if XRSource =='Mo':
+                if('CuC_' in name):
+                    material = 'Cu'
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Mo" in line[k]:
+                            if "Mean_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meanmo = words[1].strip('\n')
+                                mu_mo.append(meanmo)
+                            elif "Sigma_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmamo = words[1].strip('\n') 
+                                sig_mo.append(sigmamo)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                mean = words[1].strip('\n')
+                                mu_cu.append(mean)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_cu.append(sigma)
+                    f.close()               
+                elif('AgC_' in name):
+                    material = 'Ag'
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Mo" in line[k]:
+                            if "Mean_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meanmo = words[1].strip('\n')
+                                mu_mo.append(meanmo)
+                            elif "Sigma_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmamo = words[1].strip('\n') 
+                                sig_mo.append(sigmamo)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meanag = words[1].strip('\n')
+                                mu_ag.append(meanag)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_ag.append(sigma)
+                    f.close()
+                elif('SnC_' in name):
+                    material = 'Sn'
+                    convfact= 25271/3.6
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Mo" in line[k]:
+                            if "Mean_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meanmo = words[1].strip('\n')
+                                mu_mo.append(meanmo)
+                            elif "Sigma_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmamo = words[1].strip('\n') 
+                                sig_mo.append(sigmamo)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                mean = words[1].strip('\n')
+                                mu_sn.append(mean)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_sn.append(sigma)
+                    f.close()
+                elif('InC_' in name):
+                    material = 'In'
+                    convfact= 24207/3.6
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Mo" in line[k]:
+                            if "Mean_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meanmo = words[1].strip('\n')
+                                mu_mo.append(meanmo)
+                            elif "Sigma_Mo" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmamo = words[1].strip('\n') 
+                                sig_mo.append(sigmamo)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                mean = words[1].strip('\n')
+                                mu_in.append(mean)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_in.append(sigma)
+                    f.close()
+            elif XRSource == 'Cu':
+                if('MoC_' in name):
+                    material = 'Mo'
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Cu" in line[k]:
+                            if "Mean_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meancu = words[1].strip('\n')
+                                mu_cu.append(meancu)
+                            elif "Sigma_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmacu = words[1].strip('\n') 
+                                sig_cu.append(sigmacu)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                mean = words[1].strip('\n')
+                                mu_mo.append(mean)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_mo.append(sigma)
                         f.close()               
-                    elif('AgC_' in name):
-                        material = 'Ag'
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Mo" in line[k]:
-                                if "Mean_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meanmo = words[1].strip('\n')
-                                    mu_mo.append(meanmo)
-                                elif "Sigma_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmamo = words[1].strip('\n') 
-                                    sig_mo.append(sigmamo)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meanag = words[1].strip('\n')
-                                    mu_ag.append(meanag)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_ag.append(sigma)
-                        f.close()
-                    elif('SnC_' in name):
-                        material = 'Sn'
-                        convfact= 25271/3.6
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Mo" in line[k]:
-                                if "Mean_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meanmo = words[1].strip('\n')
-                                    mu_mo.append(meanmo)
-                                elif "Sigma_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmamo = words[1].strip('\n') 
-                                    sig_mo.append(sigmamo)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    mean = words[1].strip('\n')
-                                    mu_sn.append(mean)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_sn.append(sigma)
-                        f.close()
-                    elif('InC_' in name):
-                        material = 'In'
-                        convfact= 24207/3.6
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Mo" in line[k]:
-                                if "Mean_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meanmo = words[1].strip('\n')
-                                    mu_mo.append(meanmo)
-                                elif "Sigma_Mo" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmamo = words[1].strip('\n') 
-                                    sig_mo.append(sigmamo)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    mean = words[1].strip('\n')
-                                    mu_in.append(mean)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_in.append(sigma)
-                        f.close()
-                elif XRSource == 'Cu':
-                    if('MoC_' in name):
-                        material = 'Mo'
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Cu" in line[k]:
-                                if "Mean_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meancu = words[1].strip('\n')
-                                    mu_cu.append(meancu)
-                                elif "Sigma_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmacu = words[1].strip('\n') 
-                                    sig_cu.append(sigmacu)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    mean = words[1].strip('\n')
-                                    mu_mo.append(mean)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_mo.append(sigma)
-                            f.close()               
-                    elif('AgC_' in name):
-                        material = 'Ag'
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Cu" in line[k]:
-                                if "Mean_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meancu = words[1].strip('\n')
-                                    mu_cu.append(meancu)
-                                elif "Sigma_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmacu = words[1].strip('\n') 
-                                    sig_cu.append(sigmacu)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    mean = words[1].strip('\n')
-                                    mu_ag.append(mean)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_ag.append(sigma)
-                        f.close()
-                    elif('SnC_' in name):
-                        material = 'Sn'
-                        convfact= 25271/3.6
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Cu" in line[k]:
-                                if "Mean_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meancu = words[1].strip('\n')
-                                    mu_cu.append(meancu)
-                                elif "Sigma_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmacu = words[1].strip('\n') 
-                                    sig_cu.append(sigmacu)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    mean = words[1].strip('\n')
-                                    mu_sn.append(mean)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_sn.append(sigma)
-                        f.close()
-                    elif('InC_' in name):
-                        material = 'In'
-                        convfact= 24207/3.6
-                        f = open(file,'r')
-                        line = f.readlines()
-                        for k in range(0,len(line)):
-                            if "_Cu" in line[k]:
-                                if "Mean_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    meancu = words[1].strip('\n')
-                                    mu_cu.append(meancu)
-                                elif "Sigma_Cu" in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigmacu = words[1].strip('\n') 
-                                    sig_cu.append(sigmacu)   
-                            else:
-                                if "Mean_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    mean = words[1].strip('\n')
-                                    mu_in.append(mean)
-                                elif "Sigma_"+material in line[k]:
-                                    words =  re.split(':\t',line[k])
-                                    sigma = words[1].strip('\n')
-                                    sig_in.append(sigma)
-                        f.close()
-            n_cu = len(mu_cu)
-            n_mo = len(mu_mo)
-            n_ag = len(mu_ag)
-            n_sn = len(mu_sn)
-            n_in = len(mu_in)
-            n_all = n_cu + n_mo + n_sn + n_ag+ n_in
-            sigma_y = [0]*n_all
-            mus = mu_cu + mu_mo + mu_ag + mu_sn + mu_in
-            sigma_x = sig_cu + sig_mo + sig_ag+ sig_sn + sig_in
-            k_cu = [convfactcu]*n_cu
-            k_mo = [convfactmo]*n_mo
-            k_ag = [convfactag]*n_ag
-            k_sn = [convfactsn]*n_sn
-            k_in = [convfactin]*n_in
-            k = k_cu + k_mo + k_ag + k_sn+k_in
-            matrix = np.zeros(((len(mus)),4))
-            print "mus", mus, len(matrix)
-            a=0
-            for j in [0,1,2, 3, 4 ,5 ,6, 7]: #range(0,len(mus)):
-                a = j
-                matrix[a][1] = float(mus[j])
-                matrix[a][0] = float(k[j])
-                matrix[a][3] = float(sigma_x[j])
-            table = open('SummaryTable'+'_'+output+'_'+'C_'+str(i)+'.txt','w')
-            np.savetxt("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt",matrix, delimiter="\t", fmt="%s", newline='\n' )
-            gStyle.SetOptFit(1)
-            c1 = TCanvas('c1',"Fluorescence test",1)
-            c1.cd()
-            c1.Update()
-            gStyle.SetOptStat(0)
-            gr = TGraphErrors("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt")
-            gr.SetMarkerStyle(41)
-            fit = TF1("fit","pol1",1000,10000)
-            gr.Fit("fit","w","l",1000,10000)
-            gr.SetMarkerStyle(20)
-            n_o = gr.GetFunction("fit").GetParameter(0)
-            n_o_er = gr.GetFunction("fit").GetParError(0)
-            slope = gr.GetFunction("fit").GetParameter(1)
-            pn_o = -(n_o/slope)
-            pn_o_er =abs(n_o_er/slope)
-            pslope = 1/slope
-            slope_err = gr.GetFunction("fit").GetParError(1)
-            pslope_err = slope_err /( slope*slope)
-            chisquare = gr.GetFunction("fit").GetChisquare()
-            ndf = gr.GetFunction("fit").GetNDF()
-            print "no:",pn_o
-            print "no error:", pn_o_er
-            print "slope:",pslope
-            print "slope error:",pslope_err
-            sumout.write( "C_" + str(i) + " "+ '{0:.2}'.format(pslope) + " +/- " + '{0:.1}'.format(pslope_err) +" " + '{0:.2}'.format(pn_o) + " +/- " + '{0:.2}'.format(pn_o_er)+ '\n' )
-            gStyle.SetOptFit(0)
-            gr.Draw("AP")
-            #gr.GetYaxis().SetRange(0,300)
-            #gr.GetXaxis().SetRange(0,8000)
-            title = "Graph eV vs Vcal for ROC " + str(i) + " "
-            gr.SetTitle( title )
-            gr.GetYaxis().SetTitle("Vcal")
-            gr.GetXaxis().SetTitle("No.Electrons")
-            gStyle.SetOptStat(0)
-            c1.Update()
-            gStyle.SetOptFit(0)
-            gr.Draw("AP")
-            gStyle.SetOptFit(0)
-            #ps = c1.FindObject("Graph").FindObject("stats")
-            #ps.SetX1NDC(0.15)
-            #ps.SetX2NDC(0.55)
-            #gStyle.SetOptStat(0)
-            c1.SetGrid()
-            textslope = TLatex()
-            textslope.SetNDC()
-            textslope.SetTextColor(kBlack)
-            textslope.SetTextSize(0.05)
-            textslope.DrawLatex(0.15,0.9,title)
-            textslope.DrawLatex(0.15,0.8,"e^{-}/Vcal: "+ '{0:.2}'.format(pslope) + " \pm " + '{0:.1}'.format(pslope_err) +
-                            " Intercept: " + '{0:.2}'.format(pn_o) + " \pm " + '{0:.2}'.format(pn_o_er))
-            textslope.DrawLatex(0.2,0.2,"  Cu                            Mo               Ag   In   Sn")
-            textslope.DrawLatex(0.15,0.7,"#chi^{2}/ndf = " + '{0:.4}'.format(chisquare/ndf))
-            gStyle.SetOptFit(0)
-            c1.Update()
-            gStyle.SetOptFit(0)
-            c1.Update()
-            c1.SaveAs('Qplot'+'_'+output+'_C'+str(i)+'.png')
-            c1.Close()
-            c1.Update()
-            gStyle.SetOptStat(1)
-            c1.Update()
-            ##get q value of fit and error and add them to a table then use TGraphError to make a distribution of them 
-            n_oh.Fill(-n_o/slope)
-            slopeh.Fill(1/slope)
-            qmatrix[i][0] = 1/slope
-            qmatrix[i][1] = -n_o/slope
-            qmatrix[i][2] = chisquare
-            qmatrix[i][3] = ndf
-            qmatrix[i][4] = slope_err/pow(slope,2)
+                elif('AgC_' in name):
+                    material = 'Ag'
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Cu" in line[k]:
+                            if "Mean_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meancu = words[1].strip('\n')
+                                mu_cu.append(meancu)
+                            elif "Sigma_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmacu = words[1].strip('\n') 
+                                sig_cu.append(sigmacu)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                mean = words[1].strip('\n')
+                                mu_ag.append(mean)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_ag.append(sigma)
+                    f.close()
+                elif('SnC_' in name):
+                    material = 'Sn'
+                    convfact= 25271/3.6
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Cu" in line[k]:
+                            if "Mean_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meancu = words[1].strip('\n')
+                                mu_cu.append(meancu)
+                            elif "Sigma_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmacu = words[1].strip('\n') 
+                                sig_cu.append(sigmacu)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                mean = words[1].strip('\n')
+                                mu_sn.append(mean)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_sn.append(sigma)
+                    f.close()
+                elif('InC_' in name):
+                    material = 'In'
+                    convfact= 24207/3.6
+                    f = open(file,'r')
+                    line = f.readlines()
+                    for k in range(0,len(line)):
+                        if "_Cu" in line[k]:
+                            if "Mean_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                meancu = words[1].strip('\n')
+                                mu_cu.append(meancu)
+                            elif "Sigma_Cu" in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigmacu = words[1].strip('\n') 
+                                sig_cu.append(sigmacu)   
+                        else:
+                            if "Mean_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                mean = words[1].strip('\n')
+                                mu_in.append(mean)
+                            elif "Sigma_"+material in line[k]:
+                                words =  re.split(':\t',line[k])
+                                sigma = words[1].strip('\n')
+                                sig_in.append(sigma)
+                    f.close()
+        n_cu = len(mu_cu)
+        n_mo = len(mu_mo)
+        n_ag = len(mu_ag)
+        n_sn = len(mu_sn)
+        n_in = len(mu_in)
+        n_all = n_cu + n_mo + n_sn + n_ag+ n_in
+        sigma_y = [0]*n_all
+        mus = mu_cu + mu_mo + mu_ag + mu_sn + mu_in
+        sigma_x = sig_cu + sig_mo + sig_ag+ sig_sn + sig_in
+        k_cu = [convfactcu]*n_cu
+        k_mo = [convfactmo]*n_mo
+        k_ag = [convfactag]*n_ag
+        k_sn = [convfactsn]*n_sn
+        k_in = [convfactin]*n_in
+        k = k_cu + k_mo + k_ag + k_sn+k_in
+        matrix = np.zeros(((len(mus)),4))
+        print "mus", mus, len(matrix)
+	a=0
+        for j in [0,1,2, 3, 4 ,5 ,6, 7]: #range(0,len(mus)):
+            a = j
+	    matrix[a][1] = float(mus[j])
+            matrix[a][0] = float(k[j])
+            matrix[a][3] = float(sigma_x[j])
+        table = open('SummaryTable'+'_'+output+'_'+'C_'+str(i)+'.txt','w')
+        np.savetxt("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt",matrix, delimiter="\t", fmt="%s", newline='\n' )
+        gStyle.SetOptFit(1)
+        c1 = TCanvas('c1',"Fluorescence test",1)
+        c1.cd()
+        c1.Update()
+        gStyle.SetOptStat(0)
+        gr = TGraphErrors("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt")
+        gr.SetMarkerStyle(41)
+        fit = TF1("fit","pol1",1000,10000)
+        gr.Fit("fit","w","l",1000,10000)
+        gr.SetMarkerStyle(20)
+        n_o = gr.GetFunction("fit").GetParameter(0)
+        n_o_er = gr.GetFunction("fit").GetParError(0)
+        slope = gr.GetFunction("fit").GetParameter(1)
+        pn_o = -(n_o/slope)
+        pn_o_er =abs(n_o_er/slope)
+        pslope = 1/slope
+        slope_err = gr.GetFunction("fit").GetParError(1)
+        pslope_err = slope_err /( slope*slope)
+        chisquare = gr.GetFunction("fit").GetChisquare()
+        ndf = gr.GetFunction("fit").GetNDF()
+        print "no:",pn_o
+        print "no error:", pn_o_er
+        print "slope:",pslope
+        print "slope error:",pslope_err
+        sumout.write( "C_" + str(i) + " "+ '{0:.2}'.format(pslope) + " +/- " + '{0:.1}'.format(pslope_err) +" " + '{0:.2}'.format(pn_o) + " +/- " + '{0:.2}'.format(pn_o_er)+ '\n' )
+        gStyle.SetOptFit(0)
+        gr.Draw("AP")
+        #gr.GetYaxis().SetRange(0,300)
+        #gr.GetXaxis().SetRange(0,8000)
+        title = "Graph eV vs Vcal for ROC " + str(i) + " "
+        gr.SetTitle( title )
+        gr.GetYaxis().SetTitle("Vcal")
+        gr.GetXaxis().SetTitle("No.Electrons")
+        gStyle.SetOptStat(0)
+        c1.Update()
+        gStyle.SetOptFit(0)
+        gr.Draw("AP")
+        gStyle.SetOptFit(0)
+        #ps = c1.FindObject("Graph").FindObject("stats")
+        #ps.SetX1NDC(0.15)
+        #ps.SetX2NDC(0.55)
+        #gStyle.SetOptStat(0)
+        c1.SetGrid()
+        textslope = TLatex()
+        textslope.SetNDC()
+        textslope.SetTextColor(kBlack)
+	textslope.SetTextSize(0.05)
+        textslope.DrawLatex(0.15,0.9,title)
+        textslope.DrawLatex(0.15,0.8,"e^{-}/Vcal: "+ '{0:.2}'.format(pslope) + " \pm " + '{0:.1}'.format(pslope_err) +
+                        " Intercept: " + '{0:.2}'.format(pn_o) + " \pm " + '{0:.2}'.format(pn_o_er))
+        textslope.DrawLatex(0.2,0.2,"  Cu                            Mo               Ag   In   Sn")
+	textslope.DrawLatex(0.15,0.7,"#chi^{2}/ndf = " + '{0:.4}'.format(chisquare/ndf))
+        gStyle.SetOptFit(0)
+        c1.Update()
+        gStyle.SetOptFit(0)
+        c1.Update()
+        c1.SaveAs('Qplot'+'_'+output+'_C'+str(i)+'.png')
+        c1.Close()
+        c1.Update()
+        gStyle.SetOptStat(1)
+        c1.Update()
+        ##get q value of fit and error and add them to a table then use TGraphError to make a distribution of them 
+        n_oh.Fill(-n_o/slope)
+        slopeh.Fill(1/slope)
+        qmatrix[i][0] = 1/slope
+        qmatrix[i][1] = -n_o/slope
+        qmatrix[i][2] = chisquare
+        qmatrix[i][3] = ndf
+        qmatrix[i][4] = slope_err/pow(slope,2)
     	# Create SummaryQPlots txt file:
     np.savetxt("SummaryDistributionTable"+'_'+output+'_'+".txt",qmatrix, delimiter="\t", fmt="%s", newline='\n' )
     FormattedFile = open("FluorFormatedOutput" + output + ".txt", "w")
@@ -924,10 +918,9 @@ Arraytgt2 = FitPeaks(rootfile2,hist2,material2,rocs,output,XRSource, 2)
 Arraytgt3 = FitPeaks(rootfile3,hist3,material3,rocs,output,XRSource, 2)
 Arraytgt4 = FitPeaks(rootfile4,hist4,material4,rocs,output,XRSource, 2)
 PlotSameNStats(Arraytgt1,Arraytgt2,Arraytgt3,Arraytgt4,rocs,output,XRSource)
-ConversionPlot(rocs, badrocs,output,XRSource)
+ConversionPlot(rocs, output,XRSource) 
 outrootfile.Write()
-outrootfile.Close()
-
+print "Thats all Folks!"
 
 
 

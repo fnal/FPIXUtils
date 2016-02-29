@@ -27,12 +27,12 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "floro_mg246_08022016.root" #"pa207_071615.root"
+myfilename1 = "fluoro_mj39_022616.root" #"pa207_071615.root"
 myfilename2 = myfilename1; #"floro_122915.root"
 myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
 myfilename4 = myfilename1; #"floro2_122915.root"
-myfileoutname = "XRFResult_mg246"
-rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
+myfileoutname = "XRFResult_mj309"
+rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15 ]
 
 
 parser.add_option('--setup', type='string', action='store',
@@ -94,7 +94,7 @@ parser.add_option('--nrocs', type='int', action='store',
                   dest='nrocs',
                   help='Number or rocs')
 parser.add_option('--badrocs', type='string', action='store',
-                  default='17',
+                  default='10',
                   dest='badrocs',
                   help='List of bad rocs, for example [2,4,5]')
 (options, args) = parser.parse_args()
