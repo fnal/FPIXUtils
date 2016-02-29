@@ -27,12 +27,12 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "fluoro_mj39_022616.root" #"pa207_071615.root"
+myfilename1 = "fluoro_mj415_022616.root" #"pa207_071615.root"
 myfilename2 = myfilename1; #"floro_122915.root"
 myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
 myfilename4 = myfilename1; #"floro2_122915.root"
-myfileoutname = "XRFResult_mj309"
-rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15 ]
+myfileoutname = "XRFResult_mj415"
+rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 
 parser.add_option('--setup', type='string', action='store',
@@ -182,7 +182,7 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
         if i not in rocs:
             print 'Skipping roc', i
             continue  
-        stats= open(output+material+'C_'+str(i)+'_stats.txt','w')
+        stats= open(output+material+'C'+str(i)+'_stats.txt','w')
         if material == 'not': #'In':
                 hl = len( histo )
                 hist = histo[0 : hl-4] + "Ag_C" + str(i) + "_V0"
@@ -773,14 +773,14 @@ def ConversionPlot(rocs,output, XRSource):
 	    matrix[a][1] = float(mus[j])
             matrix[a][0] = float(k[j])
             matrix[a][3] = float(sigma_x[j])
-        table = open('SummaryTable'+'_'+output+'_'+'C_'+str(i)+'.txt','w')
-        np.savetxt("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt",matrix, delimiter="\t", fmt="%s", newline='\n' )
+        table = open('SummaryTable'+'_'+output+'_'+'C'+str(i)+'.txt','w')
+        np.savetxt("SummaryTable"+'_'+output+'_'+"C"+str(i)+".txt",matrix, delimiter="\t", fmt="%s", newline='\n' )
         gStyle.SetOptFit(1)
         c1 = TCanvas('c1',"Fluorescence test",1)
         c1.cd()
         c1.Update()
         gStyle.SetOptStat(0)
-        gr = TGraphErrors("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt")
+        gr = TGraphErrors("SummaryTable"+'_'+output+'_'+"C"+str(i)+".txt")
         gr.SetMarkerStyle(41)
         fit = TF1("fit","pol1",1000,10000)
         gr.Fit("fit","w","l",1000,10000)

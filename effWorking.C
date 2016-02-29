@@ -515,7 +515,12 @@ int eff( string newmod, string fileDesg ){
 
 		for( int j=0; j<nDCol; j++){
                         dc = (iRoc*nDCol)+j;
+			if( hitshigh[dc] < 0 ) hitshigh[dc] = 0;
+			if( hitslow[dc] <= 0 ) hitslow[dc] = 1;
+			if( rocratehigh[iRoc] <= 0 ) rocratehigh[iRoc] = 1;
+			if( rocratelow[iRoc] < 0 ) rocratelow[iRoc] = 0;
                         udceff =  hitshigh[dc] / hitslow[dc] / rocratehigh[iRoc] * rocratelow[iRoc];
+			if( udceff < 0 ) udceff = 0;
                         DCUni.push_back(udceff);
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
@@ -733,7 +738,7 @@ int eff( string newmod, string fileDesg ){
         tg1->Draw("ap");
 
         char saveFileName3[256];
-        sprintf(saveFileName3, "%s_Hr_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        sprintf(saveFileName3, "%s_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
         c2->SaveAs(saveFileName3);
         c2->Clear();
         tg1->Clear();
