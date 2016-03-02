@@ -205,8 +205,15 @@ int eff( string newmod, string fileDesg ){
                 dcolEffErrors.push_back(bigempty);
 	 }
 
+	int dc98count[nRocs][nDCol];
+	int dc95count[nRocs][nDCol];
+	int totdc98 = 0;
+	int totdc95 = 0;
+
 	for( int i=0; i<=nRocs; i++){
 		for( int j=0; j<=nDCol; j++){
+			dc98count[i][j] = 0;
+			dc95count[i][j] = 0;
 			dcolHits[i].push_back(empty);
 			dcolHitErrors[i].push_back(empty);
 	                dcolRates[i].push_back(empty);
@@ -459,18 +466,22 @@ int eff( string newmod, string fileDesg ){
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
                                         }
-					if( i == (len - 1) ){ 
+					if( i == len ){ 
 						hitslow.push_back(totXHits);
 						efflow.push_back(totCHits);
 					}
 
-					if( i == 1 ){
+					if( i == 0 ){
 						hitshigh.push_back(totXHits);
 						effhigh.push_back(totCHits);
 					}     
 				
 					if( efficiency < 0.98 && rate < 120 ){	
+						dc98count[iRoc][dcol] = 1;
 						log << "Roc: " << iRoc << " dc: " << dcol << " rate: " << rate << " eff: " << efficiency << std::endl;
+					}
+					if( efficiency < 0.95 && rate < 120 ){
+						dc95count[iRoc][dcol] = 1;
 					}
 					if (VERBOSE) {
 //						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
@@ -525,6 +536,8 @@ int eff( string newmod, string fileDesg ){
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
+			totdc98 += dc98count[iRoc][nDCol];
+			totdc95 += dc95count[iRoc][nDCol];
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
 		
@@ -695,7 +708,8 @@ int eff( string newmod, string fileDesg ){
 	log << endl;
         log << "Estimated Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
 	log << "Lowest DC Efficency under 120MHz/cm^2 : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
-
+	log << "Number DC <= 98% : " << totdc98 << endl;
+	log << "Number DC <= 95% : " << totdc95 << endl;
         c1->Modified();
       	gPad->Modified();
  	char saveFileName[256];
