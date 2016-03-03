@@ -471,12 +471,12 @@ int eff( string newmod, string fileDesg ){
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
                                         }
-					if( i == (len - 1) ){ 
+					if( i ==  len ){ 
 						hitslow.push_back(totXHits);
 						efflow.push_back(totCHits);
 					}
 
-					if( i == 1 ){
+					if( i == 0 ){
 						hitshigh.push_back(totXHits);
 						effhigh.push_back(totCHits);
 					}     
