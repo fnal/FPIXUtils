@@ -210,10 +210,15 @@ int eff( string newmod, string fileDesg ){
 	int totdc98 = 0;
 	int totdc95 = 0;
 
+        for( int i=0; i<nRocs; i++){
+                for( int j=0; j<nDCol; j++){
+                        dc98count[i][j] = 0;
+                        dc95count[i][j] = 0;
+		}
+	}
+
 	for( int i=0; i<=nRocs; i++){
 		for( int j=0; j<=nDCol; j++){
-			dc98count[i][j] = 0;
-			dc95count[i][j] = 0;
 			dcolHits[i].push_back(empty);
 			dcolHitErrors[i].push_back(empty);
 	                dcolRates[i].push_back(empty);
@@ -466,12 +471,12 @@ int eff( string newmod, string fileDesg ){
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
                                         }
-					if( i == len ){ 
+					if( i == (len - 1) ){ 
 						hitslow.push_back(totXHits);
 						efflow.push_back(totCHits);
 					}
 
-					if( i == 0 ){
+					if( i == 1 ){
 						hitshigh.push_back(totXHits);
 						effhigh.push_back(totCHits);
 					}     
