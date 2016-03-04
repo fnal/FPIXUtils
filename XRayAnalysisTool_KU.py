@@ -27,11 +27,12 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "fluoro_mj415_022616.root" #"pa207_071615.root"
+myfilename1 = "fluoro_mj415_031616.root";#
+myModuleName = "mj415";
+rocs_to_skip = "99";  # list of rocs to remove from roclist example: " 2 5 12 "
 myfilename2 = myfilename1; #"floro_122915.root"
-myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
+myfilename3 = myfilename1; `#"floro2_122915.root" #"pa207_071615.root"
 myfilename4 = myfilename1; #"floro2_122915.root"
-myfileoutname = "XRFResult_mj415"
 rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 
@@ -41,7 +42,7 @@ parser.add_option('--setup', type='string', action='store',
                   help='Setup corresponding to KU or UIC?: Options KU or UIC only')
 
 parser.add_option('--outputfile', type='string', action='store',
-                  default=myfileoutname, #''M_',
+                  default='XRFReslts_'+ myModuleName + '_' ,
                   dest='outputfile',
                   help='Set first part of the name of outputfile: Usually M_XX_YYY')
 
@@ -84,6 +85,7 @@ parser.add_option('--SnFile', type='string', action='store',
                   default=myfilename3, #''Fluorescence.root',
                   dest='SnFile',
                   help='Name of the Sn root file ')
+
 parser.add_option('--InFile', type='string', action='store',
                   default=myfilename4, #'Fluorescence.root',
                   dest='InFile',
@@ -93,12 +95,20 @@ parser.add_option('--nrocs', type='int', action='store',
                   default=16,
                   dest='nrocs',
                   help='Number or rocs')
+
 parser.add_option('--badrocs', type='string', action='store',
-                  default='10',
+                  default= rocs_to_skip,
                   dest='badrocs',
-                  help='List of bad rocs, for example [2,4,5]')
+                  help='string of bad rocs, for example " 3 4 6" ')
+
+parser.add_option('--modname', type='string', action='store',
+                  default= myModuleName,
+                  dest='modname',
+                  help='Name of the module')
+
 (options, args) = parser.parse_args()
 argv = []
+
 #define functions here:
 #  _   _   _   _   _   _   _   _   _  
 # / \ / \ / \ / \ / \ / \ / \ / \ / \ 
@@ -106,6 +116,7 @@ argv = []
 # \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ 
 
 #Comments on get_gpeaks: To get rid of the polymarkers of the Spectrum method, use the option ='goff' in the search function
+
 def get_gpeaks(h,lrange=[0,180],sigma=6,opt="goff",thres=0.05,niter=1000,exp=0,i=0):
     s = TSpectrum(niter,1)
     h.GetXaxis().SetRangeUser(lrange[0],lrange[1])
@@ -902,7 +913,8 @@ rootfile4name = options.InFile
 outrootfile = TFile('histos.root')
 histname = options.histoname
 nrocs = options.nrocs
-for item in options.badrocs.split():
+badRocList = options.badrocs.split()
+for item in badRocList:
     if item in rocs: rocs.remove( item )
 output = options.outputfile
 material2 = 'Ag'
