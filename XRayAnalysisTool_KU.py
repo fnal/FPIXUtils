@@ -27,13 +27,12 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "fluoro_mj415_031616.root";#
-myModuleName = "mj415";
-rocs_to_skip = "99";  # list of rocs to remove from roclist example: " 2 5 12 "
+myfilename1 = "flouro2_mj315_030216.root" #"pa207_071615.root"
 myfilename2 = myfilename1; #"floro_122915.root"
-myfilename3 = myfilename1; `#"floro2_122915.root" #"pa207_071615.root"
+myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
 myfilename4 = myfilename1; #"floro2_122915.root"
-rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
+myfileoutname = "XRFResult_mj315"
+rocs = [ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 
 parser.add_option('--setup', type='string', action='store',
@@ -42,7 +41,7 @@ parser.add_option('--setup', type='string', action='store',
                   help='Setup corresponding to KU or UIC?: Options KU or UIC only')
 
 parser.add_option('--outputfile', type='string', action='store',
-                  default='XRFReslts_'+ myModuleName + '_' ,
+                  default=myfileoutname, #''M_',
                   dest='outputfile',
                   help='Set first part of the name of outputfile: Usually M_XX_YYY')
 
@@ -85,7 +84,6 @@ parser.add_option('--SnFile', type='string', action='store',
                   default=myfilename3, #''Fluorescence.root',
                   dest='SnFile',
                   help='Name of the Sn root file ')
-
 parser.add_option('--InFile', type='string', action='store',
                   default=myfilename4, #'Fluorescence.root',
                   dest='InFile',
@@ -95,20 +93,12 @@ parser.add_option('--nrocs', type='int', action='store',
                   default=16,
                   dest='nrocs',
                   help='Number or rocs')
-
 parser.add_option('--badrocs', type='string', action='store',
-                  default= rocs_to_skip,
+                  default=' 0 1 ',
                   dest='badrocs',
-                  help='string of bad rocs, for example " 3 4 6" ')
-
-parser.add_option('--modname', type='string', action='store',
-                  default= myModuleName,
-                  dest='modname',
-                  help='Name of the module')
-
+                  help='List of bad rocs, for example [2,4,5]')
 (options, args) = parser.parse_args()
 argv = []
-
 #define functions here:
 #  _   _   _   _   _   _   _   _   _  
 # / \ / \ / \ / \ / \ / \ / \ / \ / \ 
@@ -116,7 +106,6 @@ argv = []
 # \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ 
 
 #Comments on get_gpeaks: To get rid of the polymarkers of the Spectrum method, use the option ='goff' in the search function
-
 def get_gpeaks(h,lrange=[0,180],sigma=6,opt="goff",thres=0.05,niter=1000,exp=0,i=0):
     s = TSpectrum(niter,1)
     h.GetXaxis().SetRangeUser(lrange[0],lrange[1])
@@ -193,7 +182,7 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
         if i not in rocs:
             print 'Skipping roc', i
             continue  
-        stats= open(output+material+'C'+str(i)+'_stats.txt','w')
+        stats= open(output+material+'C_'+str(i)+'_stats.txt','w')
         if material == 'not': #'In':
                 hl = len( histo )
                 hist = histo[0 : hl-4] + "Ag_C" + str(i) + "_V0"
@@ -784,14 +773,14 @@ def ConversionPlot(rocs,output, XRSource):
 	    matrix[a][1] = float(mus[j])
             matrix[a][0] = float(k[j])
             matrix[a][3] = float(sigma_x[j])
-        table = open('SummaryTable'+'_'+output+'_'+'C'+str(i)+'.txt','w')
-        np.savetxt("SummaryTable"+'_'+output+'_'+"C"+str(i)+".txt",matrix, delimiter="\t", fmt="%s", newline='\n' )
+        table = open('SummaryTable'+'_'+output+'_'+'C_'+str(i)+'.txt','w')
+        np.savetxt("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt",matrix, delimiter="\t", fmt="%s", newline='\n' )
         gStyle.SetOptFit(1)
         c1 = TCanvas('c1',"Fluorescence test",1)
         c1.cd()
         c1.Update()
         gStyle.SetOptStat(0)
-        gr = TGraphErrors("SummaryTable"+'_'+output+'_'+"C"+str(i)+".txt")
+        gr = TGraphErrors("SummaryTable"+'_'+output+'_'+"C_"+str(i)+".txt")
         gr.SetMarkerStyle(41)
         fit = TF1("fit","pol1",1000,10000)
         gr.Fit("fit","w","l",1000,10000)
@@ -913,8 +902,7 @@ rootfile4name = options.InFile
 outrootfile = TFile('histos.root')
 histname = options.histoname
 nrocs = options.nrocs
-badRocList = options.badrocs.split()
-for item in badRocList:
+for item in options.badrocs.split():
     if item in rocs: rocs.remove( item )
 output = options.outputfile
 material2 = 'Ag'
@@ -932,7 +920,9 @@ Arraytgt4 = FitPeaks(rootfile4,hist4,material4,rocs,output,XRSource, 2)
 PlotSameNStats(Arraytgt1,Arraytgt2,Arraytgt3,Arraytgt4,rocs,output,XRSource)
 ConversionPlot(rocs, output,XRSource) 
 outrootfile.Write()
+outrootfile.Close()
 print "Thats all Folks!"
+
 
 
 

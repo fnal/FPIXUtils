@@ -764,6 +764,7 @@ int eff( string newmod, string fileDesg ){
         delete c2;
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	outfile.close();
+	system("rm -rf Auto*");
 	std::cout <<"Thats all folks!!!" << endl; 
 	return 0;
 
