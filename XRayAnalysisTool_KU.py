@@ -919,8 +919,8 @@ Arraytgt3 = FitPeaks(rootfile3,hist3,material3,rocs,output,XRSource, 2)
 Arraytgt4 = FitPeaks(rootfile4,hist4,material4,rocs,output,XRSource, 2)
 PlotSameNStats(Arraytgt1,Arraytgt2,Arraytgt3,Arraytgt4,rocs,output,XRSource)
 ConversionPlot(rocs, output,XRSource) 
-outrootfile.Write()
-outrootfile.Close()
+#outrootfile.Write()
+#outrootfile.Close()
 print "Thats all Folks!"
 
 
