@@ -177,7 +177,7 @@ int eff( string newmod, string fileDesg ){
 
         for( int i = 0; i<420;i++){
 		lineList2[2].push_back(0.8);
-                lineList2[1].push_back(1.2);
+                lineList2[1].push_back(1.5);
                 lineList2[0].push_back(i);
         }
 
@@ -739,20 +739,23 @@ int eff( string newmod, string fileDesg ){
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c4 = new TCanvas("c4", "DColUniformity", 200, 10, 700, 500);
         TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
-        char graphTitle[256];
+        TGraph* tg42 = new TGraph( lineList2[0].size(), &lineList2[0][0], &lineList2[1][0] );
+        TGraph* tg43 = new TGraph( lineList2[0].size(), &lineList[0][0], &lineList[2][0] );
+	
+	char graphTitle[256];
         sprintf(graphTitle, "%s DC Uniformity for %s", HighRateFileName.c_str() , moduleName.c_str());
         tg4->SetTitle(graphTitle);
         tg4->GetXaxis()->SetTitle("DCol Number");
         tg4->GetYaxis()->SetTitle("DC Uniformity");
 	tg4->GetYaxis()->SetRangeUser( 0.0, 2.0 );
-	TGraph* tg42 = new TGraph( lineList2[0].size(), &lineList2[0][0], &lineList2[1][0] );
-        TGraph* tg43 = new TGraph( lineList2[0].size(), &lineList[0][0], &lineList[2][0] );        
 	tg4->SetMarkerStyle(7);
         tg4->SetMarkerSize(1);
-        tg4->Draw("apl");
+        
+	tg4->Draw("apl");
 	tg42->Draw("same");
         tg43->Draw("same");
 	c4->Update();
+	c4->Modified();	
 
         char saveFileName3[256];
         sprintf(saveFileName3, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
