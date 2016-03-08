@@ -88,6 +88,7 @@ mainDirList = ['HRData_' + str(dataFluxesUsed[0]),'HRData_' + str(dataFluxesUsed
 configParamFilePath = XrayInDir + '/000_FPIXTest_p17/configParameters.dat'
 testParamFilePath = XrayInDir + '/000_FPIXTest_p17/testParameters.dat'
 defaultMaskFilePath = XrayInDir + '/000_FPIXTest_p17/defaultMaskFile.dat'
+logFilePath = XrayInDir + '/000_FPIXTest_p17/highrate.log'
 
 subprocess.call('mkdir ' + topDir, shell = True)
 for i in range (0, len(mainDirList)):
@@ -97,6 +98,7 @@ for i in range (0, len(mainDirList)):
   subprocess.call('cp ' + defaultMaskFilePath + ' ' + topDir + '/%03d'%i + '_' + mainDirList[i], shell = True)
 subprocess.call('mkdir ' + topDir + '/configfiles', shell = True)
 subprocess.call('mkdir ' + topDir + '/logfiles', shell = True)
+subprocess.call('cp ' + logFilePath + ' ' + str(topDir) + '/000' + '_HRData_' + str(dataFluxesUsed[0]) + '/hrData_' + str(dataFluxesUsed[0]) + '.log', shell = True)
 
 createRootFiles(hrFluxesUsed,dataFluxesUsed)
 splitRootFile(XrayInDir + '/000_FPIXTest_p17/highrate.root',hrFluxesUsed,dataFluxesUsed)
