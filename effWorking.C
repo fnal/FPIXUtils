@@ -541,8 +541,8 @@ int eff( string newmod, string fileDesg ){
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
-			totdc98 += dc98count[iRoc][nDCol];
-			totdc95 += dc95count[iRoc][nDCol];
+			totdc98 += dc98count[iRoc][j];
+			totdc95 += dc95count[iRoc][j];
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
 		

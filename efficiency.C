@@ -151,7 +151,6 @@ int eff( string newmod, string fileDesg ){
         std::vector< std::vector< std::vector< double > > > dcolEffErrors;
 
 	std::vector< std::vector< double > > lineList;
-	 std::vector< std::vector< double > > lineList2;
 
 	std::vector< std::vector< double > > bigempty; 
 	std::vector< double > empty;
@@ -166,20 +165,10 @@ int eff( string newmod, string fileDesg ){
 		lineList[0].push_back(i);
 	}
 
-        for( int i = 0; i<= 100; i++ ){
-                lineList[3].push_back(i/100);
-                lineList[2].push_back(120.0);
-        }
-
-        for( int i=0; i <3; i++ ){
-                lineList2.push_back(empty);
-        }
-
-        for( int i = 0; i<420;i++){
-		lineList2[2].push_back(0.8);
-                lineList2[1].push_back(1.5);
-                lineList2[0].push_back(i);
-        }
+	for( int i = 0; i<= 100; i++ ){
+		lineList[3].push_back(i/100);
+		lineList[2].push_back(120.0);
+	} 
 
 //	std::cout << "byamp inits" << endl;
 
@@ -482,12 +471,12 @@ int eff( string newmod, string fileDesg ){
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
                                         }
-					if( i ==  len ){ 
+					if( i == (len - 1) ){ 
 						hitslow.push_back(totXHits);
 						efflow.push_back(totCHits);
 					}
 
-					if( i == 0 ){
+					if( i == 1 ){
 						hitshigh.push_back(totXHits);
 						effhigh.push_back(totCHits);
 					}     
@@ -552,8 +541,8 @@ int eff( string newmod, string fileDesg ){
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
-			totdc98 += dc98count[iRoc][nDCol];
-			totdc95 += dc95count[iRoc][nDCol];
+			totdc98 += dc98count[iRoc][j];
+			totdc95 += dc95count[iRoc][j];
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
 		
@@ -739,23 +728,15 @@ int eff( string newmod, string fileDesg ){
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c4 = new TCanvas("c4", "DColUniformity", 200, 10, 700, 500);
         TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
-        TGraph* tg42 = new TGraph( lineList2[0].size(), &lineList2[0][0], &lineList2[1][0] );
-        TGraph* tg43 = new TGraph( lineList2[0].size(), &lineList[0][0], &lineList[2][0] );
-	
-	char graphTitle[256];
+        char graphTitle[256];
         sprintf(graphTitle, "%s DC Uniformity for %s", HighRateFileName.c_str() , moduleName.c_str());
         tg4->SetTitle(graphTitle);
         tg4->GetXaxis()->SetTitle("DCol Number");
         tg4->GetYaxis()->SetTitle("DC Uniformity");
 	tg4->GetYaxis()->SetRangeUser( 0.0, 2.0 );
-	tg4->SetMarkerStyle(7);
+        tg4->SetMarkerStyle(7);
         tg4->SetMarkerSize(1);
-        
-	tg4->Draw("apl");
-	tg42->Draw("same");
-        tg43->Draw("same");
-	c4->Update();
-	c4->Modified();	
+        tg4->Draw("apl");
 
         char saveFileName3[256];
         sprintf(saveFileName3, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
@@ -773,7 +754,7 @@ int eff( string newmod, string fileDesg ){
         tg1->GetYaxis()->SetTitle("Rate: MHa/cm^2");
         tg1->SetMarkerStyle(7);
         tg1->SetMarkerSize(1);
-        ag1->Draw("ap");
+        tg1->Draw("ap");
 
         char saveFileName3[256];
         sprintf(saveFileName3, "%s_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
@@ -783,6 +764,7 @@ int eff( string newmod, string fileDesg ){
         delete c2;
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	outfile.close();
+	system("rm -rf Auto*");
 	std::cout <<"Thats all folks!!!" << endl; 
 	return 0;
 
