@@ -331,7 +331,7 @@ int eff( string newmod, string fileDesg ){
 	std::cout<< "Processing  HR files: quanity: " << len << endl;	                                
 	log << "Double Column's with Efficency < 98 % under 120 MHz/cm^2" << endl;
 	int reps = 0;
-	if( len = 1 ){ reps = 2; } else { reps = len; }
+	if( len = 1 ){ reps = ( numOfRuns - 1 ); } else { reps = len; }
 	for (int i=0; i<reps ; ++i) {
 
 		int rateIndex = 0;		
@@ -379,7 +379,7 @@ int eff( string newmod, string fileDesg ){
 					sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);//<<  add index to "V0" "V1" ect string say:string version[3]; = {"V0", "V1", "V2"}  sync file index
 				}else{
 					std::string stringMapName = "HighRate/highRate_xraymap_C" + iRoc + "_"+ ver[i] + ";1";
-					strcpy( xraymapName, stringMapName.c_str();	
+					strcpy( xraymapName, stringMapName.c_str() );	
 				}
 				curTfile.GetObject(xraymapName, xraymap);
 				if (xraymap == 0) {
@@ -387,8 +387,12 @@ int eff( string newmod, string fileDesg ){
 				}
 				int nBinsX = xraymap->GetXaxis()->GetNbins();
 				int nBinsY = xraymap->GetYaxis()->GetNbins();
-				
-				sprintf(calmapName, "HighRate/highRate_C%d_V0;1", iRoc);//<<<<  do same thing as above<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				if( len > 1 ){
+                                        sprintf(calmapName, "HighRate/highRate_C%d_V0;1", iRoc);//<<<<  do same thing as above<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				 }else{
+                                        std::string stringMapName = "HighRate/highRate_C" + iRoc + "_"+ ver[i] + ";1";
+                                        strcpy( xraymapName, stringMapName.c_str() );
+                                }
 				curTfile.GetObject(calmapName, calmap);
 				if (calmap == 0) {
 					sprintf(calmapName, "HighRate/highRate_calmap_C%d_V0;1", iRoc);
