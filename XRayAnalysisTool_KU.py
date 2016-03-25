@@ -32,7 +32,7 @@ myfilename2 = myfilename1; #"floro_122915.root"
 myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
 myfilename4 = myfilename1; #"floro2_122915.root"
 myfileoutname = "XRFResult_mj315"
-rocs = [ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
+rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 
 parser.add_option('--setup', type='string', action='store',

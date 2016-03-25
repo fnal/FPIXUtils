@@ -34,7 +34,8 @@ int eff( string newmod, string fileDesg ){
 
         cout << "Usage:  eff( module_name_string , starting_hr_file_string )" << endl;
         cout << "for defaults enter \"hr\" for starting hr file designator. " << endl;
-
+	
+	int numOfRuns = 5;
         char chpath[256];
         getcwd(chpath, 255);
         std::string path = chpath;
@@ -68,6 +69,8 @@ int eff( string newmod, string fileDesg ){
 	int nTrig = nTrigPerPixel * nPixels;
 	float pixelArea = 0.01 * 0.015; // cm^2
 	float triggerDuration = 25e-9; //s
+
+	std::string ver[5] = {"V0", "V1", "V2", "V3", "V4"};
 
 	const int nRocs = 16;
 	const int nDCol = 25;
@@ -307,7 +310,7 @@ int eff( string newmod, string fileDesg ){
         listTFile.push_back( blank );
 
 	cout << "Sorting T file list " << endl;
-
+	if( len > 1 ){
 	for( int i=0; i<len; i++){
 
 		std::string currentRootFile = fileList[i];		
@@ -323,16 +326,19 @@ int eff( string newmod, string fileDesg ){
 			exit(0);
 		}
 		listTFile[rateIndex]=currentRootFile;
-	}
+	}}
 
 	std::cout<< "Processing  HR files: quanity: " << len << endl;	                                
 	log << "Double Column's with Efficency < 98 % under 120 MHz/cm^2" << endl;
-	for (int i=0; i<len ; ++i) {
+	int reps = 0;
+	if( len = 1 ){ reps = ( numOfRuns - 1 ); } else { reps = len; }
+	for (int i=0; i<reps ; ++i) {
 
 		int rateIndex = 0;		
                 int dColModCount = 0;
-
-		std::string currentRootFile = listTFile[i];	
+		int ltfreps = 0;
+		if( len > 1 ) ltfreps = i;
+		std::string currentRootFile = listTFile[ltfreps];	
 		std::cout << "Working file : " << currentRootFile << endl;
 
 		TFile curTfile(currentRootFile.c_str());
@@ -369,15 +375,24 @@ int eff( string newmod, string fileDesg ){
 			for (int iRoc=0;iRoc<nRocs;iRoc++) {
 
 				//std::cout << "ROC" << iRoc << std::endl;        //                         to move to single root file:  use same file name all files;
-				sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);//<<  add index to "V0" "V1" ect string say:string version[3]; = {"V0", "V1", "V2"}  sync file index
+				if( len > 1 ){
+					sprintf(xraymapName, "HighRate/highRate_xraymap_C%d_V0;1", iRoc);//<<  add index to "V0" "V1" ect string say:string version[3]; = {"V0", "V1", "V2"}  sync file index
+				}else{
+					std::string stringMapName = "HighRate/highRate_xraymap_C" + iRoc + "_"+ ver[i] + ";1";
+					strcpy( xraymapName, stringMapName.c_str() );	
+				}
 				curTfile.GetObject(xraymapName, xraymap);
 				if (xraymap == 0) {
 					std::cout << "ERROR: x-ray hitmap not found!" << std::endl;
 				}
 				int nBinsX = xraymap->GetXaxis()->GetNbins();
 				int nBinsY = xraymap->GetYaxis()->GetNbins();
-				
-				sprintf(calmapName, "HighRate/highRate_C%d_V0;1", iRoc);//<<<<  do same thing as above<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				if( len > 1 ){
+                                        sprintf(calmapName, "HighRate/highRate_C%d_V0;1", iRoc);//<<<<  do same thing as above<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				 }else{
+                                        std::string stringMapName = "HighRate/highRate_C" + iRoc + "_"+ ver[i] + ";1";
+                                        strcpy( xraymapName, stringMapName.c_str() );
+                                }
 				curTfile.GetObject(calmapName, calmap);
 				if (calmap == 0) {
 					sprintf(calmapName, "HighRate/highRate_calmap_C%d_V0;1", iRoc);

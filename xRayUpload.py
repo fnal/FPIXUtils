@@ -58,7 +58,7 @@ def analyze(inputFile, outputDir):
     unif_high = range(16)
     unif_low = range(16)
 
-    qfile = open("SummaryQPlots_XRFResult_"+inputFile+".txt",'r')
+    qfile = open("SummaryQPlots_"+inputFile+".txt",'r')
     #qfile = open("SummaryQplots.txt")
     line = qfile.readlines()
     for l in range(2,len(line)):
@@ -68,29 +68,47 @@ def analyze(inputFile, outputDir):
        slope[l-2] = float(values[1])
        offset[l-2] = float(values[4])
     
+    low98 = []
+    low95 = []
     eff_unif_file = open('hrEfficiency.log', 'r')
     eff_unif_lines = eff_unif_file.readlines()
     for line in eff_unif_lines:
-         for i in xrange(0,16):
-              if 'Lowesest DC Eff at High Rate for  ROC:'+str(i) in line:
-                  words_low_eff_hr = string.split(line)
-                  low_eff_hr[i] = float(words_low_eff_hr[11])
-              elif 'Lowest DC Eff at Low Rate for  ROC:'+str(i) in line:
-                  words_low_eff_lr = string.split(line)
-                  low_eff_lr[i] = float(words_low_eff_lr[11])
-              elif 'Highest  DC Uni  for  ROC:'+str(i) in line:
-                  words_unif_high = string.split(line)
-                  unif_high[i] = float(words_unif_high[8])
-              elif 'Lowest DC Uni for  ROC:'+str(i) in line:
-                  words_unif_low = string.split(line)
-                  unif_low[i] = float(words_unif_low[8])
-
+        for i in xrange(0,16):
+            if 'Lowesest DC Eff at High Rate for  ROC:'+str(i) in line:
+                words_low_eff_hr = string.split(line)
+                low_eff_hr[i] = float(words_low_eff_hr[11])
+                  
+            elif 'Lowest DC Eff at Low Rate for  ROC:'+str(i) in line:
+                words_low_eff_lr = string.split(line)
+                low_eff_lr[i] = float(words_low_eff_lr[11])
+            elif 'Highest  DC Uni  for  ROC:'+str(i) in line:
+                words_unif_high = string.split(line)
+                unif_high[i] = float(words_unif_high[8])
+            elif 'Lowest DC Uni for  ROC:'+str(i) in line:
+                words_unif_low = string.split(line)
+                unif_low[i] = float(words_unif_low[8])
+        if 'Number DC <= 98% :' in line:
+            print line
+            n98s =string.split(line)[5]
+            print n98s
+            n98 = n98s.replace(':','')     
+        elif 'Number DC <= 95% :' in line:
+            print line
+            n95s =string.split(line)[5]
+            print n95s
+            n95 = n95s.replace(':','')
     testtime = SE(top, 'TIME')
     testtime.text = str(datetime.now()) 
+  
+
 
     test = SE(top, 'TEST')
     attachName(test)
     
+    n98val = SE(test,'DC_BELOW_98')
+    n98val.text=str(n98)
+    n95val = SE(test,'DC_BELOW_95')
+    n95val.text=str(n95)
     xraytested = SE(test,'XRAY_TESTED')
     xraytested.text=str(1)
 
