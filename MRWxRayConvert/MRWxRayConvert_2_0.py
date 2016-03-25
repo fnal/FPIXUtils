@@ -3,12 +3,25 @@ from ROOT import *
 import subprocess
 import os
 import sys
+import datetime
+import random
 
 XrayInDir = sys.argv[1]
 
+site = 'UIC'
 hrFluxesUsed = [40,80,120]
 dataFluxesUsed = [40,120]
 dcNames = ['DCLowRate','DCHighRate']
+
+stamp = str(datetime.datetime.now())
+dateStamp = stamp.split(' ')[0]
+date = dateStamp
+timeStamp = stamp.split(' ')[1]
+dateStamp = dateStamp.split('-')[0][-2:] + dateStamp.split('-')[1] + dateStamp.split('-')[2]
+time = timeStamp.split(':')[0] + 'h' + timeStamp.split(':')[1] + 'm'
+timeStamp = timeStamp.split(':')[0] + timeStamp.split(':')[1]
+
+
 
 def createRootFiles(hrFluxes, dataFluxes):
   for hrFlux in hrFluxes:
@@ -65,23 +78,23 @@ def writeIniFile(hrFluxes, dataFluxes):
   for line in inTmpFile:
     if 'insertTestsHere' in line:
       line = 'Test = HRData@' + str(dataFluxes[0]) + 'MHz/cm2,HRData@' + str(dataFluxes[1]) + 'MHz/cm2>{HREfficiency@' + str(hrFluxes[0]) + 'MHz/cm2,HREfficiency@' + str(hrFluxes[1]) + 'MHz/cm2,HREfficiency@' + str(hrFluxes[2]) + 'MHz/cm2}' + '\n'
+    if 'insertTestDescriptionHere' in line:
+      line = 'TestDescription = XrayQualification-17C-' + site + '-' + dateStamp + '-' + timeStamp + '\n'
     outTmpFile.write(line)
   inTmpFile.close()
   outTmpFile.close()
   subprocess.call('mv elComandante.ini ' + topDir + '/configfiles', shell = True)
 
 module = XrayInDir.split('_')[0]
-date = XrayInDir.split('_')[2]
-time = XrayInDir.split('_')[3]
 number = XrayInDir.split('_')[4]
 
 if '/' in number:
   number = int(number.replace("/", ""))
 else:
   number = int(number)
-number += 30
+number +=  random.randrange(1,300,1)
 
-topDir = module + '_XrayQualification_' + date + '_' + time + '_' + str(number)
+topDir = module + '_XrayQualification-17C-' + site + '-' + dateStamp + '-' + timeStamp + '_' + date + '_' + time + '_' + str(number)
 print 'Creating directory:' + topDir
 mainDirList = ['HRData_' + str(dataFluxesUsed[0]),'HRData_' + str(dataFluxesUsed[1]),'HREfficiency_' + str(hrFluxesUsed[0]), 'HREfficiency_'  + str(hrFluxesUsed[1]), 'HREfficiency_' + str(hrFluxesUsed[2])]
 
