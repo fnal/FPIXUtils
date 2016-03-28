@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from ROOT import *
+from componentTrackingTools import *
 from array import array
 import collections
 import re
@@ -22,6 +23,332 @@ ROC_PLOT_SIZE = X_UNIT * 50 + 2 * (2 * X_UNIT)  # 50 normal cols + 2 wide ones
 MODULE_X_PLOT_SIZE = 8 * ROC_PLOT_SIZE
 MODULE_Y_PLOT_SIZE = 2 * ROC_PLOT_SIZE
 
+###############################################################################
+
+# BEGIN SENSOR WAFER PLOTTING UTILITIES
+
+###############################################################################
+
+def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = None):
+
+    title = inputPath.split("/")
+
+    canvas = TCanvas(wafer,"")
+
+    canvas.SetFillStyle(0)
+    canvas.SetBorderMode(0)
+    canvas.SetBorderSize(0)
+    canvas.SetCanvasSize(2000, 2000)
+    canvas.SetMargin(0,0,0,0)
+    SetOwnership(canvas, False)  # avoid going out of scope at return statement
+
+    n = 1./6.
+    padList = [
+        { type : 'TT', 'location' : [n,5*n,5*n,1]},
+        { type : 'FL', 'location' : [0,n,n,1-n]},
+        { type : 'LL', 'location' : [n,n,2*n,1-n]},
+        { type : 'CL', 'location' : [2*n,n,3*n,1-n]},
+        { type : 'CR', 'location' : [3*n,n,4*n,1-n]},
+        { type : 'RR', 'location' : [4*n,n,5*n,1-n]},
+        { type : 'FR', 'location' : [5*n,n,1,1-n]},
+        { type : 'BB', 'location' : [n,0,5*n,n]},
+
+        { type : 'TL', 'location' : [0,5*n,n,1]},
+        { type : 'TR', 'location' : [5*n,5*n,1,1]},
+        { type : 'BL', 'location' : [0,0,n,n]},
+        { type : 'BR', 'location' : [5*n,0,1,n]}
+    ]
+    padIndices = {
+        'TT' : 1,
+        'FL' : 2,
+        'LL' : 3,
+        'CL' : 4,
+        'CR' : 5,
+        'RR' : 6,
+        'FR' : 7,
+        'BB' : 8,
+
+        'TL' : 9,
+        'TR' : 10,
+        'BL' : 11,
+        'BR' : 12
+    }
+
+    canvas.Divide(12)
+    for pad in range(12):
+        canvas.cd(pad+1)
+        location = padList[pad]['location']
+        x1 = location[0]
+        y1 = location[1]
+        x2 = location[2]
+        y2 = location[3]
+        gPad.SetPad(x1,y1,x2,y2)
+        gPad.SetFrameLineWidth(0)
+        gPad.SetFrameLineColor(0)
+        if pad in [0,7]:
+            gPad.SetMargin(0.01,0.01,0.04,0.04)
+        elif pad in [1,2,3,4,5,6]:
+            gPad.SetMargin(0.04,0.04,0.01,0.01)
+        else:
+            gPad.SetMargin(0,0,0,0)
+            gPad.SetFillColor(920)
+            gPad.SetFrameLineColor(920)
+
+    # color bad sensors red
+    canvas.cd()
+    waferGrades = produceSensorGradeDictionary("/Users/lantonel/FPIXUtils/badSensors.txt")
+    if wafer in waferGrades:
+        for position in waferGrades[wafer]:
+            canvas.cd(position)
+            gPad.SetFillColor(kRed+1)
+            gPad.SetFrameLineColor(kRed+1)
+            gPad.SetFrameLineWidth(5)
+            plot = TH2D("","",1,0,1,1,0,1)
+            plot.SetStats(False)
+            plot.Draw("col a")
+            gPad.Update()
+
+    # find best z-axis range if none is specified
+    if zMin is None or zMax is None:
+        listOfPlots = []
+        for plot in plotDictionary[wafer]:
+            listOfPlots.append(plot['plot'])
+        zRange = findZRange(listOfPlots)
+        zMin = zRange[0]
+        zMax = zRange[1]
+
+    # draw all plots
+    for plot in plotDictionary[wafer]:
+
+        canvas.cd(padIndices[plot['position']])
+
+        # rotate histogram according to its position on the wafer
+        if plot['position'] == 'BB' or plot['position'] == 'TT':
+            histo = flipSummaryPlot(plot['plot'])
+        else:
+            histo = rotateSummaryPlot(plot['plot'])
+        histo.SetDirectory(0)
+        SetOwnership(histo,False)
+
+        # turn it gray if it's going to be empty, to show that sensor has been used
+        if histo.GetBinContent(histo.GetMaximumBin()) <= zMin or histo.GetBinContent(histo.GetMinimumBin()) > zMax:
+            gPad.SetFillColor(920)
+            gPad.SetFrameLineColor(920)
+        histo.SetMinimum(zMin)
+        histo.SetMaximum(zMax)
+        histo.SetTitle("")
+        histo.SetStats(False)
+        histo.Draw('cola a')
+        gPad.Update()
+        canvas.Update()
+
+    # draw wafer box in bottom left
+    canvas.cd(padIndices['TL'])
+    waferBox = TPaveText(0, 0, 1, 1, "NDC NB")
+    waferBox.SetFillStyle(0)
+    waferBox.SetFillColor(0)
+    waferBox.SetTextAlign(22)
+    waferBox.SetTextFont(42)
+    waferBox.SetBorderSize(0)
+    waferBox.AddText("Wafer")
+    waferBox.AddText(wafer)
+    waferBox.Draw()
+
+    # draw plot title box in bottom left
+    canvas.cd(padIndices['BL'])
+    titleBox = TPaveText(0, 0, 1, 1, "NDC NB")
+    titleBox.SetFillStyle(0)
+    titleBox.SetFillColor(0)
+    titleBox.SetTextAlign(22)
+    titleBox.SetTextFont(42)
+    titleBox.SetBorderSize(0)
+    titleBox.AddText(title[0]+":")
+    titleBox.AddText(title[1])
+    titleBox.Draw()
+
+    # draw z-scale in bottom right
+    canvas.cd(padIndices['BR'])
+    palette = TPaletteAxis(0.3, 0.1, 0.5, 0.9, histo)
+    palette.SetLabelSize(0.1)
+    palette.Draw()
+
+    canvas.SaveAs("SensorWafer_"+wafer+"_"+inputPath.replace("/","_")+".png")
+
+
+###############################################################################
+
+# BEGIN ROC WAFER PLOTTING UTILITIES
+
+###############################################################################
+
+def saveROCWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = None):
+
+    title = inputPath.split("/")
+
+    canvas = TCanvas(wafer,"")
+
+    canvas.SetFillStyle(0)
+    canvas.SetBorderMode(0)
+    canvas.SetBorderSize(0)
+    canvas.SetCanvasSize(2000, 2000)
+    canvas.SetMargin(0,0,0,0)
+    SetOwnership(canvas, False)  # avoid going out of scope at return statement
+
+    rows = 8
+    cols = 10
+    canvas.Divide(cols,rows,0,0)
+
+    # one pad per reticle
+    for pad in range(rows*cols):
+        canvas.cd(pad+1)
+        gPad.SetMargin(0,0,0,0)
+        gPad.SetBorderMode(0)
+        gPad.SetBorderSize(0)
+        gPad.Divide(2,2,0,0)
+        # one subpad per ROC
+        for subpad in range(4):
+            canvas.cd(pad+1)
+            gPad.cd(subpad+1)
+            # eyeballed this to make them square-ish
+            # and account for periphery on bottom edge
+            gPad.SetMargin(0.02,0.02,0.2,0.02)
+            gPad.SetFillStyle(1001)
+            gPad.SetBorderMode(0)
+            gPad.SetBorderSize(0)
+            gPad.Update()
+
+    emptyReticles = [1,2,3,9,10,11,20,21,51,61,62,70,71,72,73,74,78,79,80]
+
+    for pad in emptyReticles:
+        canvas.cd(pad)
+        gPad.SetFillColor(920)
+        gPad.SetFrameLineColor(920)
+        gPad.SetFillStyle(1001)
+        plot = TH2D("","",1,0,1,1,0,1)
+        plot.SetStats(False)
+        plot.Draw("col a")
+        gPad.Update()
+
+    colors = [kWhite,kBlue+1,kViolet+1,kYellow+1,kRed+1]
+    canvas.cd()
+    waferGrades = produceROCGradeDictionary(wafer)
+    for roc,grade in waferGrades.iteritems():
+        position = roc.split('-')[1]
+        pad = int(position[0]) * 10 + int(position[1]) + 1
+        subpad = ord(position[2]) - ord('A') + 1
+        canvas.cd(pad)
+        gPad.cd(subpad)
+        gPad.SetFillColor(colors[grade-1])
+        gPad.SetFrameLineColor(colors[grade-1])
+        gPad.SetFrameLineWidth(5)
+#        gPad.SetFillStyle(1001)
+        plot = TH2D("","",1,0,1,1,0,1)
+        plot.SetStats(False)
+        plot.Draw("col a")
+        gPad.Update()
+
+    # find best z-axis range if none is specified
+    if zMin is None or zMax is None:
+        listOfPlots = []
+        for plot in plotDictionary[wafer]:
+            listOfPlots.append(plot['plot'])
+        zRange = findZRange(listOfPlots)
+        zMin = zRange[0]
+        zMax = zRange[1]
+
+    # draw all plots
+    for plot in plotDictionary[wafer]:
+        canvas.cd(plot['pad'])
+        gPad.cd(plot['subpad'])
+        gPad.SetFillColor(0)
+        histo = plot['plot']
+        # turn it gray if it's going to be empty, to show that ROC has been used
+        if histo.GetBinContent(histo.GetMaximumBin()) <= zMin or histo.GetBinContent(histo.GetMinimumBin()) > zMax:
+            gPad.SetFillColor(920)
+            gPad.SetFrameLineColor(920)
+        histo.SetMinimum(zMin)
+        histo.SetMaximum(zMax)
+        histo.SetTitle("")
+
+        histo.SetStats(False)
+        histo.Draw('cola a')
+
+    canvas.cd()
+
+    # draw labels and lines
+    width = 0.03
+    height = 0.03
+    line = TLine()
+    line.SetLineColor(920)
+    line.SetLineWidth(3)
+
+    for x in range(cols):
+        x_center = (1 + 2*x) * 1./(2*cols)
+        y_center = 1 - height/2.
+        label = TPaveText(x_center - width/2., y_center - height/2., x_center + width/2.,  y_center + height/2., "NDC NB")
+        label.AddText("Y"+ str(x))
+        label.SetFillStyle(0)
+        label.SetFillColor(0)
+        label.SetTextAlign(22)
+        label.SetTextFont(42)
+        label.SetBorderSize(0)
+        label.Draw()
+        SetOwnership(label,False)  # avoid going out of scope at return statement
+
+        # draw vertical lines
+        line.DrawLine((x+1)/float(cols),0,(x+1)/float(cols),1)
+
+    for y in range(rows):
+        x_center = width/2
+        y_center = (1 + 2*y) * 1./(2*rows)
+        label = TPaveText(x_center - width/2., y_center - height/2., x_center + width/2.,  y_center + height/2., "NDC NB")
+        label.AddText(str(rows - y - 1) + "X")
+        label.SetFillStyle(0)
+        label.SetFillColor(0)
+        label.SetTextAlign(22)
+        label.SetTextFont(42)
+        label.SetBorderSize(0)
+        label.Draw()
+        SetOwnership(label,False)  # avoid going out of scope at return statement
+
+        # draw horizontal lines
+        line.DrawLine(0,(y+1)/float(rows),1,(y+1)/float(rows))
+
+    # draw wafer box in bottom left
+    waferBox = TPaveText(0.1, 0, 0.4, 1./8., "NDC NB")
+    waferBox.SetFillStyle(0)
+    waferBox.SetFillColor(0)
+    waferBox.SetTextAlign(22)
+    waferBox.SetTextFont(42)
+    waferBox.SetBorderSize(0)
+    waferBox.AddText(wafer)
+    waferBox.Draw()
+
+    # draw plot title box in bottom right
+    titleBox = TPaveText(0.7, 0, 0.9, 1./8., "NDC NB")
+    titleBox.SetFillStyle(0)
+    titleBox.SetFillColor(0)
+    titleBox.SetTextAlign(22)
+    titleBox.SetTextFont(42)
+    titleBox.SetBorderSize(0)
+    titleBox.AddText(title[0]+":")
+    titleBox.AddText(title[1])
+    titleBox.Draw()
+
+    # draw z-scale in bottom right
+    palette = TPaletteAxis(0.91,0.02,0.94,2./8.-0.02,plotDictionary[wafer][0]['plot'])
+    palette.SetLabelSize(0.025)
+    palette.Draw()
+
+    canvas.SaveAs("ROCWafer_"+wafer+"_"+inputPath.replace("/","_")+".png")
+
+
+###############################################################################
+
+# BEGIN MODULE SUMMARY PLOTTING UTILITIES
+
+###############################################################################
+
 
 ###############################################################################
 
@@ -35,7 +362,7 @@ def flipTopRow(plots):
         histo.Reset()
         nBinsX = histo.GetNbinsX()
         nBinsY = histo.GetNbinsY()
-        for x in range(1,nBinsX+1):
+        for x in range(1, nBinsX+1):
             for y in range(1, nBinsY+1):
                 content = plots[roc].GetBinContent(x,y)
                 error   = plots[roc].GetBinError(x,y)
@@ -49,7 +376,57 @@ def flipTopRow(plots):
 
 ###############################################################################
 
-# input 16 plots (one per ROC) and return one merged plot with variable bins
+# function to rotate a module summary plot by 180 degrees
+def flipSummaryPlot(plot):
+
+    histo = plot.Clone()
+    histo.SetDirectory(0)
+    histo.Reset()
+    nBinsX = histo.GetNbinsX()
+    nBinsY = histo.GetNbinsY()
+    for x in range(1,nBinsX+1):
+        for y in range(1, nBinsY+1):
+            content = plot.GetBinContent(x,y)
+            error   = plot.GetBinError(x,y)
+            histo.SetBinContent(nBinsX-x+1, nBinsY-y+1, content)
+            histo.SetBinError(nBinsX-x+1, nBinsY-y+1, error)
+
+    return histo
+
+###############################################################################
+
+# function to rotate a module summary plot clockwise by 90 degrees
+def rotateSummaryPlot(plot):
+    name = plot.GetName()
+    title = plot.GetTitle()
+    nBinsX = plot.GetNbinsX()
+    nBinsY = plot.GetNbinsY()
+    binEdgesX = []
+    binEdgesY = []
+    for bin in range(nBinsX+1):
+        binEdgesX.append(int(plot.GetXaxis().GetBinLowEdge(bin+1)))
+    for bin in range(nBinsY+1):
+        binEdgesY.append(int(plot.GetYaxis().GetBinLowEdge(bin+1)))
+    histo = plot.Clone()
+    histo.SetDirectory(0)
+    histo.Reset()
+    histo.SetBins(len(binEdgesY)-1,
+                  array('d',binEdgesY),
+                  len(binEdgesX)-1,
+                  array('d',binEdgesX))
+    for x in range(1,nBinsX+1):
+        for y in range(1, nBinsY+1):
+            content = plot.GetBinContent(x,y)
+            error   = plot.GetBinError(x,y)
+            histo.SetBinContent(y, nBinsX-x+1, content)
+            histo.SetBinError(y, nBinsX-x+1, content)
+
+    return histo
+
+
+###############################################################################
+
+# Input 16 plots (one per ROC) and return one merged plot with variable bins
 # fill in units of 50um to account for larger edge pixels
 def makeMergedPlot(plots):
 
@@ -133,7 +510,7 @@ def findZRange(plots):
     nSigma = 3
     globalMin = 0.00002
 
-    for roc in range(16):
+    for roc in range(len(plots)):
         plot = plots[roc].Clone()
 
         # don't consider empty plots from dead ROCs
@@ -240,7 +617,7 @@ def setZRange(plot, range):
 # input a summary merged plot and draw it on a canvas
 # add axis ticks and labels
 # return canvas
-def setupSummaryCanvas(summaryPlot):
+def setupSummaryCanvas(summaryPlot, moduleName = None):
 
     pathToHistogram = summaryPlot.GetName()
     splitPath = pathToHistogram.split("/")
@@ -452,15 +829,29 @@ def setupSummaryCanvas(summaryPlot):
                       (SENSOR_WIDTH + leftMargin)/canvasWidth,
                       (SENSOR_HEIGHT + bottomMargin + 0.95*topMargin)/canvasHeight,
                       "NDC NB")
+    # this is true except for MoReWeb, when we don't want to draw a title
     if dirName is not None:
         title.AddText(dirName + ": " + plotName)
     title.SetFillColor(0)
     title.SetTextAlign(22)
     title.SetTextFont(42)
     title.SetBorderSize(0)
-
     title.Draw()
     SetOwnership(title,False)  # avoid going out of scope at return statement
+
+    if dirName is not None and moduleName is not None:
+        moduleLabel = TPaveText(leftMargin/canvasWidth,
+                          (SENSOR_HEIGHT + bottomMargin + 0.6*topMargin)/canvasHeight,
+                          (3 * leftMargin)/canvasWidth,
+                          (SENSOR_HEIGHT + bottomMargin + 0.95*topMargin)/canvasHeight,
+                          "NDC NB")
+        moduleLabel.AddText(moduleName)
+        moduleLabel.SetFillColor(0)
+        moduleLabel.SetTextAlign(22)
+        moduleLabel.SetTextFont(42)
+        moduleLabel.SetBorderSize(0)
+        moduleLabel.Draw()
+        SetOwnership(moduleLabel,False)  # avoid going out of scope at return statement
 
     return canvas
 
@@ -472,7 +863,6 @@ def saveCanvasToNewFile(canvas,outputFileName):
     outputFile.cd()
     canvas.Write()
     outputFile.Close()
-
 
 ###############################################################################
 
@@ -491,7 +881,8 @@ def produce1DDistributions(inputFileName, pathToHistogram, version=0):
             twoDplot = inputFile.Get(plotPath).Clone()
 
         oneDplotName = "dist_"+twoDplot.GetName()
-        # we'll assume we're plotting an 8-bit DAC value
+        # we'll assume we're plotting an 8-bit DAC value,
+        # expect for a couple of explicit exceptions
         if "_sig_" in oneDplotName:
             oneDplot = TH1F(oneDplotName,oneDplotName,100,0,10)
         elif "_TrimMap_" in oneDplotName:
@@ -698,7 +1089,23 @@ def add1DDistributions(inputFileName, histogramDictionary):
 
 # pass in the input file and location of relevant histogram
 # return the canvas with the finished summary plot
-def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar', zRange=()):
+def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar', zRange=(), moduleName = None):
+
+    plots = produce2DPlotList(inputFileName, pathToHistogram, version, mode)
+    if plots is None:
+        return None
+    summaryPlot = makeMergedPlot(plots)
+    if not zRange: zRange = findZRange(plots)
+    setZRange(summaryPlot,zRange)
+    summaryCanvas = setupSummaryCanvas(summaryPlot, moduleName=moduleName)
+
+    return summaryCanvas
+
+###############################################################################
+
+# pass in the input file and location of relevant histogram
+# return the list of 16 ROC plots
+def produce2DPlotList(inputFileName, pathToHistogram, version=0, mode='pxar'):
 
     inputFile = TFile(inputFileName)
     plots = []
@@ -721,24 +1128,65 @@ def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar',
             plot.SetName(plotName + "_V" + str(version) + "_Summary" + str(roc))
         else:
             plot.SetName(plotName + "_Summary" + str(roc))
+        plot.SetDirectory(0)
         plots.append(plot)
     if not foundPlot:
         print "no valid plots found, skipping"
         return None
 
-    summaryPlot = makeMergedPlot(plots)
-    if not zRange: zRange = findZRange(plots)
-    setZRange(summaryPlot,zRange)
+    return plots
 
-    summaryCanvas = setupSummaryCanvas(summaryPlot)
+###############################################################################
 
-    return summaryCanvas
+# takes a set of 16 ROC plots
+# replaces the contents of each bin with 1 (true) or 0 (false) depending on
+# whether it falls within the provided range (inclusive)
+def makeBinaryPlots(plots, min=0, max=1):
+
+    # decide whether to include a range or veto a range
+    vetoRange = False
+    if max < min:
+        vetoRange = True
+
+    for roc in range(16):
+
+        histo = plots[roc].Clone()
+        histo.SetDirectory(0)
+        histo.Reset()
+        nBinsX = histo.GetNbinsX()
+        nBinsY = histo.GetNbinsY()
+        for x in range(1, nBinsX+1):
+            for y in range(1, nBinsY+1):
+                content = plots[roc].GetBinContent(x,y)
+                if plots[roc].GetEntries() == 0:
+                    histo.SetBinContent(x, y, 0)
+                elif not vetoRange and (content >= min and content <= max):
+                    histo.SetBinContent(x, y, 1)
+                elif vetoRange and (content >= min or content <= max):
+                    histo.SetBinContent(x, y, 1)
+                else:
+                    histo.SetBinContent(x, y, 0)
+
+        plots[roc] = histo
+
+
+###############################################################################
+
+# takes a set of 16 ROC plots
+# returns the sum of them all
+def makeSumPlot(plots):
+
+    histo = plots[0].Clone()
+    for roc in range(1,16):
+        histo.Add(plots[roc])
+
+    return histo
 
 ###############################################################################
 
 # pass in the input file and location of relevant histogram
-# return merged 1D summary plot
-def produce1DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar'):
+# return the list of 16 ROC plots
+def produce1DPlotList(inputFileName, pathToHistogram, version=0, mode='pxar'):
 
     inputFile = TFile(inputFileName)
     plots = []
@@ -756,9 +1204,22 @@ def produce1DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar')
         else:
             foundPlot = True
             plot = inputFile.Get(plotPath).Clone()
+        plot.SetDirectory(0)
         plots.append(plot)
     if not foundPlot:
         print "no valid plots found, skipping"
+        return None
+
+    return plots
+
+###############################################################################
+
+# pass in the input file and location of relevant histogram
+# return merged 1D summary plot
+def produce1DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar'):
+
+    plots = produce1DPlotList(inputFileName, pathToHistogram, version, mode)
+    if plots is None:
         return None
 
     summaryPlot = plots[0].Clone()
@@ -799,9 +1260,12 @@ def produce1DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar')
 ###############################################################################
 
 # temporary altered version of produceSummaryPlot for use in lessWeb.py
-def produceLessWebSummaryPlot(inputFile, pathToHistogram, outputDir, zRange=(), isBB3=False, version=0):
+def produceLessWebSummaryPlot(inputFile, pathToHistogram, outputDir, zRange=(), isBB3=False, version=0, moduleName = None):
 
-    summaryCanvas=produce2DSummaryPlot(inputFile.GetName(), pathToHistogram, zRange=zRange)
+    summaryCanvas=produce2DSummaryPlot(inputFile.GetName(), pathToHistogram, zRange=zRange, moduleName=moduleName)
+
+    if summaryCanvas is None:
+        return
 
     if isBB3 and zRange:
         colors = array("i",[51+i for i in range(40)] + [kRed])

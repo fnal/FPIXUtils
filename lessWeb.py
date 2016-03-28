@@ -404,7 +404,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
 
     data=TFile(data['fulltest'])
 
-    produceLessWebSummaryPlot(data,'BB3/rescaledThr',outputDir,zRange=(-5,5), isBB3=True)
+    produceLessWebSummaryPlot(data,'BB3/rescaledThr',outputDir,zRange=(-5,5), isBB3=True, moduleName = moduleName)
     pic=SE(top, 'PIC')
     attachName(pic)
     file=SE(pic, 'FILE')
@@ -421,7 +421,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
                  'Scurves/sig_scurveVcal_Vcal','Scurves/thr_scurveVcal_Vcal',
                  ]:
 
-        produceLessWebSummaryPlot(data,hist,outputDir)
+        produceLessWebSummaryPlot(data,hist,outputDir, moduleName = moduleName)
         pic=SE(top, 'PIC')
         attachName(pic)
         file=SE(pic, 'FILE')
@@ -433,7 +433,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
         comment=open(outputDir+'/'+txt.text,'w')
         comment.write('\n'+file.text.split('.')[0])
 
-    produceLessWebSummaryPlot(data,'Trim/TrimMap',outputDir,zRange=(0,15))
+    produceLessWebSummaryPlot(data,'Trim/TrimMap',outputDir,zRange=(0,15), moduleName = moduleName)
     pic=SE(top, 'PIC')
     attachName(pic)
     file=SE(pic, 'FILE')
@@ -725,6 +725,7 @@ def analyzeFullTest(inputDir, outputDir, log, data):
 
     try: trimDefectPixels[15]
     except:
+        trimDefectPixels=16*[4160]
         print 3*'\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         print 'No Scurves results found! Notfiy expert on call.'
         print 3*'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n'

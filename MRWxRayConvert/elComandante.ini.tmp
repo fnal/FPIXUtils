@@ -163,8 +163,9 @@ testParameters = DacLo=0,DacHi=100,Ntrig=50
 testParameters = trimhotpixelthr=150,runsecondsHotPixels=1,savetrimbits=1,maskuntrimmable=1
 
 [Tests]
+insertTestDescriptionHere
 insertTestsHere
-TestDescription = XrayQualification
+
 
 [Xray]
 XrayUse = True
