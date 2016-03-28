@@ -217,6 +217,18 @@ int eff( string newmod, string fileDesg ){
 		}
 	}
 
+        int dc08count[nRocs][nDCol];
+        int dc12count[nRocs][nDCol];
+        int totdc08 = 0;
+        int totdc12 = 0;
+
+        for( int i=0; i<nRocs; i++){
+                for( int j=0; j<nDCol; j++){
+                        dc08count[i][j] = 0;
+                        dc12count[i][j] = 0;
+                }
+        }
+
 	for( int i=0; i<=nRocs; i++){
 		for( int j=0; j<=nDCol; j++){
 			dcolHits[i].push_back(empty);
@@ -541,10 +553,18 @@ int eff( string newmod, string fileDesg ){
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
-			totdc98 += dc98count[iRoc][j];
-			totdc95 += dc95count[iRoc][j];
+			if( udceff >= 1.5 ) dc98count[iRoc][j] = 1;
+			if( udceff < 0.8 ) dc95count[iRoc][j] = 1;
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
+		for( int i=0; i<nRocs; i++){
+                	for( int j=0; j<nDCol; j++){
+                        	totdc08 += dc08count[i][j];
+                        	totdc12 += dc12count[i][j];
+				totdc98 += dc98count[i][j];
+                        	totdc95 += dc95count[i][j];
+                	}
+        	}
 		
 		std::cout << "Working in ROC " << iRoc << endl;
 		TCanvas *c1 = new TCanvas("c1", "efficiency", 200, 10, 700, 500);
@@ -715,6 +735,8 @@ int eff( string newmod, string fileDesg ){
 	log << "Lowest DC Efficency under 120MHz/cm^2 : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
 	log << "Number DC <= 98% : " << totdc98 << endl;
 	log << "Number DC <= 95% : " << totdc95 << endl;
+	log << "Number DC >= 1.5 : " << totdc12 << endl;
+        log << "Number DC <  0.8 : " << totdc08 << endl;
         c1->Modified();
       	gPad->Modified();
  	char saveFileName[256];
