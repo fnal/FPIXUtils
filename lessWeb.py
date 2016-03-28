@@ -836,6 +836,11 @@ def makeXML(inputDir):
     else:
         notes.text='Re-uploading new data from: '+os.path.basename(inputDir)
 
+    process = subprocess.Popen(['grep', '-c', 'ERROR', log['fulltest']], stdout=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    pxar_errors=SE(test,'PXAR_ERRORS')
+    pxar_errors.text=stdout.strip()
+
     if doCold: tests=[analyzeIV,
               makeSummaryPlots,
               analyzePreTest,
