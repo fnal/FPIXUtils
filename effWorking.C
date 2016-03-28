@@ -748,9 +748,11 @@ int eff( string newmod, string fileDesg ){
        	delete myfit;
         delete c1;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	TCanvas *c4 = new TCanvas("c4", "DColUniformity", 200, 10, 700, 500);
+	TCanvas *c1 = new TCanvas("c1", "DColUniformity", 200, 10, 700, 500);
         TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
-        char graphTitle[256];
+        TGraph* tg2 = new TGraph( dclineList[0].size(), &dclineList[0][0], &dclineList[1][0] );
+        TGraph* tg3 = new TGraph( dclineList[2].size(), &dclineList[2][0], &dclineList[3][0] );
+	char graphTitle[256];
         sprintf(graphTitle, "%s DC Uniformity for %s", HighRateFileName.c_str() , moduleName.c_str());
         tg4->SetTitle(graphTitle);
         tg4->GetXaxis()->SetTitle("DCol Number");
@@ -760,12 +762,22 @@ int eff( string newmod, string fileDesg ){
         tg4->SetMarkerSize(1);
         tg4->Draw("apl");
 
+        tg2->SetMarkerColor(2 );
+        tg2->SetMarkerStyle(21);
+
+        tg3->SetMarkerColor(2 );
+        tg3->SetMarkerStyle(21);
+
+        tg2->Draw("same");
+        tg3->Draw("same");
+        c1->Update();
+
         char saveFileName3[256];
         sprintf(saveFileName3, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
-        c4->SaveAs(saveFileName3);
-        c4->Clear();
+        c1->SaveAs(saveFileName3);
+        c1->Clear();
         tg4->Clear();
-        delete c4;
+        delete c1;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c2 = new TCanvas("c2", "DColRate", 200, 10, 700, 500);
         TGraph* tg1 = new TGraph( dcolRates[nRocs][1].size(), &dcolRates[nRocs][1][0], &dcolRates[nRocs][0][0] );
