@@ -151,6 +151,7 @@ int eff( string newmod, string fileDesg ){
         std::vector< std::vector< std::vector< double > > > dcolEffErrors;
 
 	std::vector< std::vector< double > > lineList;
+	std::vector<std::vector<double>> dclineList;	
 
 	std::vector< std::vector< double > > bigempty; 
 	std::vector< double > empty;
@@ -158,6 +159,7 @@ int eff( string newmod, string fileDesg ){
 	std::cout << " Line Lists" << endl;
 	for( int i=0; i <4; i++ ){
 		lineList.push_back(empty);
+		dclineList.push_back(empty);
 	}
 
 	for( int i = 0; i<201;i++){
@@ -169,6 +171,14 @@ int eff( string newmod, string fileDesg ){
 		lineList[3].push_back(i/100);
 		lineList[2].push_back(120.0);
 	} 
+
+	for( int i = 0; i <= 450; i++){
+		dclineList[1].push_back(1.5);
+                dclineList[0].push_back(i);
+		dclineList[3].push_back(0.8);
+                dclineList[2].push_back(i);
+	}
+
 
 //	std::cout << "byamp inits" << endl;
 
@@ -216,6 +226,18 @@ int eff( string newmod, string fileDesg ){
                         dc95count[i][j] = 0;
 		}
 	}
+
+        int dc08count[nRocs][nDCol];
+        int dc12count[nRocs][nDCol];
+        int totdc08 = 0;
+        int totdc12 = 0;
+
+        for( int i=0; i<nRocs; i++){
+                for( int j=0; j<nDCol; j++){
+                        dc08count[i][j] = 0;
+                        dc12count[i][j] = 0;
+                }
+        }
 
 	for( int i=0; i<=nRocs; i++){
 		for( int j=0; j<=nDCol; j++){
@@ -541,11 +563,11 @@ int eff( string newmod, string fileDesg ){
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
-			totdc98 += dc98count[iRoc][j];
-			totdc95 += dc95count[iRoc][j];
+			if( udceff >= 1.5 ) dc12count[iRoc][j] = 1;
+			if( udceff <= 0.8 ) dc08count[iRoc][j] = 1;
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
-		
+
 		std::cout << "Working in ROC " << iRoc << endl;
 		TCanvas *c1 = new TCanvas("c1", "efficiency", 200, 10, 700, 500);
 		c1->Range(0,0,1, 300);
@@ -670,6 +692,15 @@ int eff( string newmod, string fileDesg ){
 	}
 
         std::cout << "Working on Module" << endl;
+
+	for( int i=0; i<nRocs; i++){
+                for( int j=0; j<nDCol; j++){
+                        totdc08 += dc08count[i][j];
+                        totdc12 += dc12count[i][j];
+                        totdc98 += dc98count[i][j];
+                        totdc95 += dc95count[i][j];
+                }
+        }
       	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c1 = new TCanvas("c1", "Efficiency", 200, 10, 700, 500);
         TGraphErrors* TGE = new TGraphErrors( efficiencies[nRocs].size(), &rates[nRocs][0], &efficiencies[nRocs][0], &rateErrors[nRocs][0], &efficiencyErrors[nRocs][0] );
@@ -715,6 +746,8 @@ int eff( string newmod, string fileDesg ){
 	log << "Lowest DC Efficency under 120MHz/cm^2 : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
 	log << "Number DC <= 98% : " << totdc98 << endl;
 	log << "Number DC <= 95% : " << totdc95 << endl;
+	log << "Number DC >= 1.5 : " << totdc12 << endl;
+        log << "Number DC <  0.8 : " << totdc08 << endl;
         c1->Modified();
       	gPad->Modified();
  	char saveFileName[256];
@@ -726,9 +759,11 @@ int eff( string newmod, string fileDesg ){
        	delete myfit;
         delete c1;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	TCanvas *c4 = new TCanvas("c4", "DColUniformity", 200, 10, 700, 500);
+	TCanvas *c1 = new TCanvas("c1", "DColUniformity", 200, 10, 700, 500);
         TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
-        char graphTitle[256];
+        TGraph* tg2 = new TGraph( dclineList[0].size(), &dclineList[0][0], &dclineList[1][0] );
+        TGraph* tg3 = new TGraph( dclineList[2].size(), &dclineList[2][0], &dclineList[3][0] );
+	char graphTitle[256];
         sprintf(graphTitle, "%s DC Uniformity for %s", HighRateFileName.c_str() , moduleName.c_str());
         tg4->SetTitle(graphTitle);
         tg4->GetXaxis()->SetTitle("DCol Number");
@@ -738,12 +773,22 @@ int eff( string newmod, string fileDesg ){
         tg4->SetMarkerSize(1);
         tg4->Draw("apl");
 
+        tg2->SetMarkerColor(2 );
+        tg2->SetMarkerStyle(21);
+
+        tg3->SetMarkerColor(2 );
+        tg3->SetMarkerStyle(21);
+
+        tg2->Draw("same");
+        tg3->Draw("same");
+        c1->Update();
+
         char saveFileName3[256];
         sprintf(saveFileName3, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
-        c4->SaveAs(saveFileName3);
-        c4->Clear();
+        c1->SaveAs(saveFileName3);
+        c1->Clear();
         tg4->Clear();
-        delete c4;
+        delete c1;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c2 = new TCanvas("c2", "DColRate", 200, 10, 700, 500);
         TGraph* tg1 = new TGraph( dcolRates[nRocs][1].size(), &dcolRates[nRocs][1][0], &dcolRates[nRocs][0][0] );

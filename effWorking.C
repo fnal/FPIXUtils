@@ -151,6 +151,7 @@ int eff( string newmod, string fileDesg ){
         std::vector< std::vector< std::vector< double > > > dcolEffErrors;
 
 	std::vector< std::vector< double > > lineList;
+	std::vector<std::vector<double>> dclineList;	
 
 	std::vector< std::vector< double > > bigempty; 
 	std::vector< double > empty;
@@ -158,6 +159,7 @@ int eff( string newmod, string fileDesg ){
 	std::cout << " Line Lists" << endl;
 	for( int i=0; i <4; i++ ){
 		lineList.push_back(empty);
+		dclineList.push_back(empty);
 	}
 
 	for( int i = 0; i<201;i++){
@@ -169,6 +171,14 @@ int eff( string newmod, string fileDesg ){
 		lineList[3].push_back(i/100);
 		lineList[2].push_back(120.0);
 	} 
+
+	for( int i = 0; i <= 450; i++){
+		dclineList[1].push_back(1.5);
+                dclineList[0].push_back(i);
+		dclineList[3].push_back(0.8);
+                dclineList[2].push_back(i);
+	}
+
 
 //	std::cout << "byamp inits" << endl;
 
@@ -553,19 +563,11 @@ int eff( string newmod, string fileDesg ){
                         DCUniNum.push_back(dc);
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
-			if( udceff >= 1.5 ) dc98count[iRoc][j] = 1;
-			if( udceff < 0.8 ) dc95count[iRoc][j] = 1;
+			if( udceff >= 1.5 ) dc12count[iRoc][j] = 1;
+			if( udceff <= 0.8 ) dc08count[iRoc][j] = 1;
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
-		for( int i=0; i<nRocs; i++){
-                	for( int j=0; j<nDCol; j++){
-                        	totdc08 += dc08count[i][j];
-                        	totdc12 += dc12count[i][j];
-				totdc98 += dc98count[i][j];
-                        	totdc95 += dc95count[i][j];
-                	}
-        	}
-		
+
 		std::cout << "Working in ROC " << iRoc << endl;
 		TCanvas *c1 = new TCanvas("c1", "efficiency", 200, 10, 700, 500);
 		c1->Range(0,0,1, 300);
@@ -690,6 +692,15 @@ int eff( string newmod, string fileDesg ){
 	}
 
         std::cout << "Working on Module" << endl;
+
+	for( int i=0; i<nRocs; i++){
+                for( int j=0; j<nDCol; j++){
+                        totdc08 += dc08count[i][j];
+                        totdc12 += dc12count[i][j];
+                        totdc98 += dc98count[i][j];
+                        totdc95 += dc95count[i][j];
+                }
+        }
       	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c1 = new TCanvas("c1", "Efficiency", 200, 10, 700, 500);
         TGraphErrors* TGE = new TGraphErrors( efficiencies[nRocs].size(), &rates[nRocs][0], &efficiencies[nRocs][0], &rateErrors[nRocs][0], &efficiencyErrors[nRocs][0] );

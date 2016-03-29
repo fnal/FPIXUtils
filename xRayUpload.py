@@ -57,8 +57,8 @@ def analyze(inputFile, outputDir):
     low_eff_lr = range(16)
     unif_high = range(16)
     unif_low = range(16)
-
-    qfile = open("SummaryQPlots_"+inputFile+".txt",'r')
+    qfile = open("SummaryQPlots_XRFResult_"+inputFile+".txt",'r')
+    qfile = open("SummaryQPlots_XRFResult_"+inputFile+".txt",'r')
     #qfile = open("SummaryQplots.txt")
     line = qfile.readlines()
     for l in range(2,len(line)):

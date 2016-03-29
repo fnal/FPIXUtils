@@ -27,11 +27,11 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "flouro2_mj315_030216.root" #"pa207_071615.root"
+myfilename1 = "floro_mk140_032516.root" #"pa207_071615.root"
 myfilename2 = myfilename1; #"floro_122915.root"
 myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
 myfilename4 = myfilename1; #"floro2_122915.root"
-myfileoutname = "XRFResult_mj315"
+myfileoutname = "XRFResult_mk140"
 rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 
@@ -188,6 +188,7 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
                 hist = histo[0 : hl-4] + "Ag_C" + str(i) + "_V0"
         else:
                 hist = histo +str(i)+"_V0"
+#		if material == "Sn": hist = histo+str(i)+"_V1"
         directory = rootfile.Get('Xray')
         keys = directory.GetListOfKeys()
         allkeys = []
