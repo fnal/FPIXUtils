@@ -4,6 +4,7 @@ import collections
 import re
 import os
 
+import urllib2
 import csv
 import json
 
@@ -42,7 +43,10 @@ def fancyTable(arrays):
 
 def printPartsDictionary(inputFile):
 
-    reader = csv.reader(open(inputFile), delimiter=',')
+    url = 'http://www.physics.purdue.edu/cmsfpix/Submission_p/tmp/modulereport.csv'
+    response = urllib2.urlopen(url)
+    reader = csv.reader(response)
+
     table = []
     isFirstLine = True
     moduleNumber = 1
@@ -66,9 +70,11 @@ def printPartsDictionary(inputFile):
 # function to build a python dictionary from a "module report" CSV input
 # use module name as key to dictionary
 
-def producePartsDictionary(inputFile):
+def producePartsDictionary():
 
-    reader = csv.reader(open(inputFile), delimiter=',')
+    url = 'http://www.physics.purdue.edu/cmsfpix/Submission_p/tmp/modulereport.csv'
+    response = urllib2.urlopen(url)
+    reader = csv.reader(response)
 
     dictionary = {}
     headings = []
@@ -82,7 +88,7 @@ def producePartsDictionary(inputFile):
             nFields = len(headings) + 1
             isFirstLine = False
             continue
-            
+
         if len(row) < nFields:
             row.extend(' ' * (nFields - len(row)))
 
@@ -114,7 +120,7 @@ def produceROCGradeDictionary(wafer):
     if not os.path.exists(inputFile):
         print inputFile, "not found, skipping..."
         return dictionary
-    with open(inputFile) as data_file:    
+    with open(inputFile) as data_file:
         for line in data_file:
             if len(line) < 100:
                 continue
@@ -135,7 +141,7 @@ def produceSensorGradeDictionary(inputFile):
     if not os.path.exists(inputFile):
         print inputFile, "not found, skipping..."
         return dictionary
-    with open(inputFile) as data_file:    
+    with open(inputFile) as data_file:
         for line in data_file:
             splitline = line.split()
             wafer = splitline[0]

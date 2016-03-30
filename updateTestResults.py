@@ -12,7 +12,7 @@ from sys import exit
 
 
 inputDir = '/Users/lantonel/PlotsAndTables/ProductionResults/'
-outputDir = '/Users/lantonel/PlotsAndTables/ModuleTestResults/'
+outputDir = '/Users/lantonel/PlotsAndTables/FNALTestResults/'
 
 
 badResultsList = [
@@ -62,17 +62,14 @@ for moduleName in uniqueModuleList:
     elif moduleName in p17Dir:
         uniqueFileList.append(p17Dir[moduleName])
 
-print "processed",len(uniqueModuleList),"modules"
+print "processing",len(uniqueModuleList),"modules"
 
+counter = 1
 for inputFile in uniqueFileList:
     moduleName = inputFile.split("/")[5].split("_")[0]
-    temp = 'XXX'
-    if 'm20' in inputFile:
-        temp = 'm20'
-    elif 'p17' in inputFile:
-        temp = 'p17'
-    outputFileName = moduleName+'_'+temp+'.root'
+    outputFileName = moduleName + '.root'
     
-    print "copying", temp, "result for module", moduleName
+    print "copying result for module " + str(counter) + ": " + moduleName
+    counter += 1
     copy(inputFile, outputDir + "/" + outputFileName)
 
