@@ -235,7 +235,7 @@ int eff( string newmod, string fileDesg ){
                         dc95count[i][j] = 0;
                         dc08count[i][j] = 0;
                         dc12count[i][j] = 0;
-			dcbothcount[1][j] = 0;
+			dcbothcount[i][j] = 0;
                 }
         }
 
