@@ -225,7 +225,7 @@ int eff( string newmod, string fileDesg ){
         int totdc08 = 0;
         int totdc12 = 0;
 	
-	int dcbothcount[nRocs][cDCol];
+	int dcbothcount[nRocs][nDCol];
 	int totdcboth = 0;
 
 

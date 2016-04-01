@@ -27,11 +27,11 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "floro_mk140_032516.root" #"pa207_071615.root"
+myfilename1 = "floro_ml417_033016.root" ; #"pa207_071615.root"
 myfilename2 = myfilename1; #"floro_122915.root"
-myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
-myfilename4 = myfilename1; #"floro2_122915.root"
-myfileoutname = "XRFResult_mk140"
+myfilename3 = myfilename1;#"floro2_122915.root" #"pa207_071615.root"
+myfilename4 = myfilename3; #"floro2_122915.root"
+myfileoutname = "XRFResult_ml417"
 rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 
