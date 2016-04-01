@@ -219,7 +219,7 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
         if(len(peaks)>3):
             print "Too many peaks,rebinning"
             tgt.Rebin(2)
-            peaks = get_gpeaks(tgt,[20,300],6,"goff",.05,1000,exp)
+            peaks = get_gpeaks(tgt,[20,300],5,"goff",.05,1000,exp)
             if (len(peaks)==2):
                 mid1 = peaks[0][1]
                 mid2 = peaks[1][1]
