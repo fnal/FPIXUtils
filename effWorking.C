@@ -225,7 +225,7 @@ int eff( string newmod, string fileDesg ){
         int totdc08 = 0;
         int totdc12 = 0;
 	
-	int dcbothcount[nRocs][cDCol];
+	int dcbothcount[nRocs][nDCol];
 	int totdcboth = 0;
 
 
@@ -235,7 +235,7 @@ int eff( string newmod, string fileDesg ){
                         dc95count[i][j] = 0;
                         dc08count[i][j] = 0;
                         dc12count[i][j] = 0;
-			dcbothcount[1][j] = 0;
+			dcbothcount[i][j] = 0;
                 }
         }
 
@@ -485,7 +485,7 @@ int eff( string newmod, string fileDesg ){
 					
 					dColModCount++;		
 
-					if( ( efficiency < worstDColEff[iRoc]) && ( i == 1 ) ) { 
+					if( ( efficiency < worstDColEff[iRoc]) && ( i == 0 ) ) { 
 						worstDColEff[iRoc] = efficiency; 
 						worstDCol[iRoc] = dcol; 
 					}
@@ -745,7 +745,7 @@ int eff( string newmod, string fileDesg ){
 	outfile << (p0 - p1 * 120*120*120) << std::endl;
 	log << endl;
         log << "Estimated Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
-	log << "Lowest DC Efficency under 120MHz/cm^2 : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
+	log << "Lowest DC Efficency at High Rate : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
 	log << "Number DC <= 98% : " << totdc98 << endl;
 	log << "Number DC <= 95% : " << totdc95 << endl;
 	log << "Number DC >= 1.5 : " << totdc12 << endl;

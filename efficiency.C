@@ -220,22 +220,22 @@ int eff( string newmod, string fileDesg ){
 	int totdc98 = 0;
 	int totdc95 = 0;
 
-        for( int i=0; i<nRocs; i++){
-                for( int j=0; j<nDCol; j++){
-                        dc98count[i][j] = 0;
-                        dc95count[i][j] = 0;
-		}
-	}
-
         int dc08count[nRocs][nDCol];
         int dc12count[nRocs][nDCol];
         int totdc08 = 0;
         int totdc12 = 0;
+	
+	int dcbothcount[nRocs][nDCol];
+	int totdcboth = 0;
+
 
         for( int i=0; i<nRocs; i++){
                 for( int j=0; j<nDCol; j++){
+                        dc98count[i][j] = 0;
+                        dc95count[i][j] = 0;
                         dc08count[i][j] = 0;
                         dc12count[i][j] = 0;
+			dcbothcount[i][j] = 0;
                 }
         }
 
@@ -485,7 +485,7 @@ int eff( string newmod, string fileDesg ){
 					
 					dColModCount++;		
 
-					if( ( efficiency < worstDColEff[iRoc]) && ( i == 1 ) ) { 
+					if( ( efficiency < worstDColEff[iRoc]) && ( i == 0 ) ) { 
 						worstDColEff[iRoc] = efficiency; 
 						worstDCol[iRoc] = dcol; 
 					}
@@ -565,6 +565,7 @@ int eff( string newmod, string fileDesg ){
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
 			if( udceff >= 1.5 ) dc12count[iRoc][j] = 1;
 			if( udceff <= 0.8 ) dc08count[iRoc][j] = 1;
+			if( dc98count[iRoc][j] == 1  && ( dc12count[iRoc][j] == 1 || dc08count[iRoc][j] == 1 ) ) dcbothcount[iRoc][j] = 1;
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
 
@@ -699,6 +700,7 @@ int eff( string newmod, string fileDesg ){
                         totdc12 += dc12count[i][j];
                         totdc98 += dc98count[i][j];
                         totdc95 += dc95count[i][j];
+			totdcboth += dcbothcount[i][j];
                 }
         }
       	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -743,11 +745,12 @@ int eff( string newmod, string fileDesg ){
 	outfile << (p0 - p1 * 120*120*120) << std::endl;
 	log << endl;
         log << "Estimated Efficency at 120MHz/cm^2 : " << moduleName << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl;
-	log << "Lowest DC Efficency under 120MHz/cm^2 : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
+	log << "Lowest DC Efficency at High Rate : ROC:" << lowestroc << " DC: " << lowestdc  << " Efficency: " << lowestdceff << endl;
 	log << "Number DC <= 98% : " << totdc98 << endl;
 	log << "Number DC <= 95% : " << totdc95 << endl;
 	log << "Number DC >= 1.5 : " << totdc12 << endl;
         log << "Number DC <  0.8 : " << totdc08 << endl;
+	log << "Number DC Both   : " << totdcboth << endl;
         c1->Modified();
       	gPad->Modified();
  	char saveFileName[256];

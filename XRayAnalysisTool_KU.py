@@ -27,11 +27,11 @@ from ROOT import *
 #|_| 
 #
 
-myfilename1 = "floro_mk140_032516.root" #"pa207_071615.root"
+myfilename1 = "floro_ml417_033016.root" ; #"pa207_071615.root"
 myfilename2 = myfilename1; #"floro_122915.root"
-myfilename3 = myfilename1; #"floro2_122915.root" #"pa207_071615.root"
-myfilename4 = myfilename1; #"floro2_122915.root"
-myfileoutname = "XRFResult_mk140"
+myfilename3 = myfilename1;#"floro2_122915.root" #"pa207_071615.root"
+myfilename4 = myfilename3; #"floro2_122915.root"
+myfileoutname = "XRFResult_ml417"
 rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 
@@ -219,7 +219,7 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
         if(len(peaks)>3):
             print "Too many peaks,rebinning"
             tgt.Rebin(2)
-            peaks = get_gpeaks(tgt,[20,300],6,"goff",.05,1000,exp)
+            peaks = get_gpeaks(tgt,[20,300],5,"goff",.05,1000,exp)
             if (len(peaks)==2):
                 mid1 = peaks[0][1]
                 mid2 = peaks[1][1]
