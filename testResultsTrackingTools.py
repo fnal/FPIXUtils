@@ -2,6 +2,7 @@
 import os,sys,string,urllib
 import datetime as dt
 import threading
+import json
 
 ###############################################################################
 
@@ -40,29 +41,41 @@ def produceMoReWebGradeDictionary(modules):
 # a dictionary containing lessweb grade
 # returns grade = None if no results found
 
-def produceLesswebGradeDictionary(modules):
-    print "scraping PU DB full test summary pages, estimated time " + str(round(len(modules)/120.,1)) + " minutes"
+def produceLesswebGradeDictionary(modules, force = False):
+
+    with open('moduleGrades.json', 'r') as fp:
+        gradeDictionary = json.load(fp)
+
+    modulesToProcess = []
+    for module in modules:
+        if force:
+            modulesToProcess.append(module)
+        elif module not in gradeDictionary:
+            modulesToProcess.append(module)
+
+    print "scraping PU DB full test summary pages, estimated time " + str(round(len(modulesToProcess)/120.,1)) + " minutes"
     moduleData = {}
     target = 0
-    
-    for index, module in enumerate(modules):
-        if index/float(len(modules)) >= target/100.:
+
+
+    for index, module in enumerate(modulesToProcess):
+        if index/float(len(modulesToProcess)) >= target/100.:
             sys.stdout.write(str(target) + "%")
             sys.stdout.flush()
             target += 10
         sys.stdout.write(".")
         sys.stdout.flush()
 
-        if index == len(modules) - 1:
+        if index == len(modulesToProcess) - 1:
             print
 
         moduleData[module] = {}
         moduleData[module]["lessweb grade"] = None
-        
+
         query = "http://www.physics.purdue.edu/cmsfpix/Submission_p/summary/summaryFull.php?name=%s"%module
-        
+
         lines = []
-        
+
         # get url and skip first 9 lines
         url_ = urllib.urlopen(query)
         for index in range(10):
@@ -82,9 +95,9 @@ def produceLesswebGradeDictionary(modules):
 # a dictionary containing moreweb and lessweb grades
 # returns grade = None if no results found
 
-def produceGradeDictionary(modules):
+def produceGradeDictionary(modules, force):
 
-    lesswebDictionary = produceLesswebGradeDictionary(modules)
+    lesswebDictionary = produceLesswebGradeDictionary(modules, force)
 
     morewebDictionary = produceMoReWebGradeDictionary(modules)
 
