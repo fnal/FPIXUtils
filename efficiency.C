@@ -564,7 +564,7 @@ int eff( string newmod, string fileDesg ){
                         if( udceff < lowUni ){ lowUni = udceff; lowUDC = dc; }
                         if( udceff > highUni ){ highUni = udceff; highUDC = dc; }
 			if( udceff >= 1.5 ) dc12count[iRoc][j] = 1;
-			if( udceff <= 0.8 ) dc08count[iRoc][j] = 1;
+			if( udceff <= 0.6 ) dc08count[iRoc][j] = 1;
 			if( dc98count[iRoc][j] == 1  && ( dc12count[iRoc][j] == 1 || dc08count[iRoc][j] == 1 ) ) dcbothcount[iRoc][j] = 1;
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
                 }
