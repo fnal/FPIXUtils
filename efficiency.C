@@ -749,7 +749,7 @@ int eff( string newmod, string fileDesg ){
 	log << "Number DC <= 98% : " << totdc98 << endl;
 	log << "Number DC <= 95% : " << totdc95 << endl;
 	log << "Number DC >= 1.5 : " << totdc12 << endl;
-        log << "Number DC <  0.8 : " << totdc08 << endl;
+        log << "Number DC <  0.6 : " << totdc08 << endl;
 	log << "Number DC Both   : " << totdcboth << endl;
         c1->Modified();
       	gPad->Modified();

@@ -77,7 +77,6 @@ def analyze(inputFile, outputDir):
             if 'Lowesest DC Eff at High Rate for  ROC:'+str(i) in line:
                 words_low_eff_hr = string.split(line)
                 low_eff_hr[i] = float(words_low_eff_hr[11])
-                  
             elif 'Lowest DC Eff at Low Rate for  ROC:'+str(i) in line:
                 words_low_eff_lr = string.split(line)
                 low_eff_lr[i] = float(words_low_eff_lr[11])
@@ -103,6 +102,11 @@ def analyze(inputFile, outputDir):
             print n15
             n1p5 = n15.replace(':','')
         elif 'Number DC <  0.6 :' in line:
+            print line
+            n06 = string.split(line)[5]
+            print n06
+            n0p6 = n06.replace(':','')
+        elif 'Number DC <  0.8 :' in line:
             print line
             n06 = string.split(line)[5]
             print n06
