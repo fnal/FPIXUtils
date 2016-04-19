@@ -12,7 +12,7 @@ for i in range(4):
     moduleName=raw_input('Enter module '+str(i)+' (starting from rear of coldbox) name, or press enter for no module:\n')
     moduleName=moduleName.upper()
     if moduleName:
-        r = re.compile('[A-Z]-[A-Z]-\d-\d\d')
+        r = re.compile('[A-Z]-[A-Z]-[A-Z0-9]-[A-Z0-9][A-Z0-9]')
         if r.match(moduleName) is not None:
             moduleNames.append(moduleName)
         else: 
