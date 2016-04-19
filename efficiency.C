@@ -175,7 +175,7 @@ int eff( string newmod, string fileDesg ){
 	for( int i = 0; i <= 450; i++){
 		dclineList[1].push_back(1.5);
                 dclineList[0].push_back(i);
-		dclineList[3].push_back(0.8);
+		dclineList[3].push_back(0.6);
                 dclineList[2].push_back(i);
 	}
 
