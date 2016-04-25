@@ -411,6 +411,7 @@ int eff( string newmod, string fileDesg ){
                                 std::vector<double> roc_xhits;
 				double totRPixs = 0;
 				double totRHits = 0;
+				int deadPixs = 0;
 				//std::cout << nBinsX << "x" << nBinsY << std::endl;
 				for (int dcol = 0; dcol < nDCol; dcol++) {
 				//	std::cout << "reading dc " << dcol << std::endl;
@@ -418,7 +419,7 @@ int eff( string newmod, string fileDesg ){
 					std::vector<double> hits;
 					std::vector<double> xray_hits;
 					double totCHits = 0;
-					double totXHits = 0;						
+					double totXHits = 0;
 
 				//	std::cout<<"Getting data from Histograms" << endl;
 
@@ -437,26 +438,29 @@ int eff( string newmod, string fileDesg ){
 
 						if ((!FIDUCIAL_ONLY || ((y % 80) > 0 && (y % 80) < 79)) && !masked) {
 							//std::cout << " get " << (dcol * 2 + (int)(y / 80) + 1) << " / " <<  ((y % 80) + 1) << std::endl;
-							double trans =0;
-							trans =  calmap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
-							hits.push_back(trans);
-							totCHits += trans;
-							trans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
-							xray_hits.push_back( trans );
-							totXHits += trans;
+							double ctrans = 0;
+							double xtrans = 0;
+							ctrans =  calmap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
+							xtrans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
+							if( ctrans == 0 && xtrans == 0 && i == 0 ) deadPixs++;
+							hits.push_back(ctrans);
+                                                        totCHits += ctrans;
+							xray_hits.push_back( ctrans );
+							totXHits += ctrans;
 						}
 					}
 
-					int nPixelsDC = hits.size();
+					int nPixelsDC = hits.size() - deadPixs;
+					float dcolArea = pixelArea * nPixelsDC / 160;
 					if (nPixelsDC < 1) nPixelsDC = 1;
 					//totRPixs += nPixelsDC;
 					totRHits = TMath::Mean(nPixelsDC, &xray_hits[0]);
 					rocratehits += totXHits;
 					rocratenum += nPixelsDC;
 					roc_xhits.push_back( totRHits );
-					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * dcolArea) * 1.0e-6;
 					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
-					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * dcolArea) * 1.0e-6;
 					double efficiencyError = TMath::RMS(nPixelsDC, &hits[0]) / std::sqrt(nPixelsDC) / nTrigPerPixel;
 					
 //					std::cout << "Assigning vales" << endl;
