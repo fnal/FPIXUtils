@@ -442,15 +442,16 @@ int eff( string newmod, string fileDesg ){
 							double xtrans = 0;
 							ctrans =  calmap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
 							xtrans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
-							if( ctrans == 0 && xtrans == 0 && i == 0 ) deadPixs++;
+							if( ctrans == 0 && xtrans == 0 ) deadPixs++;
 							hits.push_back(ctrans);
                                                         totCHits += ctrans;
-							xray_hits.push_back( ctrans );
-							totXHits += ctrans;
+							xray_hits.push_back( xtrans );
+							totXHits += xtrans;
 						}
 					}
 
 					int nPixelsDC = hits.size() - deadPixs;
+					deadPixs = 0;
 					float dcolArea = pixelArea * nPixelsDC / 160;
 					if (nPixelsDC < 1) nPixelsDC = 1;
 					//totRPixs += nPixelsDC;
