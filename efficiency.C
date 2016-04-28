@@ -80,7 +80,7 @@ int eff( string newmod, string fileDesg ){
 	double bestDCol[nRocs];
         for( int i = 0; i<nRocs; i++) bestDCol[i] = -1;
         double bestDColEff[nRocs];
-        for( int i = 0; i<nRocs; i++) bestDColEff[i] = -10;
+        for( int i = 0; i<nRocs; i++) bestDColEff[i] = 10;
 
 	double lowestdceff = 10;
         int lowestdc = -1;
@@ -200,7 +200,7 @@ int eff( string newmod, string fileDesg ){
                 }
 	}
 */	
-        std::cout << "initilizing vectors" << endl;
+        //std::cout << "initilizing vectors" << endl;
 
 	for (int i=0;i<=nRocs;i++) {
 		efficiencies.push_back(empty);
@@ -328,7 +328,7 @@ int eff( string newmod, string fileDesg ){
         listTFile.push_back( blank );
         listTFile.push_back( blank );
 
-	cout << "Sorting T file list " << endl;
+	//cout << "Sorting T file list " << endl;
 
 	for( int i=0; i<len; i++){
 
@@ -442,29 +442,36 @@ int eff( string newmod, string fileDesg ){
 							double xtrans = 0;
 							ctrans =  calmap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
 							xtrans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
-							if( ctrans == 0 && xtrans == 0 ) deadPixs++;
-							hits.push_back(ctrans);
-                                                        totCHits += ctrans;
-							xray_hits.push_back( xtrans );
-							totXHits += xtrans;
+							if( ctrans == 0 && xtrans == 0 ){ deadPixs++; } 
+							else {
+								hits.push_back(ctrans);
+                                                        	totCHits += ctrans;
+								xray_hits.push_back( xtrans );
+								totXHits += xtrans; }
 						}
 					}
+					
 
-					int nPixelsDC = hits.size() - deadPixs;
-					deadPixs = 0;
-					float dcolArea = pixelArea * nPixelsDC / 160;
-					if (nPixelsDC < 1) nPixelsDC = 1;
-					//totRPixs += nPixelsDC;
+					int nPixelsDC = hits.size();
+					//cout << "Deadpixs: " << deadPixs << endl;
+ 					if(nPixelsDC < 1) nPixelsDC = 1;					
+					//cout << " set nPixelsDC < 1 to 1" << endl;
+					double dcolArea = pixelArea;
+					//cout << " Create dcolArea" << endl;
+					dcolArea = pixelArea * nPixelsDC / 160;
+					//cout << " dcolarea is : " << dcolArea << " down form " << pixelArea << endl;
 					totRHits = TMath::Mean(nPixelsDC, &xray_hits[0]);
+					//cout << " found totRHits " << endl;
 					rocratehits += totXHits;
 					rocratenum += nPixelsDC;
+					//cout << "counted totals for xhits" << endl;
 					roc_xhits.push_back( totRHits );
 					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * dcolArea) * 1.0e-6;
 					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
 					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * dcolArea) * 1.0e-6;
 					double efficiencyError = TMath::RMS(nPixelsDC, &hits[0]) / std::sqrt(nPixelsDC) / nTrigPerPixel;
 					
-//					std::cout << "Assigning vales" << endl;
+					//cout << "Assigning vales" << endl;
 					efficiencies[iRoc].push_back(efficiency);
 					efficiencyErrors[iRoc].push_back(efficiencyError);
 					rates[iRoc].push_back(rate);
@@ -490,11 +497,12 @@ int eff( string newmod, string fileDesg ){
 					
 					dColModCount++;		
 
-					if( ( efficiency < worstDColEff[iRoc]) && ( i == 0 ) ) { 
+					//cout << " finding filtered values" << endl;
+					if( ( efficiency < worstDColEff[iRoc]) && rate < 120 ) { 
 						worstDColEff[iRoc] = efficiency; 
 						worstDCol[iRoc] = dcol; 
 					}
-					if( ( efficiency > bestDColEff[iRoc]) && ( i == (len-1)) ) {
+					if( ( efficiency < bestDColEff[iRoc]) && ( i == (len-1)) ) {
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
                                         }
@@ -516,7 +524,7 @@ int eff( string newmod, string fileDesg ){
 						dc95count[iRoc][dcol] = 1;
 					}
 					if (VERBOSE) {
-//						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
+						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
 					}
 				}
 				if( i == ( len -1 ) ){
@@ -533,10 +541,10 @@ int eff( string newmod, string fileDesg ){
 			}
 //
 		} else {
-//		std::cout << "high rate test not found" << std::endl;
+		cout << "high rate test not found" << std::endl;
 		return 1;
 		}
-//		std:cout << "end of Data Collection" << endl;
+		//cout << "end of Data Collection" << endl;
 	}
 
 	std::cout << "Output Phase" << std::endl;
@@ -614,7 +622,7 @@ int eff( string newmod, string fileDesg ){
 		double eff_err = sqrt(p0_err * p0_err + pow(120.0,6) * p1_err * p1_err);
 		outfile << (p0 - p1 * 120*120*120) << std::endl;
 		log << "Estimated Effiency at 120MHz/cm^2 for ROC:" << iRoc << " Eff: " << p0-p1 *120*120*120 << " +/- " << eff_err << endl; 
-		log << "Lowesest DC Eff at High Rate for  ROC:" << iRoc << "  DC :" << worstDCol[iRoc] << " Eff: " << worstDColEff[iRoc] << endl;
+		log << "Lowest DC Eff at High Rate for  ROC:" << iRoc << "  DC :" << worstDCol[iRoc] << " Eff: " << worstDColEff[iRoc] << endl;
                 log << "Lowest DC Eff at Low Rate for  ROC:" << iRoc << "  DC :" << bestDCol[iRoc] <<  " Eff: " << bestDColEff[iRoc] << endl;
                 log << "Highest  DC Uni  for  ROC:" << iRoc << "  DC :" << highUDC << " Uniformity: " << highUni << endl;
                 log << "Lowest DC Uni for  ROC:" << iRoc << "  DC :" << lowUDC <<  " Uniformity: " << lowUni << endl;

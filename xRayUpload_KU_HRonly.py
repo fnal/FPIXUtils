@@ -160,7 +160,7 @@ def analyze(inputFile, outputDir):
     pic=SE(top, 'PIC')
     attachName(pic)
     file=SE(pic, 'FILE')
-    file.text='Results_Hr_Eff_C'+str(i)+'.png'
+    file.text='Results_Hr_Eff_'+inputFile+'.png'
     part=SE(pic,'PART')
     part.text='sidet_p'
 

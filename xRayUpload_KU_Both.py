@@ -59,12 +59,12 @@ def analyze(inputFile, outputDir):
     unif_low = range(16)
 
     qfile = open("SummaryQPlots_XRFResult_" +inputFile+ ".txt",'r')
-    #qfile = open("SummaryQplots.txt")
+    qfile = open("SummaryQplots.txt")
     line = qfile.readlines()
     for l in range(2,len(line)):
        values = string.split(line[l])
-#       slope[l-2] = values[1]+values[2]+values[3]
-#       offset[l-2] = values[4]+values[5]+values[6].strip('\n')
+       #slope[l-2] = values[1]+values[2]+values[3]
+       #offset[l-2] = values[4]+values[5]+values[6].strip('\n')
        slope[l-2] = float(values[1])
        offset[l-2] = float(values[4])
     
@@ -74,10 +74,9 @@ def analyze(inputFile, outputDir):
     eff_unif_lines = eff_unif_file.readlines()
     for line in eff_unif_lines:
         for i in xrange(0,16):
-            if 'Lowesest DC Eff at High Rate for  ROC:'+str(i) in line:
+            if 'Lowest DC Eff at High Rate for  ROC:'+str(i) in line:
                 words_low_eff_hr = string.split(line)
                 low_eff_hr[i] = float(words_low_eff_hr[11])
-                  
             elif 'Lowest DC Eff at Low Rate for  ROC:'+str(i) in line:
                 words_low_eff_lr = string.split(line)
                 low_eff_lr[i] = float(words_low_eff_lr[11])
@@ -97,12 +96,17 @@ def analyze(inputFile, outputDir):
             n95s =string.split(line)[5]
             print n95s
             n95 = n95s.replace(':','')
- 	elif 'Number DC >= 1.5 :' in line:
+	elif 'Number DC >= 1.5 :' in line:
             print line
             n15 = string.split(line)[5]
             print n15
             n1p5 = n15.replace(':','')
         elif 'Number DC <  0.6 :' in line:
+            print line
+            n06 = string.split(line)[5]
+            print n06
+            n0p6 = n06.replace(':','')
+        elif 'Number DC <  0.8 :' in line:
             print line
             n06 = string.split(line)[5]
             print n06
@@ -122,7 +126,7 @@ def analyze(inputFile, outputDir):
     n1p5val = SE(test,'DC_ABOVE_150_UNI')
     n1p5val.text=str(n1p5)
     n0p6val = SE(test,'DC_BELOW_60_UNI')
-    n0p6val.text=str(n0p6)    
+    n0p6val.text=str(n0p6)
     xraytested = SE(test,'XRAY_TESTED')
     xraytested.text=str(1)
 
@@ -156,7 +160,7 @@ def analyze(inputFile, outputDir):
     pic=SE(top, 'PIC')
     attachName(pic)
     file=SE(pic, 'FILE')
-    file.text='Results_Hr_Eff_C'+str(i)+'.png'
+    file.text='Results_Hr_Eff_'+inputFile+'.png'
     part=SE(pic,'PART')
     part.text='sidet_p'
 
