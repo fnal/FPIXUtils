@@ -409,6 +409,7 @@ int eff( string newmod, string fileDesg ){
 					}
 				}
                                 std::vector<double> roc_xhits;
+				int done = 0;
 				double totRPixs = 0;
 				double totRHits = 0;
 				int deadPixs = 0;
@@ -498,10 +499,25 @@ int eff( string newmod, string fileDesg ){
 					dColModCount++;		
 
 					//cout << " finding filtered values" << endl;
-					if( ( efficiency < worstDColEff[iRoc]) && rate < 120 ) { 
-						worstDColEff[iRoc] = efficiency; 
-						worstDCol[iRoc] = dcol; 
-					}
+					if( ( i == 0 ) && rate < 120 ){	
+						done = 1;
+						if( efficiency < worstDColEff[iRoc] ){ 
+							worstDColEff[iRoc] = efficiency; 
+							worstDCol[iRoc] = dcol; 
+						}
+					} else if( ( done = 0 ) && ( i == 1 ) && ( rate < 120 ) ){
+						 done = 1;
+                                                if( efficiency < worstDColEff[iRoc] ){
+                                                        worstDColEff[iRoc] = efficiency;
+                                                        worstDCol[iRoc] = dcol;
+                                                }
+					} else if( ( done = 0 ) && ( i == 2 ) && ( rate < 120 ) ){
+                                                 done = 1;
+                                                if( efficiency < worstDColEff[iRoc] ){
+                                                        worstDColEff[iRoc] = efficiency;
+                                                        worstDCol[iRoc] = dcol;
+                                                }
+                                        } 
 					if( ( efficiency < bestDColEff[iRoc]) && ( i == (len-1)) ) {
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
