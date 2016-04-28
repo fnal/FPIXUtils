@@ -506,18 +506,24 @@ int eff( string newmod, string fileDesg ){
 							worstDCol[iRoc] = dcol; 
 						}
 					} else if( ( done = 0 ) && ( i == 1 ) && ( rate < 120 ) ){
-						 done = 1;
+						done = 1;
                                                 if( efficiency < worstDColEff[iRoc] ){
                                                         worstDColEff[iRoc] = efficiency;
                                                         worstDCol[iRoc] = dcol;
                                                 }
 					} else if( ( done = 0 ) && ( i == 2 ) && ( rate < 120 ) ){
-                                                 done = 1;
+                                                done = 1;
                                                 if( efficiency < worstDColEff[iRoc] ){
                                                         worstDColEff[iRoc] = efficiency;
                                                         worstDCol[iRoc] = dcol;
                                                 }
-                                        } 
+                                        } else if( ( done = 0 ) && ( i > 2 ) ){
+                                                done = 1;
+                                                if( efficiency < worstDColEff[iRoc] ){
+                                                        worstDColEff[iRoc] = efficiency;
+                                                        worstDCol[iRoc] = dcol;
+                                                }
+                                        }
 					if( ( efficiency < bestDColEff[iRoc]) && ( i == (len-1)) ) {
                                                 bestDColEff[iRoc] = efficiency;
                                                 bestDCol[iRoc] = dcol;
