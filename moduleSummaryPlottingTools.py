@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from ROOT import *
-from componentTrackingTools import *
+from databaseTools.componentTrackingTools import *
 from array import array
 import collections
 import re

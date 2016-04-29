@@ -13,10 +13,9 @@ parser.add_option("-f", "--force", action="store_true", dest="force", default=Fa
 (arguments, args) = parser.parse_args()
 
 partsDictionary = producePartsDictionary()
-modules = [module for module in partsDictionary]
+modules = partsDictionary.index.tolist()
 
 gradeDictionary = produceGradeDictionary(modules, arguments.force)
 
 with open('moduleGrades.json', 'w') as outputFile:
     json.dump(gradeDictionary, outputFile, sort_keys=True, indent=4)
-

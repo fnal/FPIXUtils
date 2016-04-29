@@ -1,5 +1,5 @@
 #!/usr/bin/env python                                                                                                                                                                                                                                                                        
-import os,sys,string,urllib2
+import os,sys#,string,urllib2
 
 from testResultsTrackingTools import *
 from componentTrackingTools import *

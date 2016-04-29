@@ -16,8 +16,12 @@ def produceMoReWebGradeDictionary(modules):
     moduleData = {}
     for module in modules:
       moduleData[module] = {}
-      moduleData[module]["date"] = None
-      moduleData[module]["moreweb grade"] = None
+      moduleData[module]["date_m20"] = None
+      moduleData[module]["date_p17"] = None
+      moduleData[module]["date_xray"] = None
+      moduleData[module]["Moreweb Grade m20"] = None
+      moduleData[module]["Moreweb Grade p17"] = None
+      moduleData[module]["Moreweb Grade X-ray"] = None
 
     query = "http://www.physics.purdue.edu/cmsfpix/MoReWeb/Results/Overview.html"
     lines = []
@@ -25,14 +29,32 @@ def produceMoReWebGradeDictionary(modules):
     input = urllib.urlopen(query).readlines()
     for index, line in enumerate(input):
       for module in modules:
-        if module in line and "m20_1" in input[index+13]:
-          current_date = input[index+4].strip()
-          if current_date > moduleData[module]["date"]:
-            moduleData[module]["date"] = input[index+4].strip()
-            moduleData[module]["moreweb grade"] = input[index+16].strip()
+          if module not in line:
+              continue
+
+          if "m20_1" in input[index+13]:
+              current_date = input[index+4].strip()
+              if current_date > moduleData[module]["date_m20"]:
+                  moduleData[module]["date_m20"] = input[index+4].strip()
+                  moduleData[module]["Moreweb Grade m20"] = input[index+16].strip()
+
+          elif "p17_1" in input[index+13]:
+              current_date = input[index+4].strip()
+              if current_date > moduleData[module]["date_p17"]:
+                  moduleData[module]["date_p17"] = input[index+4].strip()
+                  moduleData[module]["Moreweb Grade p17"] = input[index+16].strip()
+
+          elif "XRayHRQualification" in input[index+13]:
+              current_date = input[index+4].strip()
+              if current_date > moduleData[module]["date_xray"]:
+                  moduleData[module]["date_xray"] = input[index+4].strip()
+                  moduleData[module]["Moreweb Grade X-ray"] = input[index+16].strip()
+
 
     for module, data in moduleData.iteritems():
-        del data["date"]
+        del data["date_m20"]
+        del data["date_p17"]
+        del data["date_xray"]
     return moduleData
 
 ###############################################################################
@@ -70,7 +92,7 @@ def produceLesswebGradeDictionary(modules, force = False):
             print
 
         moduleData[module] = {}
-        moduleData[module]["lessweb grade"] = None
+        moduleData[module]["Lessweb Grade"] = None
 
         query = "http://www.physics.purdue.edu/cmsfpix/Submission_p/summary/summaryFull.php?name=%s"%module
 
@@ -82,9 +104,21 @@ def produceLesswebGradeDictionary(modules, force = False):
             url_.readline()
 
         # just read the beginning of the (very long) 10th line
-        line = url_.read(500)
+        line = url_.read(2000)
         grade = line[line.find("Grade")+7]
-        moduleData[module]["lessweb grade"] = grade
+        moduleData[module]["Lessweb Grade"] = grade
+
+        # also parse ROC failure modes
+        for roc in range(16):
+            moduleData[module]["ROC"+str(roc)+" Failure"] = None
+        splitline = line.split("ROC")
+        for chunk in splitline[1:]:
+            flag = "Failure Mode: "
+            if flag in chunk:
+                roc = chunk[0]
+                start = chunk.find(flag) + len(flag)
+                end = chunk.find("<br>",start)
+                moduleData[module]["ROC"+str(roc)+" Failure"] = chunk[start:end]
 
     return moduleData
 

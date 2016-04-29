@@ -8,62 +8,13 @@ import urllib2
 import csv
 import json
 
+import pandas as pd
+
 ###############################################################################
 
 # BEGIN PART TRACKING UTILITIES
 
 ###############################################################################
-
-###############################################################################
-
-def fancyTable(arrays):
-
-    def areAllEqual(lst):
-        return not lst or [lst[0]] * len(lst) == lst
-
-    if not areAllEqual(map(len, arrays)):
-        exit('Cannot print a table with unequal array lengths.')
-
-    verticalMaxLengths = [max(value) for value in map(lambda * x:x, *[map(len, a) for a in arrays])]
-
-    spacedLines = []
-
-    for array in arrays:
-        spacedLine = ''
-        for i, field in enumerate(array):
-            diff = verticalMaxLengths[i] - len(field)
-            spacedLine += field + ' ' * diff + '\t'
-        spacedLines.append(spacedLine)
-
-    return '\n'.join(spacedLines)
-
-###############################################################################
-
-# function to print out the module report table with even columns
-
-def printPartsDictionary(inputFile):
-
-    url = 'http://www.physics.purdue.edu/cmsfpix/Submission_p/tmp/modulereport.csv'
-    response = urllib2.urlopen(url)
-    reader = csv.reader(response)
-
-    table = []
-    isFirstLine = True
-    moduleNumber = 1
-    for row in reader:
-        if isFirstLine:
-            nFields = len(row)
-            prefix = ['index']
-        else:
-            prefix = [str(moduleNumber)]
-            moduleNumber += 1
-        isFirstLine = False
-        if len(row) < nFields:
-            row.extend(' ' * (nFields - len(row)))
-        prefix.extend(row)
-        table.append(prefix)
-
-    print fancyTable(table)
 
 ###############################################################################
 
@@ -73,39 +24,10 @@ def printPartsDictionary(inputFile):
 def producePartsDictionary():
 
     url = 'http://www.physics.purdue.edu/cmsfpix/Submission_p/tmp/modulereport.csv'
-    response = urllib2.urlopen(url)
-    reader = csv.reader(response)
-
-    dictionary = {}
-    headings = []
-    isFirstLine = True
-
-    for row in reader:
-
-        if isFirstLine:
-            for index in range(1,len(row)):
-                headings.append(row[index].strip())
-            nFields = len(headings) + 1
-            isFirstLine = False
-            continue
-
-        if len(row) < nFields:
-            row.extend(' ' * (nFields - len(row)))
-
-        moduleName = row[0].strip()
-        dictionary[moduleName] = {}
-        for index in range(1,len(row)):
-            if headings[index-1] == "assembly date":
-                entry = row[index].strip()
-            else:
-                entry = row[index].replace(' ','')
-            if not len(entry):
-                entry = ' '
-
-            dictionary[moduleName][headings[index-1]] = entry
-
-    return dictionary
-
+    df = pd.read_csv(url, index_col="module", skipinitialspace=True)
+    # delete final empty column
+    df.drop(df.columns[[-1]], axis=1, inplace=True)
+    return df
 
 ###############################################################################
 
@@ -127,7 +49,8 @@ def produceROCGradeDictionary(wafer):
             data = json.loads(line)
             dictionary[data['ROC_ID']] = data['RESULT']
 
-    return dictionary
+    df = pd.DataFrame(dictionary.items(),columns=['ROC ID', 'Grade'])
+    return df
 
 ###############################################################################
 
