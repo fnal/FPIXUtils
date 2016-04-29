@@ -409,7 +409,6 @@ int eff( string newmod, string fileDesg ){
 					}
 				}
                                 std::vector<double> roc_xhits;
-				int done = 0;
 				double totRPixs = 0;
 				double totRHits = 0;
 				int deadPixs = 0;
@@ -457,19 +456,15 @@ int eff( string newmod, string fileDesg ){
 					//cout << "Deadpixs: " << deadPixs << endl;
  					if(nPixelsDC < 1) nPixelsDC = 1;					
 					//cout << " set nPixelsDC < 1 to 1" << endl;
-					double dcolArea = pixelArea;
-					//cout << " Create dcolArea" << endl;
-					dcolArea = pixelArea * nPixelsDC / 160;
-					//cout << " dcolarea is : " << dcolArea << " down form " << pixelArea << endl;
 					totRHits = TMath::Mean(nPixelsDC, &xray_hits[0]);
 					//cout << " found totRHits " << endl;
 					rocratehits += totXHits;
 					rocratenum += nPixelsDC;
 					//cout << "counted totals for xhits" << endl;
 					roc_xhits.push_back( totRHits );
-					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * dcolArea) * 1.0e-6;
+					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
-					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * dcolArea) * 1.0e-6;
+					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 					double efficiencyError = TMath::RMS(nPixelsDC, &hits[0]) / std::sqrt(nPixelsDC) / nTrigPerPixel;
 					
 					//cout << "Assigning vales" << endl;
@@ -500,25 +495,21 @@ int eff( string newmod, string fileDesg ){
 
 					//cout << " finding filtered values" << endl;
 					if( ( i == 0 ) && rate < 120 ){	
-						done = 1;
 						if( efficiency < worstDColEff[iRoc] ){ 
 							worstDColEff[iRoc] = efficiency; 
 							worstDCol[iRoc] = dcol; 
 						}
-					} else if( ( done = 0 ) && ( i == 1 ) && ( rate < 120 ) ){
-						done = 1;
+					} else if( ( worstDColEff[iRoc] >= 1 ) && ( i == 1 ) && ( rate < 120 ) ){
                                                 if( efficiency < worstDColEff[iRoc] ){
                                                         worstDColEff[iRoc] = efficiency;
                                                         worstDCol[iRoc] = dcol;
                                                 }
-					} else if( ( done = 0 ) && ( i == 2 ) && ( rate < 120 ) ){
-                                                done = 1;
+					} else if( ( worstDColEff[iRoc] >= 1 ) && ( i == 2 ) && ( rate < 120 ) ){
                                                 if( efficiency < worstDColEff[iRoc] ){
                                                         worstDColEff[iRoc] = efficiency;
                                                         worstDCol[iRoc] = dcol;
                                                 }
-                                        } else if( ( done = 0 ) && ( i > 2 ) ){
-                                                done = 1;
+                                        } else if( ( worstDColEff[iRoc] >= 1 ) && ( i > 2 ) ){
                                                 if( efficiency < worstDColEff[iRoc] ){
                                                         worstDColEff[iRoc] = efficiency;
                                                         worstDCol[iRoc] = dcol;
