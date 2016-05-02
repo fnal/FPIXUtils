@@ -12,9 +12,14 @@
 
 import datetime
 import sys
+import random
+import os
+import subprocess
 from optparse import OptionParser
 
 
+outputDir_ = "/home/fnalpix2/testoutput/"
+pxarDir_ = "/home/fnalpix2/pxar/"
 
 parser = OptionParser()
 parser.add_option("-m", "--module", dest="module",
@@ -45,18 +50,30 @@ timeStamp = stamp.split(' ')[1]
 dateStamp = dateStamp.split('-')[0][-2:] + dateStamp.split('-')[1] + dateStamp.split('-')[2]
 time = timeStamp.split(':')[0] + 'h' + timeStamp.split(':')[1] + 'm'
 timeStamp = timeStamp.split(':')[0] + timeStamp.split(':')[1]
-
-print "stamp", stamp
-print "dateStamp", dateStamp
-print "date", date
-print "timeStamp", timeStamp
-print "time", time
+directoryName = arguments.module + '_Quicktest-p17-FNAL-' + dateStamp + '-' + timeStamp + '_' + date + '_' + time + '_' + str(random.randint(1000000000,9999999999))
 
 ###########################################
 # create directory structure
 ###########################################
 
+out = outputDir_ + "/" + directoryName + "/000_Quicktest_p17/"
+os.makedirs(out)
 
+
+subprocess.call([pxarDir_ + "/main/mkConfig",
+                 "-tTBM08C", 
+                 "-rdigv21respin", 
+                 "-f", 
+                 "-m", 
+                 "-d%s" % (out),
+                 "-ps/hubId 31/hubId %s/" % (arguments.hubID)])
+
+subprocess.call([pxarDir_ + "/bin/pXar",
+                 "-t Pretest",
+                 "-d%s" % (out)])
+
+
+# -t TBM08C -r digv21respin -f -m -p 's/hubId 31/hubId 15/'
 # MODULE_Quicktest-FNAL-DATETIME_DATETIMEV2_RANDOMSTRING
 #   000_Quicktest_p17
 
