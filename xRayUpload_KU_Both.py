@@ -59,7 +59,7 @@ def analyze(inputFile, outputDir):
     unif_low = range(16)
 
     qfile = open("SummaryQPlots_XRFResult_" +inputFile+ ".txt",'r')
-    qfile = open("SummaryQplots.txt")
+    #qfile = open("SummaryQplots.txt")
     line = qfile.readlines()
     for l in range(2,len(line)):
        values = string.split(line[l])
