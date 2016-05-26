@@ -33,7 +33,7 @@ for index, module in enumerate(moduleNames):
         continue
 
     tbs.append(index)
-    testDir = sorted(glob.glob(inputDir + "/" + module + "*"))[0]
+    testDir = sorted(glob.glob(inputDir + "/" + module + "_FPIXTest*"))[0]
     inputFile = glob.glob(testDir + "/" + "000*/commander_FPIXTest.log")[0]
     inputFiles.append(inputFile)
 
