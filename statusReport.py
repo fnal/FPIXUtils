@@ -34,10 +34,13 @@ for index, module in enumerate(moduleNames):
         continue
 
     tbs.append(index)
-    testDirs = glob.glob(inputDir + "/" + module + "_FPIXTest*")
+    testDirs = glob.glob(inputDir + "/" + module + "_*")
     testDirs.sort(key=lambda x: os.path.getmtime(x))
     testDir = testDirs[-1]
-    inputFile = glob.glob(testDir + "/" + "000*/commander_FPIXTest.log")[0]
+    inputFileList = []
+    while len(inputFileList) == 0:
+       inputFileList = glob.glob(testDir + "/" + "000*/commander_*.log")
+    inputFile = inputFileList[0]
     inputFiles.append(inputFile)
 
 for index, module in enumerate(goodModuleNames):
