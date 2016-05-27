@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import os
 import time
 from config import moduleNames, goodModuleNames
 import glob
@@ -23,7 +24,7 @@ columnWidth = 15
 tbLine = ["TB:"]
 idLine = ["module ID:"]
 
-inputDir = "/Users/lantonel/PlotsAndTables/ProductionResults"
+inputDir = os.path.expanduser('~') + "/allTestResults/"
 
 tbs = []
 inputFiles = []
@@ -33,7 +34,9 @@ for index, module in enumerate(moduleNames):
         continue
 
     tbs.append(index)
-    testDir = sorted(glob.glob(inputDir + "/" + module + "_FPIXTest*"))[0]
+    testDirs = glob.glob(inputDir + "/" + module + "_FPIXTest*")
+    testDirs.sort(key=lambda x: os.path.getmtime(x))
+    testDir = testDirs[-1]
     inputFile = glob.glob(testDir + "/" + "000*/commander_FPIXTest.log")[0]
     inputFiles.append(inputFile)
 
@@ -41,6 +44,9 @@ for index, module in enumerate(goodModuleNames):
     tbLine.append(str(tbs[index]))
     idLine.append(module)
 
+
+
+os.system('clear')
 for entry in tbLine:
     print " "*(columnWidth-len(entry)) + entry,
 print
