@@ -97,11 +97,12 @@ if __name__=='__main__':
         badModules=badModules|set(result)
     badModules=list(badModules)
 
-    if testName=='Pretest':
-        if len(badModules)>0:
-            print 'Replace the following module(s) and repeat the pre-test:'
-            for m in badModules:
-                print '    - '+str(m)
-        else:
-            print 'All modules are good.  Continue to the next test.\n\n'
+#  5-31-16: comment out instructions to swap out non-perfect modules - Jamie 
+#    if testName=='Pretest':
+#        if len(badModules)>0:
+#            print 'Replace the following module(s) and repeat the pre-test:'
+#            for m in badModules:
+#                print '    - '+str(m)
+#        else:
+#            print 'All modules are good.  Continue to the next test.\n\n'
 
