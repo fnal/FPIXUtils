@@ -28,6 +28,7 @@ DEBUG=False
 
 modName = sys.argv[1]
 moduleName = sys.argv[2]
+modNameData = modName + "data"
 
 topFile = "_XrayQualification-17C-KU-000000-0000_"
 subFile000 = "000_HRData_40"
@@ -37,6 +38,8 @@ subFile003 = "003_HREfficiency_80"
 subFile004 = "004_HREfficiency_120"
 subFile00c = "configfiles"
 subFile00l = "logfiles"
+site = "KU"
+
 
 f000File = "phrun02ma_*.*"
 f001File = "phrun06ma_*.*"
@@ -66,7 +69,15 @@ inifile = "elComandante.ini.tmp"
 inidest = "elComandante.ini"
 inipath = "~/Testing/FPIXUtils/MRWxRayConvert/"
 
-testtime = "2016_00_00_00h00m_0000000000"
+stamp = str(datetime.now())
+dateStamp = stamp.split(' ')[0]
+date = dateStamp
+timeStamp = stamp.split(' ')[1]
+dateStamp = dateStamp.split('-')[0][-2:] + dateStamp.split('-')[1] + dateStamp.split('-')[2]
+time = timeStamp.split(':')[0] + 'h' + timeStamp.split(':')[1] + 'm'
+timeStamp = timeStamp.split(':')[0] + timeStamp.split(':')[1]
+
+testtime = dateStamp + "-" + time
 
 dirfile = moduleName + topFile + testtime
 
@@ -97,31 +108,31 @@ os.system ( "mkdir %s" % ( subFile004 ))
 os.system ( "mkdir %s" % ( subFile00c ))
 os.system ( "mkdir %s" % ( subFile00l ))
 
-os.system ("cp %s %s" % (cd2back+modName+slash+ testFile, subFile000 + slash + testFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ confFile, subFile000 + slash + confFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ hotFile, subFile000 + slash + hotFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ testFile, subFile000 + slash + testFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ confFile, subFile000 + slash + confFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ hotFile, subFile000 + slash + hotFile))
 
-os.system ("cp %s %s" % (cd2back+modName+slash+ testFile, subFile001 + slash + testFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ confFile, subFile001 + slash + confFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ hotFile, subFile001 + slash + hotFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ testFile, subFile001 + slash + testFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ confFile, subFile001 + slash + confFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ hotFile, subFile001 + slash + hotFile))
 
-os.system ("cp %s %s" % (cd2back+modName+slash+ testFile, subFile002 + slash + testFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ confFile, subFile002 + slash + confFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ hotFile, subFile002 + slash + hotFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ testFile, subFile002 + slash + testFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ confFile, subFile002 + slash + confFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ hotFile, subFile002 + slash + hotFile))
 
-os.system ("cp %s %s" % (cd2back+modName+slash+ testFile, subFile003 + slash + testFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ confFile, subFile003 + slash + confFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ hotFile, subFile003 + slash + hotFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ testFile, subFile003 + slash + testFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ confFile, subFile003 + slash + confFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ hotFile, subFile003 + slash + hotFile))
     
-os.system ("cp %s %s" % (cd2back+modName+slash+ testFile, subFile004 + slash + testFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ confFile, subFile004 + slash + confFile))
-os.system ("cp %s %s" % (cd2back+modName+slash+ hotFile, subFile004 + slash + hotFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ testFile, subFile004 + slash + testFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ confFile, subFile004 + slash + confFile))
+os.system ("cp %s %s" % (cdback+modName+slash+ hotFile, subFile004 + slash + hotFile))
     
-os.system ("cp %s %s" % (cdback+f000File, subFile000 ))
-os.system ("cp %s %s" % (cdback+f001File, subFile001 ))
-os.system ("cp %s %s" % (cdback+f002File, subFile002 ))
-os.system ("cp %s %s" % (cdback+f003File, subFile003 ))    
-os.system ("cp %s %s" % (cdback+f004File, subFile004 ))
+os.system ("cp %s %s" % (cdback+modNameData+slash+f000File, subFile000 ))
+os.system ("cp %s %s" % (cdback+modNameData+slash+f001File, subFile001 ))
+os.system ("cp %s %s" % (cdback+modNameData+slash+f002File, subFile002 ))
+os.system ("cp %s %s" % (cdback+modNameData+slash+f003File, subFile003 ))    
+os.system ("cp %s %s" % (cdback+modNameData+slash+f004File, subFile004 ))
 
 os.chdir( subFile000 )
 os.system ("rename %s %s %s" % ("*.root", new000, "*.root" ))
@@ -139,9 +150,22 @@ os.chdir( cdback+ subFile004 )
 os.system ("rename %s %s %s" % ("*.root", new004, "*.root" ))
 os.system ("rename %s %s %s" % ("*.log", newl004, "*.log" ))
 os.chdir( cdback+ subFile00c )
+
+ininame = inipath + inifile;
+inTmpFile = open( ininame.c_str() )
+outTmpFile = open( inidest.c_str(), 'w')
+for line in inTmpFile:
+    if 'insertTestsHere' in line:
+      	line = 'Test = HRData@40MHz/cm2,HRData@120MHz/cm2>{HREfficiency@40MHz/cm2,HREfficiency@80MHz/cm2,HREfficiency@120MHz/cm2}' + '\n'
+    if 'insertTestDescriptionHere' in line:
+      	line = 'TestDescription = XrayQualification-17C-' + site.c_str() + '-' + dateStamp + '-' + timeStamp + '\n'
+    outTmpFile.write(line)
+inTmpFile.close()
+outTmpFile.close()
+#os.system( "mv %s %s" % ( inidest, topDir + "/configfiles")
+
 os.system ("cp %s %s" % ( inipath + inifile, "./" ))
 os.system ("rename %s %s %s" % (inifile, inidest, inifile ))
-
 
 os.chdir( cd2back )
 os.system( "tar -zcvf %s %s" % ( dirfile + tarend, dirfile ))
