@@ -105,7 +105,7 @@ int eff( string newmod, string fileDesg ){
       		TSystemFile *file;
       		TString fname;
       		TIter next(files);
-      		while ((file=(TSystemFile*)next())) {
+      		while (file=(TSystemFile*)next()) {
         		fname = file->GetName();
 			std::cout << fname << endl;
          		std::string filename = fname.Data();
@@ -127,9 +127,6 @@ int eff( string newmod, string fileDesg ){
         ylist.push_back(0.2);
 
 	std::cout << " Declaring vectors" << endl;
-        
-	double rocratehigh[nRocs];
-       	double rocratelow[nRocs];
 
     	std::vector< std::vector< std::pair< int,int > > > maskedPixels;
 	std::vector< std::vector< double > > efficiencies;
@@ -338,7 +335,6 @@ int eff( string newmod, string fileDesg ){
 		std::string currentRootFile = fileList[i];		
 		std::string fileRate = currentRootFile.substr(namelength,2);
 		std::cout<< " Looking for: " << fileRate << endl;
-		int rateIndex = 100;
 		if(fileRate == "10") { rateIndex = 0;}
 		else if( fileRate == "08"){ rateIndex = 1;}
 		else if( fileRate == "06"){ rateIndex = 2;}
@@ -372,7 +368,7 @@ int eff( string newmod, string fileDesg ){
 		bool highRateFound = false;
 	
 		TKey *obj;
-		while ( (obj = (TKey*)next()) ) {
+		while ( obj = (TKey*)next() ) {
 			if (strcmp(obj->GetTitle(),"HighRate") == 0) highRateFound = true;
 			if (VERBOSE) {
 				std::cout << obj->GetTitle() << std::endl;
@@ -384,6 +380,8 @@ int eff( string newmod, string fileDesg ){
 			TH2D* calmap;
 			char calmapName[256];
 			char xraymapName[256];
+			double rocratehigh[nRocs];
+			double rocratelow[nRocs];
 			double rocratehits = 0;
 			double rocratenum = 0;
 			std::ofstream output;
@@ -416,18 +414,14 @@ int eff( string newmod, string fileDesg ){
 				int deadPixs = 0;
 				//std::cout << nBinsX << "x" << nBinsY << std::endl;
 				for (int dcol = 0; dcol < nDCol; dcol++) {
-					std::cout << "reading dc " << dcol << std::endl;
+				//	std::cout << "reading dc " << dcol << std::endl;
 
 					std::vector<double> hits;
 					std::vector<double> xray_hits;
 					double totCHits = 0;
 					double totXHits = 0;
- 					double rate = 0;
-                                        double efficiency = 0;
-                                        double rateError = 0;
-                                        double efficiencyError = 0;
 
-					std::cout<<"Getting data from Histograms" << endl;
+				//	std::cout<<"Getting data from Histograms" << endl;
 
 					for (int y = 0; y < 160; y++) {
 
@@ -459,32 +453,21 @@ int eff( string newmod, string fileDesg ){
 					
 
 					int nPixelsDC = hits.size();
-					cout << "Deadpixs: " << deadPixs << endl;
+					//cout << "Deadpixs: " << deadPixs << endl;
  					if(nPixelsDC < 1) nPixelsDC = 1;					
-					cout << " set nPixelsDC < 1 to 1" << endl;
-					if( totXHits > 0 ){ 
-						totRHits = TMath::Mean(nPixelsDC, &xray_hits[0]);
-						rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
-                                        	rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
-					}else{ 
-						totRHits = 0;
-						rate = 0;
-						rateError = 0;
-					}
-					if( totCHits > 0 ){
-                                                efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
-                                                efficiencyError = TMath::RMS(nPixelsDC, &hits[0]) / std::sqrt(nPixelsDC) / nTrigPerPixel;
-                                        }else{ 
-                                                efficiency = 0; 
-                                                efficiencyError = 0;
-                                        }
-					cout << " found totRHits " << endl;
+					//cout << " set nPixelsDC < 1 to 1" << endl;
+					totRHits = TMath::Mean(nPixelsDC, &xray_hits[0]);
+					//cout << " found totRHits " << endl;
 					rocratehits += totXHits;
 					rocratenum += nPixelsDC;
-					cout << "counted totals for xhits" << endl;
+					//cout << "counted totals for xhits" << endl;
 					roc_xhits.push_back( totRHits );
+					double rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+					double efficiency = TMath::Mean(nPixelsDC, &hits[0]) / nTrigPerPixel;
+					double rateError = TMath::RMS(nPixelsDC, &xray_hits[0]) / std::sqrt(nPixelsDC) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
+					double efficiencyError = TMath::RMS(nPixelsDC, &hits[0]) / std::sqrt(nPixelsDC) / nTrigPerPixel;
 					
-					cout << "Assigning vales" << endl;
+					//cout << "Assigning vales" << endl;
 					efficiencies[iRoc].push_back(efficiency);
 					efficiencyErrors[iRoc].push_back(efficiencyError);
 					rates[iRoc].push_back(rate);
@@ -510,7 +493,7 @@ int eff( string newmod, string fileDesg ){
 					
 					dColModCount++;		
 
-					cout << " finding filtered values" << endl;
+					//cout << " finding filtered values" << endl;
 					if( ( i == 0 ) && rate < 120 ){	
 						if( efficiency < worstDColEff[iRoc] ){ 
 							worstDColEff[iRoc] = efficiency; 
@@ -554,17 +537,16 @@ int eff( string newmod, string fileDesg ){
 						dc95count[iRoc][dcol] = 1;
 					}
 					if (VERBOSE) {
-						std::cout << "Roc " << iRoc << " dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
+						std::cout << "dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
 					}
 				}
 				if( i == ( len -1 ) ){
 					int dcnum = roc_xhits.size();
-					cout << "in len-1"<<endl;
+					//cout << "here"<<endl;
 					rocratelow[iRoc]  = TMath::Mean( dcnum, &roc_xhits[0] ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 //	log << "Rate low Roc: " << iRoc << " : " << rocratelow[iRoc] << " : totals : " << (rocratehits/rocratenum)/(nTrig * triggerDuration * pixelArea) * 1.0e-6 << endl; 
 				}
 				if( i == 1 ){
-					cout << "in 1" << endl;
                                         int dcnum = roc_xhits.size();
                                         rocratehigh[iRoc]  = TMath::Mean( dcnum, &roc_xhits[0] ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6; 
 //	log << "Rate high Roc: " << iRoc << " : " << rocratehigh[iRoc] << " : totals : " << (rocratehits/rocratenum)/(nTrig * triggerDuration * pixelArea) * 1.0e-6 << endl;
@@ -575,7 +557,7 @@ int eff( string newmod, string fileDesg ){
 		cout << "high rate test not found" << std::endl;
 		return 1;
 		}
-		cout << "end of Data Collection" << endl;
+		//cout << "end of Data Collection" << endl;
 	}
 
 	std::cout << "Output Phase" << std::endl;
@@ -682,50 +664,50 @@ int eff( string newmod, string fileDesg ){
 		delete myfit;
 		delete c1;
 
-		TCanvas *c3 = new TCanvas("c3", "worst_dcol", 200, 10, 700, 500);
-                c3->Range(0,0,1, 300);
+		TCanvas *c1 = new TCanvas("c1", "worst_dcol", 200, 10, 700, 500);
+                c1->Range(0,0,1, 300);
 		int use = worstDCol[iRoc];
-                TGraphErrors* TGE2 = new TGraphErrors(dcolEff[iRoc][use].size(), &dcolRates[iRoc][use][0], &dcolEff[iRoc][use][0], &dcolRateErrors[iRoc][use][0] , &dcolEffErrors[iRoc][use][0]);
-                TGraph* tge4 = new TGraph( lineList[0].size(), &lineList[0][0], &lineList[1][0] );
-                TGraph* tge5 = new TGraph( lineList[2].size(), &lineList[2][0], &lineList[3][0] );
+                TGraphErrors* TGE = new TGraphErrors(dcolEff[iRoc][use].size(), &dcolRates[iRoc][use][0], &dcolEff[iRoc][use][0], &dcolRateErrors[iRoc][use][0] , &dcolEffErrors[iRoc][use][0]);
+                TGraph* tge2 = new TGraph( lineList[0].size(), &lineList[0][0], &lineList[1][0] );
+                TGraph* tge3 = new TGraph( lineList[2].size(), &lineList[2][0], &lineList[3][0] );
 		
-		char graphTitle1[256];
-                sprintf(graphTitle1, "Fiducial Efficiency vs Rate for %s ROC %d DC %d", moduleName.c_str(), iRoc, use);
-                TGE2->SetTitle(graphTitle1);
-                TGE2->SetMarkerStyle(3);
-                TGE2->SetMarkerSize(1);
-                TGE2->GetXaxis()->SetTitle("Rate: MHz/cm^2");
-                TGE2->GetYaxis()->SetTitle("Efficency 1.00 = 100%");
-                TGE2->Draw("ap");
+		char graphTitle[256];
+                sprintf(graphTitle, "Fiducial Efficiency vs Rate for %s ROC %d DC %d", moduleName.c_str(), iRoc, use);
+                TGE->SetTitle(graphTitle);
+                TGE->SetMarkerStyle(3);
+                TGE->SetMarkerSize(1);
+                TGE->GetXaxis()->SetTitle("Rate: MHz/cm^2");
+                TGE->GetYaxis()->SetTitle("Efficency 1.00 = 100%");
+                TGE->Draw("ap");
 
-                tge4->SetMarkerColor( kRed );
-                tge4->SetMarkerStyle(21);
+                tge2->SetMarkerColor( kRed );
+                tge2->SetMarkerStyle(21);
  
-                tge5->SetMarkerColor( kRed );
-                tge5->SetMarkerStyle(21);
+                tge3->SetMarkerColor( kRed );
+                tge3->SetMarkerStyle(21);
 
-                TF1* myfit2 = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
-                myfit2->SetParameter(0, 1);
-                myfit2->SetParLimits(0, 0.9, 1.1);
-                myfit2->SetParameter(1, 5e-9);
-                myfit2->SetParLimits(1, 1e-10, 5e-8);
+                TF1* myfit = new TF1("fitfun", "([0]-[1]*x*x*x)", 20, 140);
+                myfit->SetParameter(0, 1);
+                myfit->SetParLimits(0, 0.9, 1.1);
+                myfit->SetParameter(1, 5e-9);
+                myfit->SetParLimits(1, 1e-10, 5e-8);
 
-                tge4->Draw("same");
-                tge5->Draw("same");
-                TGE2->Fit(myfit2, "BR");
-                c3->Update();
+                tge2->Draw("same");
+                tge3->Draw("same");
+                TGE->Fit(myfit, "BR");
+                c1->Update();
 
-                c3->Modified();
+                c1->Modified();
                 gPad->Modified();
-                char saveFileName1[256];
-                sprintf(saveFileName1, "%s_Eff_C%d_DC%d.png",HighRateSaveFileName.c_str(), iRoc, use);
-                c3->SaveAs(saveFileName1);
-                c3->Clear();
-                TGE2->Clear();
+                char saveFileName[256];
+                sprintf(saveFileName, "%s_Eff_C%d_DC%d.png",HighRateSaveFileName.c_str(), iRoc, use);
+                c1->SaveAs(saveFileName);
+                c1->Clear();
+                TGE->Clear();
 
-                myfit2->Clear();
-                delete myfit2;
-                delete c3;
+                myfit->Clear();
+                delete myfit;
+                delete c1;
 
 		dc = 0;
         	lowUni = 2.0;
@@ -748,14 +730,14 @@ int eff( string newmod, string fileDesg ){
                 }
         }
       	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	TCanvas *c4 = new TCanvas("c1", "Efficiency", 200, 10, 700, 500);
+	TCanvas *c1 = new TCanvas("c1", "Efficiency", 200, 10, 700, 500);
         TGraphErrors* TGE = new TGraphErrors( efficiencies[nRocs].size(), &rates[nRocs][0], &efficiencies[nRocs][0], &rateErrors[nRocs][0], &efficiencyErrors[nRocs][0] );
         TGraph* tge2 = new TGraph( lineList[0].size(), &lineList[0][0], &lineList[1][0] );
         TGraph* tge3 = new TGraph( lineList[2].size(), &lineList[2][0], &lineList[3][0] );
 
-	char graphTitle2[256];
-        sprintf(graphTitle2, "%s Fiducial Efficiency vs Rate  for %s", HighRateFileName.c_str() , moduleName.c_str());
-        TGE->SetTitle(graphTitle2);
+	char graphTitle[256];
+        sprintf(graphTitle, "%s Fiducial Efficiency vs Rate  for %s", HighRateFileName.c_str() , moduleName.c_str());
+        TGE->SetTitle(graphTitle);
 	TGE->GetXaxis()->SetTitle("Rate: MHz/cm^2");
 	TGE->GetYaxis()->SetTitle("Efficency 1.00 = 100%");
         TGE->SetMarkerStyle(7);
@@ -778,7 +760,7 @@ int eff( string newmod, string fileDesg ){
         tge2->Draw("same");
         tge3->Draw("same");
         TGE->Fit(myfit, "BR");
-        c4->Update();
+        c1->Update();
 
         double p0= myfit->GetParameter(0);
         double p1= myfit->GetParameter(1);
@@ -795,18 +777,18 @@ int eff( string newmod, string fileDesg ){
 	log << "Number DC >= 1.5 : " << totdc12 << endl;
         log << "Number DC <  0.6 : " << totdc08 << endl;
 	log << "Number DC Both   : " << totdcboth << endl;
-        c4->Modified();
+        c1->Modified();
       	gPad->Modified();
- 	char saveFileName3[256];
-  	sprintf(saveFileName3, "%s_Eff_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
-        c4->SaveAs(saveFileName3);
-        c4->Clear();
+ 	char saveFileName[256];
+  	sprintf(saveFileName, "%s_Eff_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        c1->SaveAs(saveFileName);
+        c1->Clear();
         TGE->Clear();
         myfit->Clear();
        	delete myfit;
-        delete c4;
+        delete c1;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	TCanvas *c5 = new TCanvas("c1", "DColUniformity", 200, 10, 700, 500);
+	TCanvas *c1 = new TCanvas("c1", "DColUniformity", 200, 10, 700, 500);
         TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
         TGraph* tg2 = new TGraph( dclineList[0].size(), &dclineList[0][0], &dclineList[1][0] );
         TGraph* tg3 = new TGraph( dclineList[2].size(), &dclineList[2][0], &dclineList[3][0] );
@@ -828,29 +810,29 @@ int eff( string newmod, string fileDesg ){
 
         tg2->Draw("same");
         tg3->Draw("same");
-        c5->Update();
+        c1->Update();
 
-        char saveFileName4[256];
-        sprintf(saveFileName4, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
-        c5->SaveAs(saveFileName4);
-        c5->Clear();
+        char saveFileName3[256];
+        sprintf(saveFileName3, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        c1->SaveAs(saveFileName3);
+        c1->Clear();
         tg4->Clear();
-        delete c5;
+        delete c1;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	TCanvas *c2 = new TCanvas("c2", "DColRate", 200, 10, 700, 500);
         TGraph* tg1 = new TGraph( dcolRates[nRocs][1].size(), &dcolRates[nRocs][1][0], &dcolRates[nRocs][0][0] );
-        char graphTitle3[256];
-        sprintf(graphTitle3, "%s Rate by DCol for %s", HighRateFileName.c_str() , moduleName.c_str());
-        tg1->SetTitle(graphTitle3);
+        char graphTitle[256];
+        sprintf(graphTitle, "%s Rate by DCol for %s", HighRateFileName.c_str() , moduleName.c_str());
+        tg1->SetTitle(graphTitle);
         tg1->GetXaxis()->SetTitle("DCol Number");
         tg1->GetYaxis()->SetTitle("Rate: MHa/cm^2");
         tg1->SetMarkerStyle(7);
         tg1->SetMarkerSize(1);
         tg1->Draw("ap");
 
-        char saveFileName5[256];
-        sprintf(saveFileName5, "%s_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
-        c2->SaveAs(saveFileName5);
+        char saveFileName3[256];
+        sprintf(saveFileName3, "%s_Rate_by_DCol_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        c2->SaveAs(saveFileName3);
         c2->Clear();
         tg1->Clear();
         delete c2;
