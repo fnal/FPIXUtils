@@ -25,15 +25,15 @@
 #include <numeric>
 
 //
-//  Jack W King AAS BA BS/E 05/27/2016
+//  Jack W King AAS BA BE(May 2016) 02/26/2016
 //
 
-int unif( string newmod, string fileDesg ){
+int eff( string newmod, string fileDesg ){
 
-        cout << "Starting dcUniformity Script" << endl;
+        cout << "Starting Efficency Script" << endl;
 
-        cout << "Usage:  unif( module_name_string , starting_hr_file_string )" << endl;
-        cout << "for defaults enter \"ph\" for starting hr file designator. " << endl;
+        cout << "Usage:  eff( module_name_string , starting_hr_file_string )" << endl;
+        cout << "for defaults enter \"hr\" for starting hr file designator. " << endl;
 
         char chpath[256];
         getcwd(chpath, 255);
@@ -46,8 +46,8 @@ int unif( string newmod, string fileDesg ){
         std::string dataPath =  path + "/" + mod + "data";
         //std::string measurementFolder =  mod + "data";
         std::string configPath = path + "/" + mod;
-        std::string HighRateSaveFileName( "Results_DCUni" );
-        std::string HighRateFileName( "phrun" );//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
+        std::string HighRateSaveFileName( "Results_Hr" );
+        std::string HighRateFileName( "hr" );//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
         if( fileDesg != "" ) HighRateFileName = fileDesg;
         int namelength = HighRateFileName.length();
 
@@ -339,11 +339,11 @@ int unif( string newmod, string fileDesg ){
 		std::string fileRate = currentRootFile.substr(namelength,2);
 		std::cout<< " Looking for: " << fileRate << endl;
 		int rateIndex = 100;
-		if(fileRate == "10") { rateIndex = 6;}
-		else if( fileRate == "08"){ rateIndex = 6;}
-		else if( fileRate == "06"){ rateIndex = 0;}
-		else if( fileRate == "04"){ rateIndex = 6;}
-		else if( fileRate == "02"){ rateIndex = 1;}
+		if(fileRate == "10") { rateIndex = 0;}
+		else if( fileRate == "08"){ rateIndex = 1;}
+		else if( fileRate == "06"){ rateIndex = 2;}
+		else if( fileRate == "04"){ rateIndex = 3;}
+		else if( fileRate == "02"){ rateIndex = 4;}
 		else {
 			std::cout << "could not read rate: " << currentRootFile << " .";
 			exit(0);
