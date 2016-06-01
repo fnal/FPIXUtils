@@ -59,7 +59,7 @@ print
 
 if mode == 'errors':
     while 1:
-        time.sleep(1)
+        time.sleep(30)
         output = ["# pXar errors:"]
         for inputFile in inputFiles:
             nErrors = 0
@@ -75,7 +75,7 @@ if mode == 'errors':
 
 if mode == 'test':
     while 1:
-        time.sleep(1)
+        time.sleep(30)
         output =  ["current test:"]
         for inputFile in inputFiles:
             test = ""
