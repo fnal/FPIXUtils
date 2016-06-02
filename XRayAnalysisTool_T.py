@@ -47,7 +47,7 @@ myfilename3 = myfilename1; #"fluoro2_122915.root" #"pa207_071615.root" This is t
 myfilename4 = myfilename1; #"fluoro2_122915.root" This is the Indium In File
 myfileoutname = "XRFResult_mi250"
 
-rocs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+rocs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
 
 parser.add_option('--setup', type='string', action='store',
                   default='KU',
@@ -104,11 +104,11 @@ parser.add_option('--InFile', type='string', action='store',
                   help='Name of the In root file ')
 
 parser.add_option('--nrocs', type='int', action='store',
-                  default=15,
+                  default=16,
                   dest='nrocs',
                   help='Number or rocs')
 parser.add_option('--badrocs', type='string', action='store',
-                  default=' ',
+                  default=' 0 1 ',
                   dest='badrocs',
                   help='List of bad rocs, for example [2,4,5]')
 (options, args) = parser.parse_args()

@@ -6,7 +6,7 @@
 #| |     | | | |_/ / |_/ / /_\ \| |_/ / | | | |__ \ `--. 
 #| |     | | | ___ \    /|  _  ||    /  | | |  __| `--. \
 #| |_____| |_| |_/ / |\ \| | | || |\ \ _| |_| |___/\__/ /
-#\_____/\___/\____/\_| \_\_| |_/\_| \_|\___/\____/\____/                                                                                      
+#\_____/\___/\____/\_| \_\_| |_/\_| \_|\___/\____/\____/                                                                                                                                
                                                                
 from optparse import OptionParser
 parser = OptionParser()
@@ -26,28 +26,14 @@ from ROOT import *
 #| |                             
 #|_| 
 #
-#
-#
-#
-#
-#
-#
-#
-# Hey you. Yes you. Before you do what you would normally do, I put something new in.
-# You don't have to edit this file anymore to do the fluoro scripts. You can, if you wish.
-# Or, you can also run this like you would normally but when you do so add the module name and date, for example:
-# python2.6 python2.6 /home/CMS_pixel/Testing/FPIXUtils/XRayAnalysisTool.py_T mi250 060116
-# would be the command to run the script on module mi250 whose fluoro file has date June 1, 2016. 
-# Don't worry, the old way works too if you don't like this.
-#
-#	READ THE THING RIGHT ABOVE THIS THING
-myfilename1 = "fluoro_mi250_053116.root" #"pa207_071615.root" This is the Copper Cu File
-myfilename2 = myfilename1; #"fluoro_122915.root" This is the Silver Ag File
-myfilename3 = myfilename1; #"fluoro2_122915.root" #"pa207_071615.root" This is the Tin Sn file
-myfilename4 = myfilename1; #"fluoro2_122915.root" This is the Indium In File
-myfileoutname = "XRFResult_mi250"
 
-rocs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+myfilename1 = "fluoro_mi250_060116.root" #"pa207_071615.root"
+myfilename2 = myfilename1; #"floro_122915.root"
+myfilename3 = myfilename2; #"floro2_122915.root" #"pa207_071615.root"
+myfilename4 = myfilename2; #"floro2_122915.root"
+myfileoutname = "XRFResult_mi250"
+rocs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
+
 
 parser.add_option('--setup', type='string', action='store',
                   default='KU',
@@ -104,36 +90,15 @@ parser.add_option('--InFile', type='string', action='store',
                   help='Name of the In root file ')
 
 parser.add_option('--nrocs', type='int', action='store',
-                  default=15,
+                  default=16,
                   dest='nrocs',
                   help='Number or rocs')
 parser.add_option('--badrocs', type='string', action='store',
-                  default=' ',
+                  default=' 0 1 ',
                   dest='badrocs',
                   help='List of bad rocs, for example [2,4,5]')
 (options, args) = parser.parse_args()
 argv = []
-
-if len(sys.argv) >= 3:
-	modName = sys.argv[1]
-	testDate= sys.argv[2]
-	myCuFileName = "fluoro_"+modName+"_"+testDate+".root" #"pa207_071615.root"
-	myAgFileName = myCuFileName; #"fluoro_122915.root"
-	mySnFileName = myCuFileName; #"fluoro2_122915.root" #"pa207_071615.root"
-	myInFileName = myCuFileName; #"fluoro2_122915.root"
-	myfileoutname = "XRFResult_"+modName
-else:
-	myCuFileName = myfilename1;
-	myAgFileName = myfilename1; #"fluoro_122915.root"
-	mySnFileName = myfilename1; #"fluoro2_122915.root" #"pa207_071615.root"
-	myInFileName = myfilename1; #"fluoro2_122915.rooot"
-
-options.CuFile = myCuFileName
-options.AgFile = myAgFileName
-options.SnFile = mySnFileName
-options.InFile = myInFileName
-options.outputfile = myfileoutname;
-
 #define functions here:
 #  _   _   _   _   _   _   _   _   _  
 # / \ / \ / \ / \ / \ / \ / \ / \ / \ 
