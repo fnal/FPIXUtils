@@ -168,7 +168,7 @@ outTmpFile.close()
 os.chdir( cd2back )
 os.system( "tar -zcvf %s %s" % ( dirfile + tarend, dirfile ))
 
-os.system( "mv %s %s" % ( dirfile + "*", modName + "/" ) )
+os.system( "mv %s %s" % ( dirfile + "*", modName + "data/" ) )
 ################################################################
 
 
