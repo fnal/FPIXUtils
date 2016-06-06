@@ -37,7 +37,7 @@ int eff( string newmod, string fileDesg ){
 
         char chpath[256];
         getcwd(chpath, 255);
-	std::string inst("KU");
+	std::string inst("KU");  ///<<<<<<<<<<<<<<<<<<SET INSTITUTE STRING ( inst )  TO CORECT INSTITUTE<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         std::string path(chpath);
         std::string mod("paXXX");//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 
         if( newmod != "" )  mod = newmod;
