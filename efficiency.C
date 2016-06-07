@@ -426,7 +426,7 @@ int eff( string newmod, string fileDesg ){
 	
 		TKey *obj;
 		while ( (obj = (TKey*)next()) ) {
-			if (strcmp(obj->GetTitle(),"HighRate") == 0) highRateFound = true;
+			if ((strcmp(obj->GetTitle(),"HighRate") == 0) || (strcmp(obj->GetTitle(),"Xray") == 0))  highRateFound = true;
 			if (VERBOSE) {
 				std::cout << obj->GetTitle() << std::endl;
 			}
