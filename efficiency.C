@@ -534,9 +534,9 @@ int eff( string newmod, string fileDesg ){
 					
 
 					int nPixelsDC = hits.size();
-					cout << "Deadpixs: " << deadPixs << endl;
+	//				cout << "Deadpixs: " << deadPixs << endl;
  					if(nPixelsDC < 1) nPixelsDC = 1;					
-					cout << " set nPixelsDC < 1 to 1" << endl;
+	//				cout << " set nPixelsDC < 1 to 1" << endl;
 					if( totXHits > 0 ){ 
 						totRHits = TMath::Mean(nPixelsDC, &xray_hits[0]);
 						rate = TMath::Mean(nPixelsDC, &xray_hits[0]) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
@@ -554,10 +554,10 @@ int eff( string newmod, string fileDesg ){
                                                 efficiencyError = 0;
                                         }
 
-					cout << " found totRHits " << endl;
+	//				cout << " found totRHits " << endl;
 					rocratehits += totXHits;
 					rocratenum += nPixelsDC;
-					cout << "counted totals for xhits" << endl;
+	//				cout << "counted totals for xhits" << endl;
 					roc_xhits.push_back( totRHits );
 					
 					cout << "Assigning vales" << endl;
@@ -588,7 +588,7 @@ int eff( string newmod, string fileDesg ){
 						dColModCount++;	
 					}	
 
-					cout << " finding filtered values" << endl;
+	//				cout << " finding filtered values" << endl;
 					if( ( i == 0 ) && rate < 120 ){
                                                 done = 1;
                                                 if( efficiency < worstDColEff[iRoc] ){
@@ -596,7 +596,7 @@ int eff( string newmod, string fileDesg ){
                                                         worstDCol[iRoc] = dcol;
                                                 }
                                         } else if( ( done = 0 ) && ( i == 1 ) && ( rate < 120 ) ){
-                                                 if( iRoc == nRocs-1 ) done = 1;
+                                                if( iRoc == nRocs-1 ) done = 1;
                                                 if( efficiency < worstDColEff[iRoc] ){
                                                         worstDColEff[iRoc] = efficiency;
                                                         worstDCol[iRoc] = dcol;
@@ -616,25 +616,27 @@ int eff( string newmod, string fileDesg ){
 					if( i == (low - 1) ){	efflow.push_back(totCHits);}
 					if( i == high ){ hitshigh.push_back(totXHits);}
 					if( i == 1 ){	effhigh.push_back(totCHits); }     
-					if( efficiency < 0.98 && rate < 120 ){	
-						dc98count[iRoc][dcol] = 1;
-						log << "Roc: " << iRoc << " dc: " << dcol << " rate: " << rate << " eff: " << efficiency << std::endl;
-					}
-					if( efficiency < 0.95 && rate < 120 ){
-						dc95count[iRoc][dcol] = 1;
-					}
-					if (VERBOSE) {
-						std::cout << "Roc " << iRoc << " dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
+					if( i < low ){
+						if( efficiency < 0.98 && rate < 120 ){	
+							dc98count[iRoc][dcol] = 1;
+							log << "Roc: " << iRoc << " dc: " << dcol << " rate: " << rate << " eff: " << efficiency << std::endl;
+						}
+						if( efficiency < 0.95 && rate < 120 ){
+							dc95count[iRoc][dcol] = 1;
+						}
+						if (VERBOSE) {
+							std::cout << "Roc " << iRoc << " dc " << dcol << " nPixelsDC: " << nPixelsDC << " rate: " << rate << " " << efficiency << std::endl;
+						}
 					}
 				}
 				if( i == low ){
 					int dcnum = roc_xhits.size();
-					cout << "in len-1"<<endl;
+	//				cout << "in len-1"<<endl;
 					rocratelow[iRoc]  = TMath::Mean( dcnum, &roc_xhits[0] ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6;
 //	log << "Rate low Roc: " << iRoc << " : " << rocratelow[iRoc] << " : totals : " << (rocratehits/rocratenum)/(nTrig * triggerDuration * pixelArea) * 1.0e-6 << endl; 
 				}
 				if( i == high ){
-					cout << "in 1" << endl;
+	//				cout << "in 1" << endl;
                                         int dcnum = roc_xhits.size();
                                         rocratehigh[iRoc]  = TMath::Mean( dcnum, &roc_xhits[0] ) / (nTrig * triggerDuration * pixelArea) * 1.0e-6; 
 //	log << "Rate high Roc: " << iRoc << " : " << rocratehigh[iRoc] << " : totals : " << (rocratehits/rocratenum)/(nTrig * triggerDuration * pixelArea) * 1.0e-6 << endl;
@@ -752,7 +754,7 @@ int eff( string newmod, string fileDesg ){
 		delete myfit;
 		delete c1;
 
-		TCanvas *c3 = new TCanvas("c3", "worst_dcol", 200, 10, 700, 500);
+/*		TCanvas *c3 = new TCanvas("c3", "worst_dcol", 200, 10, 700, 500);
                 c3->Range(0,0,1, 300);
 		int use = worstDCol[iRoc];
                 TGraphErrors* TGE2 = new TGraphErrors(dcolEff[iRoc][use].size(), &dcolRates[iRoc][use][0], &dcolEff[iRoc][use][0], &dcolRateErrors[iRoc][use][0] , &dcolEffErrors[iRoc][use][0]);
@@ -796,7 +798,7 @@ int eff( string newmod, string fileDesg ){
                 myfit2->Clear();
                 delete myfit2;
                 delete c3;
-
+*/
 		dc = 0;
         	lowUni = 2.0;
         	highUni = 0.0;
