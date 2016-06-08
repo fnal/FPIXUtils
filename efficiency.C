@@ -488,6 +488,7 @@ int eff( string newmod, string fileDesg ){
 				double totRPixs = 0;
 				double totRHits = 0;
 				int deadPixs = 0;
+                ind badBumps = 0;
 				//std::cout << nBinsX << "x" << nBinsY << std::endl;
 				for (int dcol = 0; dcol < nDCol; dcol++) {
 					std::cout << "reading dc " << dcol << std::endl;
@@ -523,7 +524,8 @@ int eff( string newmod, string fileDesg ){
 							double xtrans = 0;
 							ctrans =  calmap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
 							xtrans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
-							if( ctrans == 0 && xtrans == 0 ){ deadPixs++; } 
+							if( ctrans == 0 ){ deadPixs++; }
+                            else if ( xtrans == 0 ){ badBumps++; }
 							else {
 								hits.push_back(ctrans);
                                                         	totCHits += ctrans;
