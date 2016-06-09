@@ -27,6 +27,23 @@ else:
     raise Exception("You must specify if test was performed cold")
 """
 
+# function to decide whether the current input directory 
+# should be copied into the 'UniqueTestResults' directory
+# and if so copy it and delete the previous one
+#
+# cases:
+# isP17, isM20
+# previousExisting or not
+# if previous exists, is it m20 or not
+
+def copyToUniqueTestResults(inputDir):
+    module = inputDir.split('/')[4].split('_')[0]
+    print module
+    previous=sorted(glob('/home/fnalpix?/UniqueTestResults/'+module+'_*[0-9]'),key=lambda name: name.split('_')[-1])
+    
+
+
+
 if len(argv)>1: inputDirs=argv[1:]
 else: inputDirs=None
 
