@@ -36,8 +36,7 @@ else:
 def copyToUniqueTestResults(inputDir):
 
     module = inputDir.split('_')[0].split('/')[-1]
-    print module,inputDir
-
+    
     outputDir = os.environ['HOME']+'/UniqueTestResults/'
     previous=glob(outputDir+module+'_*[0-9]')
 
@@ -47,7 +46,6 @@ def copyToUniqueTestResults(inputDir):
     # no pre-existing folder for this module, so we definitely want to copy ours
     # also there's nothing to delete
     if not previous:
-        print "copying"
         distutils.dir_util.copy_tree(inputDir,outputDir+inputDir.rstrip('/').split('/')[-1])
         return
 
@@ -61,7 +59,6 @@ def copyToUniqueTestResults(inputDir):
     # we want to replace the previous with the current results folder,
     # unless the new results are at +17 and the old are at -20
     if currentDate > previousDate and not (previousTemp == "m20C" and currentTemp == "17C"):
-        print "replacing"
         distutils.dir_util.copy_tree(inputDir,outputDir+inputDir.rstrip('/').split('/')[-1])
         distutils.dir_util.remove_tree(previous[0])
         return
