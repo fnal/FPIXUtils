@@ -162,6 +162,7 @@ int eff( string newmod, string fileDesg ){
         std::vector< double > DCUniNum;
    	std::vector< double > phDCUni;
         std::vector< double > phDCUniNum;
+	std::vector< double > Uni;
 
 	std::vector< std::vector< std::vector< double > > > dcolHits;
 	std::vector< std::vector< std::vector< double > > > dcolHitErrors;
@@ -386,14 +387,15 @@ int eff( string newmod, string fileDesg ){
    // here use the phrun files
     //
     //
-    //
+    std::string phLowName = listTFile[low];
+    std::string phHighName = listTFile[high];
 
     //int rateIndex = 0;
     //int dColModCount =0;
-    TFile lowTfile = phLowName.c_str();
-    std::cout << "Working file : " << phLowName.c_str() << endl;
-    TFile highTfile = phHighName.c_str();
-    std::cout << "Working file : " << phHighName.c_str() << endl;
+    TFile lowTfile( phLowName.c_str() );
+    std::cout << "Working file : " << phLowName << endl;
+    TFile highTfile( phHighName.c_str() );
+    std::cout << "Working file : " << phHighName << endl;
 
     TH2D* lowphmap;
     TH2D* highphmap;
@@ -405,8 +407,8 @@ int eff( string newmod, string fileDesg ){
     //double rocratenum = 0;
     std::ofstream output;
     for (int iRoc=0;iRoc<nRocs;iRoc++) {
-        sprintf( h_phlowName, "Xray/hMap_DCLowRate_C%d_V0", iRoc);
-        sprintf( h_phhighName, "Xray/hMap_DCHighRate_C%d_V0", iRoc);
+        sprintf( h_phlowName, "Xray/hMap_02ma_C%d_V0;1", iRoc);
+        sprintf( h_phhighName, "Xray/hMap_06ma_C%d_V0;1", iRoc);
         lowTfile.GetObject(h_phlowName, lowphmap);
         highTfile.GetObject(h_phhighName,highphmap);
         if (lowphmap == 0) {
@@ -566,7 +568,7 @@ int eff( string newmod, string fileDesg ){
 				double totRPixs = 0;
 				double totRHits = 0;
 				int deadPixs = 0;
-                		int badBumps = 0;
+  //              		int badBumps = 0;
 				//std::cout << nBinsX << "x" << nBinsY << std::endl;
 				for (int dcol = 0; dcol < nDCol; dcol++) {
 					std::cout << "reading dc " << dcol << std::endl;
@@ -603,7 +605,7 @@ int eff( string newmod, string fileDesg ){
 							ctrans =  calmap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
 							xtrans = xraymap->GetBinContent(dcol * 2 + (int)(y / 80) + 1, (y % 80) + 1);
 							if( ctrans == 0 ){ deadPixs++; }
-                            				else if ( xtrans == 0 ){ badBumps++; }
+//                            				else if ( xtrans == 0 ){ badBumps++; }
 							else {
 								hits.push_back(ctrans);
                                                         	totCHits += ctrans;
@@ -977,13 +979,18 @@ int eff( string newmod, string fileDesg ){
        	delete myfit;
         delete c4;
 */	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	TCanvas *c5 = new TCanvas("c1", "DColUniformity", 200, 10, 700, 500);
-        TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &DCUni[0] );
+	
+	for( int g = 0; g < DCUniNum.size(); g++){
+		Uni.push_back( 10* ( DCUni[g] - phDCUni[g] ));
+	}
+
+	TCanvas *c5 = new TCanvas("c1", "DColUniformityComp", 200, 10, 700, 500);
+        TGraph* tg4 = new TGraph( DCUniNum.size(), &DCUniNum[0], &Uni[0] );
 	TGraph* tg6 = new TGraph( phDCUniNum.size(), &phDCUniNum[0], &phDCUni[0] );
         TGraph* tg2 = new TGraph( dclineList[0].size(), &dclineList[0][0], &dclineList[1][0] );
         TGraph* tg3 = new TGraph( dclineList[2].size(), &dclineList[2][0], &dclineList[3][0] );
 	char graphTitle[256];
-        sprintf(graphTitle, "%s DC Uniformity for %s", HighRateFileName.c_str() , moduleName.c_str());
+        sprintf(graphTitle, "%s DC Uniformity Comp for %s", HighRateFileName.c_str() , moduleName.c_str());
         tg4->SetTitle(graphTitle);
         tg4->GetXaxis()->SetTitle("DCol Number");
         tg4->GetYaxis()->SetTitle("DC Uniformity");
@@ -1007,13 +1014,13 @@ int eff( string newmod, string fileDesg ){
         c5->Update();
 
         char saveFileName4[256];
-        sprintf(saveFileName4, "%s_DC_Uniformity_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
+        sprintf(saveFileName4, "%s_DC_Uniformity_Comp_%s.png",HighRateSaveFileName.c_str(), moduleName.c_str());
         c5->SaveAs(saveFileName4);
         c5->Clear();
         tg4->Clear();
 	tg6->Clear();
 	tg2->Clear();
-	tg30->Clear();
+	tg3->Clear();
 
         delete c5;
 	delete tg4;
