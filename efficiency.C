@@ -74,7 +74,7 @@ int eff( string newmod, string fileDesg ){
 	float triggerDuration = 25e-9; //s
 
 	const int nRocs = 16;
-	const int nDCol = 25;
+	const int nDCol = 26;
 	
 	double worstDCol[nRocs];
 	for( int i = 0; i<nRocs; i++) worstDCol[i] = -1;
@@ -535,7 +535,9 @@ int eff( string newmod, string fileDesg ){
 					}
 					
 
-					int nPixelsDC = hits.size();
+                    if (hits.size()==0) hits.push_back(0);
+                    if (xray_hits.size()==0) xray_hits.push_back(0);
+                    int nPixelsDC = hits.size();
 	//				cout << "Deadpixs: " << deadPixs << endl;
  					if(nPixelsDC < 1) nPixelsDC = 1;					
 	//				cout << " set nPixelsDC < 1 to 1" << endl;
