@@ -27,8 +27,12 @@ from datetime import datetime
 DEBUG=False
 
 modName = sys.argv[1]
-moduleName = sys.argv[2]
 modNameData = modName + "data"
+if len(sys.argv) >= 3:
+	moduleName = sys.argv[2]
+else:
+	upperName = string.upper(modName)
+	moduleName = upperName[0]+"-"+upperName[1]+"-"+upperName[2]+"-"+upperName[3]+upperName[4]
 
 topFile = "_XrayQualification-17C-"
 subFile000 = "000_HRData_40"
