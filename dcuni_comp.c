@@ -387,6 +387,8 @@ int eff( string newmod, string fileDesg ){
     //
     //
     //
+    std::string phLowName("ph02ma_mi108_06032016.root");
+    std::string phHighName("ph06ma_mi108_06032016.root");
 
     //int rateIndex = 0;
     //int dColModCount =0;
