@@ -390,9 +390,9 @@ int eff( string newmod, string fileDesg ){
 
     //int rateIndex = 0;
     //int dColModCount =0;
-    TFile *lowTfile = new TFile (phLowName.c_str());
+    TFile lowTfile = phLowName.c_str();
     std::cout << "Working file : " << phLowName.c_str() << endl;
-    TFile *highTfile = new TFile (phHighName.c_str());
+    TFile highTfile = phHighName.c_str();
     std::cout << "Working file : " << phHighName.c_str() << endl;
 
     TH2D* lowphmap;
@@ -738,7 +738,7 @@ int eff( string newmod, string fileDesg ){
 	int lowUDC = 0;
 	int highUDC = 0;
 	double udceff = 0;
-	double phudeff = 0;
+	double phudceff = 0;
 	
 	log << endl;
 
@@ -760,17 +760,17 @@ int eff( string newmod, string fileDesg ){
 			if( udceff <= 0.6 ) dc08count[iRoc][j] = 1;
 			if( dc98count[iRoc][j] == 1  && ( dc12count[iRoc][j] == 1 || dc08count[iRoc][j] == 1 ) ) dcbothcount[iRoc][j] = 1;
 //			log << "rate for roc " << iRoc << " high " << rocratehigh[iRoc] << " low " << rocratelow[iRoc] << endl;
-                }
+//                }
 
-                for( int j=0; j<nDCol; j++){
-                        dc = (iRoc*nDCol)+j;
+  //              for( int j=0; j<nDCol; j++){
+    //                    dc = (iRoc*nDCol)+j;
                         if( phhitshigh[dc] < 0 ) phhitshigh[dc] = 0;
                         if( phhitslow[dc] <= 0 ) phhitslow[dc] = 1;
-                        if( rocratehigh[iRoc] <= 0 ) rocratehigh[iRoc] = 1;
-                        if( rocratelow[iRoc] < 0 ) rocratelow[iRoc] = 1;
+      //                  if( rocratehigh[iRoc] <= 0 ) rocratehigh[iRoc] = 1;
+        //                if( rocratelow[iRoc] < 0 ) rocratelow[iRoc] = 1;
                         std::cout << "dl"<< dc << "roc"<< iRoc << "hitshigh" << hitshigh[dc] << "hitslow" <<hitslow[dc] << "rate high" << rocPHratehigh[iRoc] << "rate low" <<rocPHratelow[iRoc] << endl;
-                        phudceff =  0.1* hitshigh[dc] / hitslow[dc] / rocPHratelow[iRoc] * rocPHratehigh[iRoc];
-                        std::cout << "udceff" << phudceff << std::endl;
+                        phudceff =  0.1* phhitshigh[dc] / phhitslow[dc] / rocPHratelow[iRoc] * rocPHratehigh[iRoc];
+         //               std::cout << "udceff" << phudceff << std::endl;
                         if( phudceff < 0 ) phudceff = 0;
                         phDCUni.push_back(udceff);
                         phDCUniNum.push_back(dc);
