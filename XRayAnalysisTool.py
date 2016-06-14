@@ -41,11 +41,11 @@ from ROOT import *
 # Don't worry, the old way works too if you don't like this.
 #
 #	READ THE THING RIGHT ABOVE THIS THING
-myfilename1 = "fluoro_mi250_053116.root" #"pa207_071615.root" This is the Copper Cu File
-myfilename2 = myfilename1; #"fluoro_122915.root" This is the Silver Ag File
+myfilename1 = "fluoro_mp323_061016.root" #"pa207_071615.root" This is the Copper Cu File
+myfilename2 = "prep_noxray_mp323_061016.root"; #"fluoro_122915.root" This is the Silver Ag File
 myfilename3 = myfilename1; #"fluoro2_122915.root" #"pa207_071615.root" This is the Tin Sn file
 myfilename4 = myfilename1; #"fluoro2_122915.root" This is the Indium In File
-myfileoutname = "XRFResult_mi250"
+myfileoutname = "XRFResult_mp323"
 
 rocs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
@@ -124,9 +124,9 @@ if len(sys.argv) >= 3:
 	myfileoutname = "XRFResult_"+modName
 else:
 	myCuFileName = myfilename1;
-	myAgFileName = myfilename1; #"fluoro_122915.root"
-	mySnFileName = myfilename1; #"fluoro2_122915.root" #"pa207_071615.root"
-	myInFileName = myfilename1; #"fluoro2_122915.rooot"
+	myAgFileName = myfilename2; #"fluoro_122915.root"
+	mySnFileName = myfilename3; #"fluoro2_122915.root" #"pa207_071615.root"
+	myInFileName = myfilename4; #"fluoro2_122915.rooot"
 
 options.CuFile = myCuFileName
 options.AgFile = myAgFileName

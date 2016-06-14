@@ -842,7 +842,7 @@ def makeXML(inputDir):
     pxar_errors=SE(test,'PXAR_ERRORS')
     pxar_errors.text=stdout.strip()
 
-    if doCold: tests=[analyzeIV,
+    if doCold and makePlots: tests=[analyzeIV,
               makeSummaryPlots,
               analyzePreTest,
               analyzeFullTest,
