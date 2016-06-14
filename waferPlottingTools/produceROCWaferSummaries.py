@@ -1,5 +1,5 @@
 #!/usr/bin/env python                                                                                                                                                                                     
-from componentTrackingTools import *
+from databaseTools.componentTrackingTools import *
 from moduleSummaryPlottingTools import *
 import sys
 import glob
@@ -10,7 +10,7 @@ moduleReportFile = '/Users/lantonel/FPIXUtils/modulereport.csv'
 resultsDirectory = '/Users/lantonel/PlotsAndTables/ModuleTestResults/'
 
 # parse list of module components
-partsDictionary = producePartsDictionary(moduleReportFile)
+partsDictionary = producePartsDictionary()
 
 # compile list of all ROC wafers used
 listOfWafers = getListOfROCWafers(partsDictionary)
