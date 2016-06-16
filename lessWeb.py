@@ -787,7 +787,9 @@ def makeXML(inputDir):
     print 
     moduleName=os.path.basename(inputDir.split('_')[0])
     print 'moduleName:',moduleName
-    
+    if len(moduleName)!=8:
+	print 'Bad module name, aborting'
+	return 
     global doCold
     doCold='m20C' in inputDir
 
