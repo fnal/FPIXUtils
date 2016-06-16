@@ -18,7 +18,7 @@ import pandas as pd
 
 ###############################################################################
 
-# function to build a python dictionary from a "module report" CSV input
+# function to build a pandas dataframe from a "module report" CSV input
 # use module name as key to dictionary
 
 def producePartsDictionary():
@@ -31,7 +31,62 @@ def producePartsDictionary():
 
 ###############################################################################
 
-# function to build a python dictionary from a ROC wafer testing output file
+# function to build a pandas dataframe from a "module report" CSV input
+# use sensor-based module name as key to dictionary
+
+def produceRTIPartsDictionary():
+
+    indices = [
+        'TT',
+        'FL',
+        'LL',
+        'CL',
+        'CR',
+        'RR',
+        'FR',
+        'BB']
+
+    def getFinalSensorName(row):
+        module = "WL_"
+        position = indices[int(row["Module #"])-1]
+        module += position + "_"
+        wafer = row["Sensor Wafer"].strip()
+        letter = wafer[0]
+        index = ord(letter) - ord('B')
+        new_wafer = str(index) + '0'*(3-len(wafer)) + wafer[1:]
+        module += new_wafer
+        return module
+
+    def getFullROCAddress(wafer, roc):
+        prefix = wafer.split("(")[0]
+        return prefix + "-" + roc
+
+    df = pd.read_csv("RTI_spreadsheet.csv")#, index_col="module", skipinitialspace=True)
+    # Remove rows with missing data
+    df = df[ ~pd.isnull(df["Sensor Wafer"]) ]
+
+    # include final sensor name
+    df.loc[:,"sensor"] = df.apply(lambda row: getFinalSensorName(row), axis=1)
+    df.set_index("sensor", drop=True, inplace=True)
+
+    for roc in range(16):
+        df.loc[:,"ROC" + str(roc)] = df.apply(lambda row: getFullROCAddress(row['ROC'+str(roc+1)+'Wfr'],row['ROC'+str(roc+1)]), axis=1)
+    
+    # get rid of unnecessary columns
+    df = df.drop('Sensor Wafer', 1)
+    df = df.drop('Module #', 1)
+    df = df.drop('ROC16', 1)
+    df = df.drop('Comments', 1)
+    df = df.drop('Unnamed: 0', 1)
+    good_cols = [col for col in df.columns if "Wfr" not in col]
+    df = df[good_cols]
+#    print df
+
+    return df
+
+###############################################################################
+
+# function to build a pandas dataframe from a ROC wafer testing output file
 # use wafer position, e.g. "63A" as key
 
 def produceROCGradeDictionary(wafer):
@@ -135,12 +190,13 @@ def printROCCoordinates(partsDictionary, moduleName):
 def getListOfROCWafers(partsDictionary):
 
     listOfWafers = []
+    dictionary = partsDictionary.to_dict(orient='index')
 
-    for moduleName in partsDictionary:
+    for moduleName in dictionary:
         if "module" in moduleName:
-            print moduleName, getROCCoordinates(partsDictionary, moduleName, 0)
+            print moduleName, getROCCoordinates(dictionary, moduleName, 0)
         for chipIndex in range(16):
-            wafer = getROCCoordinates(partsDictionary, moduleName, chipIndex)[0]
+            wafer = getROCCoordinates(dictionary, moduleName, chipIndex)[0]
 
             if wafer != "?" and wafer not in listOfWafers:
                 listOfWafers.append(wafer)
