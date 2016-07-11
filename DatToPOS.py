@@ -66,8 +66,8 @@ TBMAAutoReset: 0
 TBMBAutoReset: 0
 TBMANoTokenPass: 0
 TBMBNoTokenPass: 0
-TBMADisablePKAMCounter: 0
-TBMBDisablePKAMCounter: 0
+TBMADisablePKAMCounter: 1
+TBMBDisablePKAMCounter: 1
 TBMAPKAMCount: 5
 TBMBPKAMCount: 5
 TBMPLLDelay: %d
@@ -84,6 +84,7 @@ def ProcessROCs(directory):
         ROCParameters.append([])
         for idac in range(len(daclist)):
             value = os.popen("grep "+daclist[idac]+" dacParameters35_C"+str(iroc)+".dat | awk '{print $3}'").readline().strip()
+            if daclist[idac]=="readback": value="12"
             ROCParameters[iroc].append(value)
             if daclist[idac]=="caldel": ROCParameters[iroc].append("61")
     os.chdir(outputdir)
