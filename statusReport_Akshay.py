@@ -18,6 +18,7 @@ from config import moduleNames, goodModuleNames
 import glob
 import smtplib
 from optparse import OptionParser
+import datetime
 
 
 def failedTest(line):
@@ -55,7 +56,7 @@ def sendText(phone,provider,content):
 	sprint = ["@messaging.sprintpcs.com","s","S","sprint","Sprint"]
 	uscellular = ["@email.uscc.net","us","US","usc","USC","uscellular","uscc","USCC"]
 	
-	networks = (att,tmobile,verizon,sprint,cricket,uscellular)
+	networks = (att,tmobile,verizon,sprint,uscellular)
 	to = ""
 	for i in networks:
 		if provider in i:
@@ -75,30 +76,33 @@ def sendText(phone,provider,content):
 	s.sendmail("cmsfpix@mail.com",to,message)
 	s.quit()
 
-
+"""
 def getScurvesTime(scurve):
-	#tries to estimate the time it takes for scurves for finish
+	#tries to estimate the time it takes for scurves to finish
 	scurveStart = scurve[0].split()[0].replace('[','').replace(']','').split('.',1)[0]
 	scurveDone = scurve[1].split()[0].replace('[','').replace(']','').split('.',1)[0]
 	
 	FMT = '%H:%M:%S'
-	tdelta = datetime.strptime(scurveDone, FMT) - datetime.strptime(scurveStart, FMT)
+	#tdelta = datetime.strptime(scurveDone, FMT) - datetime.strptime(scurveStart, FMT)
+	tdelta = time.strptime(scurveDone, FMT) - time.strptime(scurveStart, FMT)
 	
-	time = int(tdelta.total_seconds())
+	duration = int(tdelta.total_seconds())
 	
-	return time
+	return duration
 	
 
 def getTimingTimes(timing):
+	#tries to estimate the time it takes for timing to finish
 	timingStart = timing[0].split()[0].replace('[','').replace(']','').split('.',1)[0]
 	timingDone = timing[1].split()[0].replace('[','').replace(']','').split('.',1)[0]
-	
+
 	FMT = '%H:%M:%S'
-	tdelta = datetime.strptime(timingDone, FMT) - datetime.strptime(timingStart, FMT)
+	#tdelta = datetime.strptime(timingDone, FMT) - datetime.strptime(timingStart, FMT)
+	tdelta = time.strptime(timingDone, FMT) - time.strptime(timingStart, FMT)
 	
-	time = int(tdelta.total_seconds())
+	duration = int(tdelta.total_seconds())
 	
-	return time
+	return duration
 
 
 def getTimes(lines):
@@ -127,9 +131,6 @@ def getTimes(lines):
 			times.append("{} {}".format(test,duration))
 		except ValueError:
 			continue
-	for i in range(len(times)):
-		times[i][0] = times[i][0].replace("::doTest()","").replace("PixTest","")
-		times[i][1] = int(times[i][1])
 	#must separate scurve and timing duration as they are not saved in logfile
 	if len(scurves) > 0:
 		scurveTime = "Scurves {}".format(getScurvesTime(scurves))
@@ -144,7 +145,7 @@ def getTimes(lines):
 				index = times.index(i) + 1
 				times.insert(index,timingTime)
 	return times
-
+"""
 
 def main(stdscr):
 	global options
@@ -191,7 +192,7 @@ def main(stdscr):
 		stdscr.addstr(3,3,"# Criticals:")
 		stdscr.addstr(4,4,"# Warnings:")
 		stdscr.addstr(5,2,"Current test:")
-		stdscr.addstr(6,0,"Finished tests:")
+		#stdscr.addstr(6,0,"Finished tests:")
 		
 		for j in range(len(inputFiles)):
 			logFile = glob.glob(inputFiles[j] + '/' + "000*/commander_*.log")
@@ -204,10 +205,10 @@ def main(stdscr):
 					numCritical = 0
 					numErrors = 0
 					numWarning = 0
-					times = []
+					#times = []
 					for i in lines:
 						if "doTest()" in i and "done" not in i:
-							times = getTimes(lines)
+							#times = getTimes(lines)
 							currentTest = i.split(" ")[7].split("::")[0].replace("PixTest","")
 							if currentTest == "Timing":
 								if "Timings are not good" in i:
@@ -271,8 +272,8 @@ def main(stdscr):
 					stdscr.addstr(3,(j+1)*18,"{}".format(numCritical))
 					stdscr.addstr(4,(j+1)*18,"{}".format(numWarning))
 					stdscr.addstr(5,(j+1)*18,currentTest)
-					for i in range(len(times)):
-						stdscr.addstr(i+6,(j+1)*18,times[i])
+					#for i in range(len(times)):
+					#	stdscr.addstr(i+6,(j+1)*18,times[i])
 
 		
 		stdscr.refresh()
