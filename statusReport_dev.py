@@ -201,7 +201,7 @@ while 1:
     screen.refresh()
     time.sleep(30)
 
-    if checkEqual(testOutput[1:], "ALL done            "):
+    if checkEqual(testOutput[1:], "ALL done"+' '*(cellLength-len(ALL done))):
         content = "Hello " + "shifter"\
                + ",\n\nYour module tests are finished, summarized as bellow:\n\n"\
                + '\t' + summaryFormat(snapshot[0]) + '\n'\
