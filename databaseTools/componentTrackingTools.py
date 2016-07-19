@@ -71,7 +71,7 @@ def produceRTIPartsDictionary():
 
     for roc in range(16):
         df.loc[:,"ROC" + str(roc)] = df.apply(lambda row: getFullROCAddress(row['ROC'+str(roc+1)+'Wfr'],row['ROC'+str(roc+1)]), axis=1)
-    
+
     # get rid of unnecessary columns
     df = df.drop('Sensor Wafer', 1)
     df = df.drop('Module #', 1)
@@ -157,9 +157,9 @@ def getROCCoordinates(partsDictionary, moduleName, chipIndex):
 
 def getSensorCoordinates(partsDictionary, moduleName):
     errorCode = ["?","?"]
-    if moduleName not in partsDictionary:
+    if moduleName not in partsDictionary.index:
         return errorCode
-    entry = partsDictionary[moduleName]["sensor"].split("_")
+    entry = partsDictionary.loc[moduleName]["sensor"].split("_")
     if len(entry) < 3:
         return errorCode
     wafer = entry[2]
@@ -211,7 +211,11 @@ def getListOfSensorWafers(partsDictionary):
 
     listOfWafers = []
 
-    for moduleName in partsDictionary:
+#    print partsDictionary
+
+    modules = partsDictionary.index.unique().tolist()
+
+    for moduleName in modules:
         for chipIndex in range(16):
             wafer = getSensorCoordinates(partsDictionary, moduleName)[0]
 
