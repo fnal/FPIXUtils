@@ -47,7 +47,7 @@ def checkEqual(list, str):
     allEqual = True
     nEmpty = 0
     for element in list:
-        if element == "":
+        if element == "" or element == " "*cellLength:
             nEmpty += 1
             continue
         if element != str:
