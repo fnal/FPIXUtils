@@ -5,8 +5,10 @@ import time
 import glob
 import smtplib
 import curses
-from config import moduleNames, goodModuleNames #,shifter ,shifterEmail
+from config import moduleNames, goodModuleNames, shifter, shifterEmail
 from datetime import datetime
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
 
 tbLine = ["TB:"]
 idLine = ["module ID:"]
@@ -70,18 +72,25 @@ def endPrint():
     ---------Hit any button to exit---------
     ''')
 
-def sendEmail(receiver, content):
+def sendEmail(receiver, body):
     # Using mail.com because of easy registration
+    fadd = "cmsfpix@mail.com"
+    tadd = receiver
+    msg  = MIMEMultipart()
+    msg['From'] = fadd
+    msg['To'] = tadd
+    msg['Subject'] = "Module Tests Summary"
+    msg.attach(MIMEText(body, 'plain'))
     s = smtplib.SMTP('smtp.mail.com', 587)
     s.starttls()
-    s.login("cmsfpix@mail.com","PixelUpgrade")
-    s.sendmail('cmsfpix@mail.com', [receiver], content)
+    s.login(fadd, "PixelUpgrade")
+    s.sendmail(fadd, [tadd], msg.as_string())
     s.quit()
 
-def summaryFormat(list):
+def summaryFormat(list, length):
     line = ""
     for entry in list:
-        line += str(entry) + '\t\t'
+        line += str(entry)# + ' '*(length-len(str(entry)))
     return line
 
 screen = curses.initscr()
@@ -199,15 +208,15 @@ while 1:
             screen.addstr(y, x, snapshot[y-1][index],\
                          curses.color_pair(colorFlag[y][index]))
     screen.refresh()
-    time.sleep(30)
+    time.sleep(3)
 
     if checkEqual(testOutput[1:], "ALL done"+' '*(cellLength-len("ALL done"))):
-        content = "Hello " + "shifter"\
+        content = "Hello " + shifter\
                + ",\n\nYour module tests are finished, summarized as bellow:\n\n"\
-               + '\t' + summaryFormat(snapshot[0]) + '\n'\
-               + '\t' + summaryFormat(snapshot[4]) + '\n'\
-               + '\t' + summaryFormat(snapshot[5]) + '\n'\
-               + '\t' + summaryFormat(snapshot[6]) + '\n'\
+               + '\t' + summaryFormat(snapshot[0], cellLength) + '\n'\
+               + '\t' + summaryFormat(snapshot[4], cellLength) + '\n'\
+               + '\t' + summaryFormat(snapshot[5], cellLength) + '\n'\
+               + '\t' + summaryFormat(snapshot[6], cellLength) + '\n'\
                + "\n\nThank you!"
         #sendEmail(shifterEmail, content) #shifterEmail imported from config
         endPrint()
