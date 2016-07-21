@@ -61,7 +61,7 @@ def str2time(str):
     return datetime.strptime(str,'%H:%M:%S')
 
 def endPrint():
-    screen.addstr(9,0,'#'*cellLength*5)
+    screen.addstr(9,0,'#'*cellLength*(len(goodModuleNames)+1))
     screen.addstr(10,0, '''\nFull test done!
     An email of summary has been sent to shifter with address provided.\n
     Please wait for a few minutes while results are processing and saving, 
@@ -95,9 +95,10 @@ curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_RED)       #CRASH
 for index, x in enumerate(range(0,cellLength*len(goodModuleNames)+1,cellLength)):
     screen.addstr(0, x, tbLine[index])
 
-ivEndTime  = ['']*4
-ivDoneFlag = [0]*4
-colorFlag  = [[1 for x in range(len(goodModuleNames)+1)] for y in range(8)] #DEFAULT COLOR
+testStartTime = ['']*4
+ivEndTime     = ['']*4
+ivDoneFlag    = [0]*4
+colorFlag     = [[1 for x in range(len(goodModuleNames)+1)] for y in range(8)] #DEFAULT COLOR
 
 while 1:
     testOutput     = ["current test:"]
@@ -106,7 +107,6 @@ while 1:
     criticalOutput = ["# Criticals:"]
     errorOutput    = ["# pXar errors:"]
     warningOutput  = ["# Warnings:"]
-    testStartTime  = ['']*4
     for index, moduleDir in enumerate(inputFiles):
         test       = ""
         subtest    = ""
