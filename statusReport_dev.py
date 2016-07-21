@@ -5,7 +5,7 @@ import time
 import glob
 import smtplib
 import curses
-from config import moduleNames, goodModuleNames, shifter, shifterEmail
+from config import moduleNames, goodModuleNames#, shifter, shifterEmail
 from datetime import datetime
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
@@ -17,7 +17,8 @@ inputDir = os.path.expanduser('~') + "/allTestResults/"
 
 tbs = []
 inputFiles = []
-cellLength = 20
+cellLength = 18
+
 for index, module in enumerate(moduleNames):
 
     if module == "0":
@@ -73,7 +74,7 @@ def endPrint():
     ''')
 
 def sendEmail(receiver, body):
-    # Using mail.com because of easy registration
+    # Using mail.com because of easy registration; somehow unstable
     fadd = "cmsfpix@mail.com"
     tadd = receiver
     msg  = MIMEMultipart()
@@ -90,7 +91,7 @@ def sendEmail(receiver, body):
 def summaryFormat(list, length):
     line = ""
     for entry in list:
-        line += str(entry)# + ' '*(length-len(str(entry)))
+        line += str(entry) + ' '*(length-len(str(entry)))
     return line
 
 screen = curses.initscr()
