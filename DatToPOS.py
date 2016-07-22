@@ -128,6 +128,28 @@ def ProcessTrims(directory):
     os.chdir(workingdir)
 
 def ProcessMasks(directory):
+    os.chdir(inputdir+"/"+directory+"/000_FPIXTest_"+args.temp)
+    MaskBits = []
+    for iroc in range(16): MaskBits.append([[1] * 80 for i in range(52)])
+    MaskBitsFile = open("defaultMaskFile.dat", "r")
+    for line in MaskBitsFile:
+        if line=="\n" or line[1]=="#": continue
+        if line[:3]=="roc":
+            rocnumber = int(line.split()[1])
+            MaskBits[rocnumber] = [[0] * 80 for i in range(52)]
+        if line[:3]=="col":
+            rocnumber = int(line.split()[1])
+            colnumber = int(line.split()[2])
+            MaskBits[rocnumber][colnumber] = [0] * 80
+        if line[:3]=="row":
+            rocnumber = int(line.split()[1])
+            rownumber = int(line.split()[2])
+            for icol in range(52): MaskBits[rocnumber][icol][rownumber] = 0
+        if line[:3]=="pix":
+            rocnumber = int(line.split()[1])
+            colnumber = int(line.split()[2])
+            rownumber = int(line.split()[3])
+            MaskBits[rocnumber][colnumber][rownumber] = 0
     os.chdir(outputdir)
     module = ModuleName(directory)
     os.chdir(module)
@@ -137,7 +159,7 @@ def ProcessMasks(directory):
         for icol in range(52):
             if icol < 10: col="0"+str(icol)
             else: col=str(icol)
-            print >> MaskFile, "col"+col+":   11111111111111111111111111111111111111111111111111111111111111111111111111111111"
+            print >> MaskFile, "col"+col+":   "+"".join(map(str, MaskBits[iroc][icol]))
     MaskFile.close()
     os.chdir(workingdir)
 
