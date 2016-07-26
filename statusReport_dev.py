@@ -5,8 +5,10 @@ import time
 import glob
 import smtplib
 import curses
-from config import moduleNames, goodModuleNames #,shifter ,shifterEmail
+from config import moduleNames, goodModuleNames#, shifter, shifterEmail
 from datetime import datetime
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
 
 tbLine = ["TB:"]
 idLine = ["module ID:"]
@@ -15,7 +17,8 @@ inputDir = os.path.expanduser('~') + "/allTestResults/"
 
 tbs = []
 inputFiles = []
-cellLength = 20
+cellLength = 18
+
 for index, module in enumerate(moduleNames):
 
     if module == "0":
@@ -47,7 +50,7 @@ def checkEqual(list, str):
     allEqual = True
     nEmpty = 0
     for element in list:
-        if element == "":
+        if element == "" or element == " "*cellLength:
             nEmpty += 1
             continue
         if element != str:
@@ -61,7 +64,7 @@ def str2time(str):
     return datetime.strptime(str,'%H:%M:%S')
 
 def endPrint():
-    screen.addstr(9,0,'#'*cellLength*5)
+    screen.addstr(9,0,'#'*cellLength*(len(goodModuleNames)+1))
     screen.addstr(10,0, '''\nFull test done!
     An email of summary has been sent to shifter with address provided.\n
     Please wait for a few minutes while results are processing and saving, 
@@ -70,18 +73,25 @@ def endPrint():
     ---------Hit any button to exit---------
     ''')
 
-def sendEmail(receiver, content):
-    # Using mail.com because of easy registration
+def sendEmail(receiver, body):
+    # Using mail.com because of easy registration; somehow unstable
+    fadd = "cmsfpix@mail.com"
+    tadd = receiver
+    msg  = MIMEMultipart()
+    msg['From'] = fadd
+    msg['To'] = tadd
+    msg['Subject'] = "Module Tests Summary"
+    msg.attach(MIMEText(body, 'plain'))
     s = smtplib.SMTP('smtp.mail.com', 587)
     s.starttls()
-    s.login("cmsfpix@mail.com","PixelUpgrade")
-    s.sendmail('cmsfpix@mail.com', [receiver], content)
+    s.login(fadd, "PixelUpgrade")
+    s.sendmail(fadd, [tadd], msg.as_string())
     s.quit()
 
-def summaryFormat(list):
+def summaryFormat(list, length):
     line = ""
     for entry in list:
-        line += str(entry) + '\t\t'
+        line += str(entry) + ' '*(length-len(str(entry)))
     return line
 
 screen = curses.initscr()
@@ -95,9 +105,10 @@ curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_RED)       #CRASH
 for index, x in enumerate(range(0,cellLength*len(goodModuleNames)+1,cellLength)):
     screen.addstr(0, x, tbLine[index])
 
-ivEndTime  = ['']*4
-ivDoneFlag = [0]*4
-colorFlag  = [[1 for x in range(len(goodModuleNames)+1)] for y in range(8)] #DEFAULT COLOR
+testStartTime = ['']*4
+ivEndTime     = ['']*4
+ivDoneFlag    = [0]*4
+colorFlag     = [[1 for x in range(len(goodModuleNames)+1)] for y in range(8)] #DEFAULT COLOR
 
 while 1:
     testOutput     = ["current test:"]
@@ -106,7 +117,6 @@ while 1:
     criticalOutput = ["# Criticals:"]
     errorOutput    = ["# pXar errors:"]
     warningOutput  = ["# Warnings:"]
-    testStartTime  = ['']*4
     for index, moduleDir in enumerate(inputFiles):
         test       = ""
         subtest    = ""
@@ -199,15 +209,15 @@ while 1:
             screen.addstr(y, x, snapshot[y-1][index],\
                          curses.color_pair(colorFlag[y][index]))
     screen.refresh()
-    time.sleep(30)
+    time.sleep(3)
 
     if checkEqual(testOutput[1:], "ALL done"+' '*(cellLength-len("ALL done"))):
-        content = "Hello " + "shifter"\
+	content = "Hello " + "shifter"\
                + ",\n\nYour module tests are finished, summarized as bellow:\n\n"\
-               + '\t' + summaryFormat(snapshot[0]) + '\n'\
-               + '\t' + summaryFormat(snapshot[4]) + '\n'\
-               + '\t' + summaryFormat(snapshot[5]) + '\n'\
-               + '\t' + summaryFormat(snapshot[6]) + '\n'\
+               + '\t' + summaryFormat(snapshot[0], cellLength) + '\n'\
+               + '\t' + summaryFormat(snapshot[4], cellLength) + '\n'\
+               + '\t' + summaryFormat(snapshot[5], cellLength) + '\n'\
+               + '\t' + summaryFormat(snapshot[6], cellLength) + '\n'\
                + "\n\nThank you!"
         #sendEmail(shifterEmail, content) #shifterEmail imported from config
         endPrint()
