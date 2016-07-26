@@ -34,8 +34,6 @@ else:
 	upperName = string.upper(modName)
 	moduleName = upperName[0]+"-"+upperName[1]+"-"+upperName[2]+"-"+upperName[3]+upperName[4]
 
-os.chdir("./data/");
-
 topFile = "_XrayQualification-17C-"
 subFile000 = "000_HRData_40"
 subFile001 = "001_HRData_120"
@@ -177,4 +175,3 @@ os.system( "tar -zcvf %s %s" % ( dirfile + tarend, dirfile ))
 os.system( "mv %s %s" % ( dirfile + "*", modName + "data/" ) )
 ################################################################
 
-os.chdir("../");
