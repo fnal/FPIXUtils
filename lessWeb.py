@@ -787,7 +787,9 @@ def makeXML(inputDir):
     print 
     moduleName=os.path.basename(inputDir.split('_')[0])
     print 'moduleName:',moduleName
-    
+    if len(moduleName)!=8:
+	print 'Bad module name, aborting'
+	return 
     global doCold
     doCold='m20C' in inputDir
 
@@ -842,7 +844,7 @@ def makeXML(inputDir):
     pxar_errors=SE(test,'PXAR_ERRORS')
     pxar_errors.text=stdout.strip()
 
-    if doCold: tests=[analyzeIV,
+    if doCold and makePlots: tests=[analyzeIV,
               makeSummaryPlots,
               analyzePreTest,
               analyzeFullTest,
