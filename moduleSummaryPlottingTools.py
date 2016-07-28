@@ -107,7 +107,7 @@ def rotateSummaryPlot(plot):
 
 # Input 16 plots (one per ROC) and return one merged plot with variable bins
 # fill in units of 50um to account for larger edge pixels
-def makeMergedPlot(plots):
+def makeMergedPlot(plots, mode = 'pxar'):
 
     flipTopRow(plots)
 
@@ -139,7 +139,13 @@ def makeMergedPlot(plots):
         moduleBinEdgesY.append(2 * ROC_PLOT_SIZE - edge)
 
     # create clone of plot with new bin sizes
-    plotName = plots[0].GetName().rstrip("0")
+    if mode == 'pxar':
+        plotName = plots[0].GetName().rstrip("0")
+    else:
+        histogram = plots[0].GetName()
+        chipIndex = histogram.rfind("_ROC")+4
+        afterChipIndex = histogram[chipIndex:].find("_")
+        plotName = histogram[:chipIndex-4]+histogram[chipIndex+afterChipIndex:].rstrip("0")
     summaryPlot = TH2D(plotName,
                        "",
                        len(moduleBinEdgesX)-1,
@@ -648,14 +654,15 @@ def produce2DHistogramDictionary(inputFileName, mode = 'pxar'):
     # dictionary of histogram names, each entry containing the versions present
     histogramDictionary = collections.OrderedDict()
     for histogram in histogramList:
-
         if mode == 'pxar':
             version = histogram[-1:]
             chipIndex = histogram.rfind("_C")
+            histoName = histogram[:chipIndex]
         else:
             version = '0'
-            chipIndex = histogram.rfind("_ROC")
-        histoName = histogram[:chipIndex]
+            chipIndex = histogram.rfind("_ROC")+4
+            afterChipIndex = histogram[chipIndex:].find("_")
+            histoName = histogram[:chipIndex]+histogram[chipIndex+afterChipIndex:]
         # if it's not already in the list, add it
         if not histoName in histogramDictionary:
             histogramDictionary[histoName] = []
@@ -773,7 +780,7 @@ def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar',
     plots = produce2DPlotList(inputFileName, pathToHistogram, version, mode)
     if plots is None:
         return None
-    summaryPlot = makeMergedPlot(plots)
+    summaryPlot = makeMergedPlot(plots, mode)
     if not zRange: zRange = findZRange(plots)
     setZRange(summaryPlot,zRange)
     summaryCanvas = setupSummaryCanvas(summaryPlot, moduleName=moduleName)
@@ -795,7 +802,8 @@ def produce2DPlotList(inputFileName, pathToHistogram, version=0, mode='pxar'):
         if mode == 'pxar':
             plotPath = pathToHistogram + "_C" + str(roc) + "_V" + str(version)
         else:
-            plotPath = pathToHistogram + "_ROC" + str(roc)
+            chipIndex = pathToHistogram.rfind("_ROC")+4
+            plotPath = pathToHistogram[:chipIndex]+str(roc)+pathToHistogram[chipIndex:]
         if not inputFile.Get(plotPath):
             print "missing plot:", plotPath
             plot = TH2D("","",52,0,52,80,0,80)  # insert empty plot
