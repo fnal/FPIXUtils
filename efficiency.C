@@ -470,8 +470,8 @@ int eff( string newmod, string fileDesg ){
 					}
 				} else {
 					if( inst == "KU" ) { 
-						if( i == low ){ sprintf(xraymapName, "Xray/hMap_02ma_C%d_V0;1", iRoc);} else {sprintf(xraymapName, "Xray/hMap_06ma_C%d_V0;1", iRoc);}
-//                                              if( i == low ){ sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);} else {sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);}
+//						if( i == low ){ sprintf(xraymapName, "Xray/hMap_02ma_C%d_V0;1", iRoc);} else {sprintf(xraymapName, "Xray/hMap_06ma_C%d_V0;1", iRoc);}
+                                                if( i == low ){ sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);} else {sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);}
 					}
 					else { 
 						if( i == low ) { sprintf(xraymapName, "Xray/hMap_DCLowRate_C%d_V0", iRoc); } else { sprintf(xraymapName, "Xray/hMap_DCHighRate_C%d_V0", iRoc); }
