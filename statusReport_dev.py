@@ -212,7 +212,7 @@ try:
         time.sleep(3)
 
         if checkEqual(testOutput[1:], "ALL done"+' '*(cellLength-len("ALL done"))):
-    	content = "Hello " + "shifter"\
+    	    content = "Hello " + "shifter"\
                    + ",\n\nYour module tests are finished, summarized as bellow:\n\n"\
                    + '\t' + summaryFormat(snapshot[0], cellLength) + '\n'\
                    + '\t' + summaryFormat(snapshot[4], cellLength) + '\n'\
