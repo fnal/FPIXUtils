@@ -33,7 +33,7 @@ int eff( string newmod, string fileDesg ){
         cout << "Starting Efficency Script" << endl;
 
         cout << "Usage:  eff( module_name_string , starting_hr_file_string )" << endl;
-        cout << "for defaults enter \"hr\" for starting hr file designator. " << endl;
+        cout << "for defaults enter "hr\" for starting hr file designator. " << endl;
 
         char chpath[256];
         getcwd(chpath, 255);
