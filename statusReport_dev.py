@@ -65,11 +65,11 @@ def str2time(str):
 
 def endPrint():
     screen.addstr(9,0,'#'*cellLength*(len(goodModuleNames)+1))
-    screen.addstr(11,0, "\nFull test done!")
-    screen.addstr(12,0, "An email of summary has been sent to shifter with address provided.")
+    screen.addstr(11,0, "FULL TEST DONE!")
+    #screen.addstr(12,0, "An email of summary has been sent to shifter with address provided.")
     screen.addstr(13,0, "Please wait for a few minutes while results are processing and saving,") 
     screen.addstr(14,0, "until you are prompt to hit `ENTER` on console.")
-    screen.addstr(15,0, "\n[statusReport] This is the end, my friEND.")
+    screen.addstr(16,0, "[statusReport] This is the end, my friEND.")
     screen.addstr(17,0, "---------Hit any button to exit---------")
 
 def sendEmail(receiver, body):
