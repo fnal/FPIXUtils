@@ -763,7 +763,7 @@ def getConfigs(inputDir, outputDir, log, data):
                    'trimParameters35_C*.dat', 
                    'phCalibration_C*.dat', 
                    'phCalibrationFitErr35_C*.dat', 
-                   'dacParameters_C*.dat']:
+                   'dacParameters35_C*.dat']:
 
         if len(glob(inputDir+'/*_FPIXTest_*/'+config))==0: 
             print 'WARNING: no config files found:', config
