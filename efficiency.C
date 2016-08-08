@@ -470,8 +470,7 @@ int eff( string newmod, string fileDesg ){
 					}
 				} else {
 					if( inst == "KU" ) { 
-						if( i == low ){ sprintf(xraymapName, "Xray/hMap_02ma_C%d_V0;1", iRoc);} else {sprintf(xraymapName, "Xray/hMap_06ma_C%d_V0;1", iRoc);}
-//                                              if( i == low ){ sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);} else {sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);}
+						if( i == low ){ sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);} else {sprintf(xraymapName, "Xray/hMap_Ag_C%d_V0;1", iRoc);}
 					}
 					else { 
 						if( i == low ) { sprintf(xraymapName, "Xray/hMap_DCLowRate_C%d_V0", iRoc); } else { sprintf(xraymapName, "Xray/hMap_DCHighRate_C%d_V0", iRoc); }
@@ -536,9 +535,9 @@ int eff( string newmod, string fileDesg ){
 					}
 					
 
-                    if (hits.size()==0) hits.push_back(0);
-                    if (xray_hits.size()==0) xray_hits.push_back(0);
-                    int nPixelsDC = hits.size();
+                    			if (hits.size()==0) hits.push_back(0);
+                    			if (xray_hits.size()==0) xray_hits.push_back(0);
+                    			int nPixelsDC = hits.size();
 	//				cout << "Deadpixs: " << deadPixs << endl;
  					if(nPixelsDC < 1) nPixelsDC = 1;					
 	//				cout << " set nPixelsDC < 1 to 1" << endl;
@@ -935,8 +934,8 @@ int eff( string newmod, string fileDesg ){
 	outfile.close();
 	system("rm -rf Auto*");
 	std::cout <<"Thats all folks!!!" << endl; 
-
 	return 0;
 
 
 }
+
