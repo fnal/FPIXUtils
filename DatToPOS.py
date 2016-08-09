@@ -2,14 +2,17 @@
 import argparse
 import os
 import csv
+import pickle
 
 parser = argparse.ArgumentParser(description="Convert the calibration results in the Production Test Area to POS format for Jordan")
 parser.add_argument("-c","--csv", dest="csv", default="", help="Input csv file")
 parser.add_argument("-i","--input", dest="input", default="~/ProductionTestResults", help="Input directory")
 parser.add_argument("-l","--list", dest="list", default="", help="Text file that contains a list of modules")
+parser.add_argument("-n","--noconfigs", dest="noconfigs", action="store_true", default=False, help="Do not create POS configs")
 parser.add_argument("-o","--output", dest="output", default="POSFiles", help="Output directory for POS files")
-parser.add_argument("-v","--verbose", dest="verbose", action="store_true", default=False, help="Enable Verbose Output")
+parser.add_argument("-s","--summary", dest="summary", action="store_true", default=False, help="Create Summary File")
 parser.add_argument("-t","--temperature", dest="temp", default="m20", help="m20 or p17")
+parser.add_argument("-v","--verbose", dest="verbose", action="store_true", default=False, help="Enable Verbose Output")
 args = parser.parse_args()
 
 if not os.path.isdir(args.input):
@@ -21,6 +24,8 @@ if not os.path.isdir(args.output): os.mkdir(args.output)
 workingdir = os.getcwd()
 inputdir = os.path.abspath(args.input)
 outputdir = os.path.abspath(args.output)
+
+if args.summary: import ROOT
 
 selectedmodules = []
 modulemap = {}
@@ -163,9 +168,59 @@ def ProcessMasks(directory):
     MaskFile.close()
     os.chdir(workingdir)
 
+
+def PixelAlive(directory, DeadPixels):
+    os.chdir(inputdir+"/"+directory+"/000_FPIXTest_"+args.temp)
+    module = ModuleName(directory)
+    tfile = ROOT.TFile.Open("commander_FPIXTest.root")
+    for iroc in range(16):
+        hist = tfile.Get("PixelAlive/PixelAlive_C"+str(iroc)+"_V0")
+        pixkey = module+"_ROC"+str(iroc)
+        for xbin in range(1,hist.GetNbinsX()+1):
+            for ybin in range(1,hist.GetNbinsY()+1):
+                hits = int(hist.GetBinContent(xbin,ybin))
+                if hits != 10:
+                    if pixkey in DeadPixels: DeadPixels[pixkey].append([xbin-1,ybin-1,hits])
+                    else: DeadPixels[pixkey] = [[xbin-1,ybin-1,hits]]
+    os.chdir(workingdir)
+
+def SCurves(directory, SCurveInfo):
+    os.chdir(inputdir+"/"+directory+"/000_FPIXTest_"+args.temp)
+    module = ModuleName(directory)
+    tfile = ROOT.TFile.Open("commander_FPIXTest.root")
+    for iroc in range(16):
+        hist_thr = tfile.Get("Scurves/thr_scurveVcal_Vcal_C"+str(iroc)+"_V0")
+        hist_sig = tfile.Get("Scurves/sig_scurveVcal_Vcal_C"+str(iroc)+"_V0")
+        pixkey = module+"_ROC"+str(iroc)
+        for xbin in range(1,hist_thr.GetNbinsX()+1):
+            for ybin in range(1,hist_thr.GetNbinsY()+1):
+                threshold = round(hist_thr.GetBinContent(xbin,ybin),2)
+                width = round(hist_sig.GetBinContent(xbin,ybin),3)
+                if pixkey in SCurveInfo: SCurveInfo[pixkey].append([xbin-1,ybin-1,threshold, width])
+                else: SCurveInfo[pixkey] = [[xbin-1,ybin-1,threshold, width]]
+    os.chdir(workingdir)
+
+def BumpBonds(directory, BadBumps):
+    os.chdir(inputdir+"/"+directory+"/000_FPIXTest_"+args.temp)
+    module = ModuleName(directory)
+    tfile = ROOT.TFile.Open("commander_FPIXTest.root")
+    for iroc in range(16):
+        hist = tfile.Get("BB3/rescaledThr_C"+str(iroc)+"_V0")
+        pixkey = module+"_ROC"+str(iroc)
+        for xbin in range(1,hist.GetNbinsX()+1):
+            for ybin in range(1,hist.GetNbinsY()+1):
+                sigma = round(hist.GetBinContent(xbin,ybin),3)
+                if sigma > 5:
+                    if pixkey in BadBumps: BadBumps[pixkey].append([xbin-1,ybin-1,sigma])
+                    else: BadBumps[pixkey] = [[xbin-1,ybin-1,sigma]]
+    os.chdir(workingdir)
+
 if args.temp=="p17": temperature = "17C"
 if args.temp=="m20": temperature = "m20C"
 modulelist = os.popen("/bin/ls "+args.input+" | egrep 'M-[A-Z]-[A-Z0-9]-[A-Z0-9][A-Z0-9]_.*-"+temperature+"'").readlines()
+DeadPixels = {}
+SCurveInfo = {}
+BadBumps = {}
 for module in modulelist:
     if selectedmodules==[]: skipmodule = False
     else: skipmodule = True
@@ -176,9 +231,20 @@ for module in modulelist:
             break
     if skipmodule: continue
     if args.verbose: print "Converting files in "+module+"->"+ModuleName(module)
-    ProcessTBM(module)
-    ProcessROCs(module)
-    ProcessTrims(module)
-    ProcessMasks(module)
+    if not args.noconfigs:
+        ProcessTBM(module)
+        ProcessROCs(module)
+        ProcessTrims(module)
+        ProcessMasks(module)
+    if args.summary:
+        PixelAlive(module,DeadPixels)
+        SCurves(module,SCurveInfo)
+        BumpBonds(module,BadBumps)
 
+if args.summary:
+    os.chdir(outputdir)
+    pickle.dump(DeadPixels, open(args.output+"_DeadPixelSummary.p", "wb" ) )
+    pickle.dump(SCurveInfo, open(args.output+"_SCurveInfo.p", "wb" ) )
+    pickle.dump(BadBumps, open(args.output+"_BadBumps.p", "wb" ) )
+    os.chdir(workingdir)
 if args.verbose: print "Done!"
