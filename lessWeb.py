@@ -7,6 +7,7 @@ Usage: python dbUpload.py <input dir>
 """
 
 DEBUG=False
+dacsOnly=False
 makePlots=True
 
 from xml.etree.ElementTree import Element, SubElement, Comment
@@ -763,7 +764,7 @@ def getConfigs(inputDir, outputDir, log, data):
                    'trimParameters35_C*.dat', 
                    'phCalibration_C*.dat', 
                    'phCalibrationFitErr35_C*.dat', 
-                   'dacParameters_C*.dat']:
+                   'dacParameters35_C*.dat']:
 
         if len(glob(inputDir+'/*_FPIXTest_*/'+config))==0: 
             print 'WARNING: no config files found:', config
@@ -844,12 +845,14 @@ def makeXML(inputDir):
     pxar_errors=SE(test,'PXAR_ERRORS')
     pxar_errors.text=stdout.strip()
 
-    if doCold and makePlots: tests=[analyzeIV,
+    if doCold and makePlots and not dacsOnly: tests=[analyzeIV,
               makeSummaryPlots,
               analyzePreTest,
               analyzeFullTest,
               getConfigs,
               ]
+    elif dacsOnly:
+        tests=[getConfigs]
     else:
         tests=[analyzeIV]
 
