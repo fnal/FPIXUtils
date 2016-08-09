@@ -6,7 +6,7 @@
 #| |     | | | |_/ / |_/ / /_\ \| |_/ / | | | |__ \ `--. 
 #| |     | | | ___ \    /|  _  ||    /  | | |  __| `--. \
 #| |_____| |_| |_/ / |\ \| | | || |\ \ _| |_| |___/\__/ /
-#\_____/\___/\____/\_| \_\_| |_/\_| \_|\___/\____/\____/                                                                                                                                
+#\_____/\___/\____/\_| \_\_| |_/\_| \_|\___/\____/\____/                                                                                      
                                                                
 from optparse import OptionParser
 parser = OptionParser()
@@ -18,22 +18,15 @@ import numpy as np
 from array import * 
 from ROOT import *
 
-#Here list the parser options 
-# _ __   __ _ _ __ ___  ___ _ __ 
-#| '_ \ / _` | '__/ __|/ _ \ '__|
-#| |_) | (_| | |  \__ \  __/ |   
-#| .__/ \__,_|_|  |___/\___|_|   
-#| |                             
-#|_| 
-#
+rocs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
-myfilename1 = "hotpixtrim3_mi102_062316.root";#  "fluoro_mh138data_061716.root";
-myfilename2 = myfilename1; #"fluoro_mh138data_061716.root"  ; #"floro_122915.root"
-myfilename3 = myfilename2;#"floro2_122915.root" #"pa207_071615.root"
-myfilename4 = myfilename2; #"floro2_122915.root"
-myfileoutname = "XRFResult_mi102";
-rocs = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
-
+modName = sys.argv[1]
+testDate= sys.argv[2]
+myCuFileName = "fluoro_"+modName+"_"+testDate+".root" #"pa207_071615.root"
+myAgFileName = myCuFileName; #"fluoro_122915.root"
+mySnFileName = myCuFileName; #"fluoro2_122915.root" #"pa207_071615.root"
+myInFileName = myCuFileName; #"fluoro2_122915.root"
+myfileoutname = "XRFResult_"+modName
 
 parser.add_option('--setup', type='string', action='store',
                   default='KU',
@@ -65,11 +58,8 @@ parser.add_option('--XRSource', type='string', action='store',
                   dest='XRSource',
                   help='Name of the XRay source, valid options: Cu or Mo ')
 
- 
-
-
 parser.add_option('--CuFile', type='string', action='store',
-                  default=myfilename1, #''Fluorescence.root',
+                  default=myCuFileName, #''Fluorescence.root',
                   dest='CuFile',
                   help='Name of the Cu root file (when Mo is the XRaySource) ')
 
@@ -79,33 +69,41 @@ parser.add_option('--MoFile', type='string', action='store',
                   help='Name of the Mo root file (when Cu is the XRaySource ')
 
 parser.add_option('--AgFile', type='string', action='store',
-                  default=myfilename2, #''Fluorescence.root',
+                  default=myAgFileName, #''Fluorescence.root',
                   dest='AgFile',
                   help='Name of the Ag root file ')
 
 parser.add_option('--SnFile', type='string', action='store',
-                  default=myfilename3, #''Fluorescence.root',
+                  default=mySnFileName, #''Fluorescence.root',
                   dest='SnFile',
                   help='Name of the Sn root file ')
 parser.add_option('--InFile', type='string', action='store',
-                  default=myfilename4, #'Fluorescence.root',
+                  default=myInFileName, #'Fluorescence.root',
                   dest='InFile',
                   help='Name of the In root file ')
 
 parser.add_option('--nrocs', type='int', action='store',
-                  default=16,
+                  default=15,
                   dest='nrocs',
                   help='Number or rocs')
 parser.add_option('--badrocs', type='string', action='store',
-                  default=' 0 1 ',
+                  default=' ',
                   dest='badrocs',
                   help='List of bad rocs, for example [2,4,5]')
 (options, args) = parser.parse_args()
 argv = []
+
+options.CuFile = myCuFileName
+options.AgFile = myAgFileName
+options.SnFile = mySnFileName
+options.InFile = myInFileName
+options.outputfile = myfileoutname;
+
+os.chdir("./"+modName+"data");
+
 #define functions here:
 #  _   _   _   _   _   _   _   _   _  
 # / \ / \ / \ / \ / \ / \ / \ / \ / \ 
-
 #( f | u | n | c | t | i | o | n | s )
 # \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ \_/ 
 
@@ -192,7 +190,6 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
                 hist = histo[0 : hl-4] + "Ag_C" + str(i) + "_V0"
         else:
                 hist = histo +str(i)+"_V0"
-#		if material == "Sn": hist = histo+str(i)+"_V1"
         directory = rootfile.Get('Xray')
         keys = directory.GetListOfKeys()
         allkeys = []
@@ -223,7 +220,7 @@ def FitPeaks(rootfile,histo,material,rocs,output,XRSource,rebin):
         if(len(peaks)>3):
             print "Too many peaks,rebinning"
             tgt.Rebin(2)
-            peaks = get_gpeaks(tgt,[20,300],5,"goff",.05,1000,exp)
+            peaks = get_gpeaks(tgt,[20,300],6,"goff",.05,1000,exp)
             if (len(peaks)==2):
                 mid1 = peaks[0][1]
                 mid2 = peaks[1][1]
@@ -924,20 +921,8 @@ Arraytgt3 = FitPeaks(rootfile3,hist3,material3,rocs,output,XRSource, 2)
 Arraytgt4 = FitPeaks(rootfile4,hist4,material4,rocs,output,XRSource, 2)
 PlotSameNStats(Arraytgt1,Arraytgt2,Arraytgt3,Arraytgt4,rocs,output,XRSource)
 ConversionPlot(rocs, output,XRSource) 
-#outrootfile.Write()
-#outrootfile.Close()
+outrootfile.Write()
+outrootfile.Close()
 print "Thats all Folks!"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+os.chdir("../");
