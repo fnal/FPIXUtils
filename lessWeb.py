@@ -36,6 +36,10 @@ if len(sys.argv)<2:
 else:
     inputDir=sys.argv[1].rstrip('/')
 
+BiasVoltage="-150V"
+if inputDir.find('0V-')!=-1:
+    BiasVoltage = inputDir[inputDir.rfind('0V_')-3:inputDir.rfind('0V_')+2]
+
 ################################################################
 ################################################################
 ################################################################
@@ -100,7 +104,7 @@ def getProgramROCPlot(f, deadROCs, outputDir):
     part.text='sidet_p'
 
     comment=open(outputDir+'/'+txt.text,'w')
-    comment.write('\ndeadROCs='+str(deadROCs)+'\n')
+    comment.write('\ndeadROCs='+str(deadROCs)+'\n'+BiasVoltage+'\n')
     
 #---------------------------------------------------------------
 
@@ -123,7 +127,7 @@ def getVthrCompCalDelPlot(f, CalDels, VthrComps, outputDir):
 
             comment=open(outputDir+'/'+txt.text,'w')
             n=int(key.GetName().split('_')[3][1:])
-            comment.write('\nVthrComp='+str(VthrComps[n])+', CalDel='+str(CalDels[n])+'\n')
+            comment.write('\nVthrComp='+str(VthrComps[n])+', CalDel='+str(CalDels[n])+'\n'+BiasVoltage+'\n')
 
 #---------------------------------------------------------------
     
@@ -149,7 +153,7 @@ def getVanaPlot(f, outputDir):
     txt.text='Vana.txt'
     
     comment=open(outputDir+'/'+txt.text,'w')
-    comment.write('\nVana='+str(Vana)+'\n')
+    comment.write('\nVana='+str(Vana)+'\n'+BiasVoltage+'\n')
 
 #---------------------------------------------------------------
 
@@ -175,7 +179,7 @@ def getIanaPlot(f, outputDir):
     txt.text='Iana.txt'
     
     comment=open(outputDir+'/'+txt.text,'w')
-    comment.write('\nIana='+str(Iana)+'\n')
+    comment.write('\nIana='+str(Iana)+'\n'+BiasVoltage+'\n')
 
 #---------------------------------------------------------------
 
@@ -415,7 +419,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
     txt=SE(pic,'TXT')
     txt.text=file.text.replace('png','txt')
     comment=open(outputDir+'/'+txt.text,'w')
-    comment.write('\n'+file.text.split('.')[0])
+    comment.write('\n'+file.text.split('.')[0]+'\n'+BiasVoltage+'\n')
     
     for hist in ['PixelAlive/PixelAlive','PixelAlive/MaskTest','PixelAlive/AddressDecodingTest',
                  'PhOptimization/PH_mapLowVcal','PhOptimization/PH_mapHiVcal',
@@ -432,7 +436,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
         txt=SE(pic,'TXT')
         txt.text=file.text.replace('png','txt')
         comment=open(outputDir+'/'+txt.text,'w')
-        comment.write('\n'+file.text.split('.')[0])
+        comment.write('\n'+file.text.split('.')[0]+'\n'+BiasVoltage+'\n')
 
     produceLessWebSummaryPlot(data,'Trim/TrimMap',outputDir,zRange=(0,15), moduleName = moduleName)
     pic=SE(top, 'PIC')
@@ -444,7 +448,7 @@ def makeSummaryPlots(inputDir, outputDir, log, data):
     txt=SE(pic,'TXT')
     txt.text=file.text.replace('png','txt')
     comment=open(outputDir+'/'+txt.text,'w')
-    comment.write('\n'+file.text.split('.')[0])
+    comment.write('\n'+file.text.split('.')[0]+'\n'+BiasVoltage+'\n')
 
 ################################################################
 
@@ -595,7 +599,7 @@ def analyzeIV(inputDir, outputDir, log, data):
         part=SE(pic,'PART')
         part.text='sidet_p'
         comment=open(outputDir+'/'+txt.text,'w')
-        comment.write('\nbreakdown='+str(b)+'\n')
+        comment.write('\nbreakdown='+str(b)+'\n'+BiasVoltage+'\n')
 
 #---------------------------------------------------------------
 
