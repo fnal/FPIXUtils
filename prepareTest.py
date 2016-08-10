@@ -14,9 +14,11 @@ affirmativeResponses= ['true', 'True', '1', 't', 'T', 'y', 'yes', 'yeah', 'yup',
 try:
     test=argv[1]
     doCold=argv[2] in affirmativeResponses
+    HighVoltage=argv[3] in affirmativeResponses
 except:
     test=raw_input('\nEnter test name (Pretest, Fulltest, IV, or FPIXTest)\n')
     doCold=raw_input('\nPerform test at -20C? (y/n)\n').strip() in affirmativeResponses
+    HighVoltage=raw_input('\nPerform test at -300V? (y/n)\n').strip() in affirmativeResponses
     print '\n'
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,6 +40,9 @@ testString['FPIXTest']='FPIXTest@T,'+testString['IV']
 if doCold: temp='-20'
 else:      temp='17'
 
+if HighVoltage: biasvoltage='-300'
+else:           biasvoltage='-150'
+
 morewebTestString={}
 morewebTestString['FPIXTest']='FPIXTest@T'.replace('@T','@'+temp+'C').replace('-','m').replace('@','-')
 morewebTestString['Pretest']='Pretest-27C'
@@ -55,7 +60,8 @@ if len(moduleNames)==0 or len(moduleNames)>4:
 timeStamp=strftime('%y%m%d-%H%M')
 
 replacements=[['TESTS',testString[test].replace('@T','@'+temp)],
-              ['MOREWEBTESTNAME',morewebTestString[test]+'-'+testCenter+'-'+timeStamp]]
+              ['MOREWEBTESTNAME',morewebTestString[test]+'-'+testCenter+'-'+timeStamp+biasvoltage+'V'],
+              ['BIASVOLTAGE',biasvoltage]]
 
 replacements.append(['OPERATOR',shifter])
 for i in range(4):
