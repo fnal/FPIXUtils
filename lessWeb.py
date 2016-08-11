@@ -37,7 +37,7 @@ else:
     inputDir=sys.argv[1].rstrip('/')
 
 BiasVoltage="-150V"
-if inputDir.find('0V-')!=-1:
+if inputDir.find('0V_')!=-1:
     BiasVoltage = inputDir[inputDir.rfind('0V_')-3:inputDir.rfind('0V_')+2]
 
 ################################################################
@@ -788,10 +788,14 @@ def getConfigs(inputDir, outputDir, log, data):
 def makeXML(inputDir):
     
     global moduleName
+    global BiasVoltage
     print 'inputDir:',inputDir
     print 
     moduleName=os.path.basename(inputDir.split('_')[0])
     print 'moduleName:',moduleName
+    if inputDir.find('0V_')!=-1:
+        BiasVoltage = inputDir[inputDir.rfind('0V_')-3:inputDir.rfind('0V_')+2]
+    print "BiasVoltage",BiasVoltage
     if len(moduleName)!=8:
 	print 'Bad module name, aborting'
 	return 
