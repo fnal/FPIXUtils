@@ -4,14 +4,8 @@
 #
 # Akshay
 
-# UPDATE: able to send emails and text messages (not tested on all providers yet)
-# UPDATE: added  methods to get duration of completed tests
-# UPDATE: commented out methods to get duration as it is not necessarily important
-# UPDATE: added functionality to get number of errors per test
-# UPDATE: added line of output that gets the runtime of each test
-# UPDATE: window now resizes automatically based on number of modules being tested
-
 # TODO: make way to detect hung test
+# TODO: try to make a memory status checker to make sure that tests to not take up too many computing resources
 # MAYBE: convert to multithreaded or multiprocessing to make quicker and better for detecting problems. May take up to many resources though.
 
 import curses
@@ -24,6 +18,61 @@ import smtplib
 from optparse import OptionParser
 from datetime import datetime
 
+# psutil is a system resource checking library. Need to install with pip
+import psutil
+
+
+def sendAlert(code,module = "",test = ""):
+	global options
+	
+	content = ["Test Finished. Box is warming up", # code 0
+		 "{}: Timings are not good".format(module), # code 1
+		 "{}: exceeded 1000 errors".format(module), # code 2
+		 "{}: exceeded 10000 errors".format(module), # code 3
+		 "{}: experiencing problems in the {} test".format(module,test) # code 4
+		 ]
+	try:
+		if options.email:
+			sendEmail(options.email,content[code])
+		if options.text:
+			sendText(options.text,options.provider,content[code])
+	except:
+		pass
+	
+	return
+
+def convertToMemory(rss):
+	prefix = ["KB","MB","GB"]
+	for i in range(len(prefix)):
+		if rss / 1000**(i+1) > 0:
+			continue
+		else:
+			return "{0:.2f} ".format(rss/1000.0**i) + prefix[i-1]
+
+def checkProcess(modules,TBs):
+	tbProcess = []
+	pXarProcess = []
+
+	for i in psutil.pids():
+		if "pXar" in psutil.Process(i).name():
+			pXarProcess.append(psutil.Process(i))
+	#for t in TBs:
+	#	for i in pXarProcess:
+	#		for j in i.cmdline():
+	#			if t in j:
+	#				tbProcess.append([t,
+	#						  convertToMemory(i.memory_info().rss),
+	#						  i.status()])
+	for m in modules:
+		for i in pXarProcess:
+			for j in i.cmdline():
+				if m in j:
+					tbProcess.append(i)
+					#tbProcess.append([m,
+					#		  convertToMemory(i.memory_info().rss),
+					#		  i.status()])
+	return tbProcess
+
 def str2time(string):
 	return datetime.strptime(string,'%H:%M:%S')
 
@@ -34,7 +83,6 @@ def failedTest(line):
 	"Abort data processing" in line or\
 	"Event ID mismatch" in line:
 		return True
-
 
 def hungTest(lines):
 	numAbortFlags = 0
@@ -67,7 +115,7 @@ def sendEmail(receiver,content,numAttempts = 0):
 		s.sendmail("cmsfpix@mail.com",[receiver],content)
 	except smtplib.SMTPRecipientsRefused:
 		if numAttempts < 3:
-			sendEmail(receiver,content,numAttempts+1)
+			sendEmail(receiver,content,numAttempts = numAttempts+1)
 		else:
 			pass
 	s.quit()
@@ -101,11 +149,12 @@ def sendText(phone,provider,content,numAttempts = 0):
 		s.sendmail("cmsfpix@mail.com",to,message)
 	except smtplib.SMTPRecipientsRefused:
 		if numAttempts < 3:
-			sendText(phone,provider,content,numAttempts+1)
+			sendText(phone,provider,content,numAttempts = numAttempts+1)
 		else:
 			pass
 	s.quit()
 
+"""
 def getScurvesTime(scurve):
 	#tries to estimate the time it takes for scurves to finish
 	scurveStart = scurve[0].split()[0].replace('[','').replace(']','').split('.',1)[0]
@@ -113,20 +162,15 @@ def getScurvesTime(scurve):
 	FMT = '%H:%M:%S'
 	tdelta = datetime.strptime(scurveDone, FMT) - datetime.strptime(scurveStart, FMT)
 	duration = int(tdelta.total_seconds())
-	
 	return duration
-
 def getTimingTimes(timing):
 	#tries to estimate the time it takes for timing to finish
 	timingStart = timing[0].split()[0].replace('[','').replace(']','').split('.',1)[0]
 	timingDone = timing[1].split()[0].replace('[','').replace(']','').split('.',1)[0]
-
 	FMT = '%H:%M:%S'
 	tdelta = datetime.strptime(timingDone, FMT) - datetime.strptime(timingStart, FMT)
 	duration = int(tdelta.total_seconds())
-	
 	return duration
-
 def getTimes(lines):
 	#Method to get duration of each test in seconds
 	line = []
@@ -167,6 +211,7 @@ def getTimes(lines):
 				index = times.index(i) + 1
 				times.insert(index,timingTime)
 	return times
+"""
 
 def errorByTest(lines):
 	tests = []
@@ -186,17 +231,16 @@ def errorByTest(lines):
 			numERROR = 0
 		if "ERROR:" in i:
 			numERROR += 1
-	
 	tests.append([currentTest,numERROR])
-	if "FPIXTest" in tests[0]:
-		del tests[0]
-
-	return tests	
+	for i in reversed(tests):
+		if "FPIXTest" in i:
+			del tests[tests.index(i)]
+	return tests
 
 def main(stdscr):
 	global options
 
-	refreshRate = 15
+	refreshRate = 1
 	if options.refresh:
 		refreshRate = options.refresh
 
@@ -224,9 +268,10 @@ def main(stdscr):
 		idLine.append(module)
 
 	#resize window to fit all output
-	width = 24 * len(inputFiles)
-	print "\x1b[8;20;" + str(width) + "t"
+	width = 24 * len(inputFiles) + 14
+	print "\x1b[8;21;" + str(width) + "t"
 
+	TBs = ["TB{}".format(tbLine[i+1]) for i in range(len(inputFiles))]
 	tests = [""] * len(inputFiles)
 	failedTestFlag = [False] * len(inputFiles)
 	sentFailedTestFlag = [False] * len(inputFiles)
@@ -241,6 +286,7 @@ def main(stdscr):
 		curses.init_pair(1,curses.COLOR_WHITE,curses.COLOR_BLACK)
 		curses.init_pair(2,curses.COLOR_RED,curses.COLOR_BLACK)
 		curses.init_pair(3,curses.COLOR_GREEN,curses.COLOR_BLACK)
+		curses.init_pair(4,curses.COLOR_YELLOW,curses.COLOR_BLACK)
 
 		stdscr.addstr(0,12,"TB:",)
 		stdscr.addstr(1,8,"Module:")
@@ -249,9 +295,11 @@ def main(stdscr):
 		stdscr.addstr(4,4,"# Warnings:")
 		stdscr.addstr(5,2,"Current test:")
 		stdscr.addstr(6,2,"test runtime:")
-		stdscr.addstr(8,0,"Finished tests:")
+		stdscr.addstr(8,2,"Memory usage:")
+		stdscr.addstr(9,0,"Process status:")
+		stdscr.addstr(11,0,"Finished tests:")
 		#stdscr.addstr(8,0,"(duration|Errors)")
-		stdscr.addstr(9,4,"(# Errors)")
+		stdscr.addstr(12,4,"(# Errors)")
 		
 		for j in range(len(inputFiles)):
 			logFile = glob.glob(inputFiles[j] + '/' + "000*/commander_*.log")
@@ -274,18 +322,12 @@ def main(stdscr):
 
 							if currentTest == "Timing":
 								if "Timings are not good" in i:
-									if options.email:
-										sendEmail(options.email,"Timings are not good in module {}".format(idLine[j]))
-								if options.text:
-									sendText(options.text,options.provider,"Timings are not good in module {}".format(idLine[j]))
-									
-									
+									sendAlert(1,idLine[j])	
 						if "this is the end" in i:
 							currentTest = "FPIXtest Done"
 							IVTest = glob.glob(inputFiles[j] + '/' + "001*/IV.log")
 							if IVTest:
 								currentTest = "IV test"
-								testStartTime[j] = i.split(" ")[0].strip('[]')[:-4]
 								with open(IVTest[0]) as L:
 									IVlines = L.readlines()
 									for k in IVlines:
@@ -330,7 +372,23 @@ def main(stdscr):
 								sent10000ErrorsFlag[j] = True
 						else:
 							pass
-					
+
+					systemStatus = checkProcess(idLine,TBs)
+					try:
+						#for pid in psutil.pids():
+						#	for c in psutil.Process(pid).cmdline():
+								
+						
+						stdscr.addstr(8,(j+1)*24-6,convertToMemory(systemStatus[j].memory_info().rss))
+						if systemStatus[j].status() is "running":
+							stdscr.addstr(9,(j+1)*24-6,systemStatus[j].status(),curses.color_pair(3))
+						else:
+							stdscr.addstr(9,(j+1)*24-6,systemStatus[j].status(),curses.color_pair(4))
+						#stdscr.addstr(10,(j+1)*24-6,str(systemStatus[j].cpu_percent()))
+					except:
+						stdscr.addstr(8,(j+1)*24-6,"0.0 KB")
+						stdscr.addstr(9,(j+1)*24-6,"Process ended",curses.color_pair(3))
+
 					nowTime = datetime.now().time().strftime('%H:%M:%S')
 					timePassed = str2time(nowTime) - str2time(testStartTime[j])
 					if tests[j] == "FPIXtest Done" or tests[j] == "ALL done":
@@ -352,15 +410,19 @@ def main(stdscr):
 						stdscr.addstr(4,(j+1)*24-6,"{}".format(numWarning),curses.color_pair(2))
 					else:
 						stdscr.addstr(4,(j+1)*24-6,"{}".format(numWarning),curses.color_pair(1))
-					stdscr.addstr(5,(j+1)*24-6,currentTest)
 					
-					stdscr.addstr(6,(j+1)*24-6,str(timePassed))
+					if currentTest == "ALL done":
+						stdscr.addstr(5,(j+1)*24-6,currentTest,curses.color_pair(3))
+					else:
+						stdscr.addstr(5,(j+1)*24-6,currentTest)
 
+					stdscr.addstr(6,(j+1)*24-6,str(timePassed))
+					
 					for i in range(len(prevErrors)):
 						if prevErrors[i][1] > 0:
-							stdscr.addstr(i+8,(j+1)*24-6,"{} ({})".format(prevErrors[i][0],prevErrors[i][1]),curses.color_pair(2))
+							stdscr.addstr(i+11,(j+1)*24-6,"{} ({})".format(prevErrors[i][0],prevErrors[i][1]),curses.color_pair(2))
 						else:
-							stdscr.addstr(i+8,(j+1)*24-6,"{} ({})".format(prevErrors[i][0],prevErrors[i][1]),curses.color_pair(1))
+							stdscr.addstr(i+11,(j+1)*24-6,"{} ({})".format(prevErrors[i][0],prevErrors[i][1]),curses.color_pair(1))
 						#if i < len(times):
 						#	#stdscr.addstr(i+7,(j+1)*24+1+len(prevErrors[i][0]),"({}|{})".format(times[i][1],prevErrors[i][1]))
 						#else:
@@ -372,10 +434,7 @@ def main(stdscr):
 		
 		isDone = all(t == "ALL done" for t in tests)
 		if isDone == True:
-			if options.email:
-				sendEmail(options.email,"Test is finished. Box is warming up")
-			if options.text:
-				sendText(options.text,options.provider,"Test is finished. Box is warming up")
+			sendAlert(0)
 			time.sleep(30)
 			return
 		
