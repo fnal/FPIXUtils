@@ -1,12 +1,12 @@
+#!/usr/bin/env python
 import mechanize
-from optparse import OptionParser
+import time
+import argparse
 
-parser = OptionParser()
-parser.add_option("-i", "--file", dest="inputFile",
-                  help="path to input file")
-parser.add_option("-u", "--user", dest="user",
-                  help="Name of user uploading results")
-(arguments, args) = parser.parse_args()
+parser = argparse.ArgumentParser(description='Upload zip files to Purdue DB')
+parser.add_argument("-i", "--inputFiles", dest="inputFiles", nargs='+', help="Files to upload")
+parser.add_argument("-u", "--user", dest="user", help="Name of user uploading results")
+arguments = parser.parse_args()
 
 loginURL = "http://www.physics.purdue.edu/cmsfpix/Submission_p/login.php?prev="
 uploadURL = "http://www.physics.purdue.edu/cmsfpix/Submission_p/submit/batchallsubmit.php"
@@ -22,8 +22,16 @@ browser.form['u'] = USERNAME
 browser.form['p'] = PASSWORD
 browser.submit()
 
-browser.open(uploadURL)
-browser.select_form(nr=0)
-browser.form['user'] = arguments.user
-browser.form.add_file(open(arguments.inputFile), 'text/plain', arguments.inputFile)
-browser.submit()
+for ifile in arguments.inputFiles:
+    print "Uploading "+ifile
+    start = time.time()
+    browser.open(uploadURL)
+    browser.select_form(nr=0)
+    browser.form['user'] = arguments.user
+    browser.form.add_file(open(ifile), 'text/plain', ifile)
+    browser.submit()
+    end = time.time()
+    print "Upload of "+ifile+" took "+(end-start)+" seconds"
+    time.sleep(10)
+
+print "Done!"
