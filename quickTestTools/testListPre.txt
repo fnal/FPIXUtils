@@ -1,9 +1,3 @@
-Pretest:programroc
-Pretest:setvana
-Timing:tbmphasescan
-Timing:rocdelayscan
-Timing:saveparameters
-Pretest:findworkingpixel
-Pretest:setvthrcompcaldel
-Pretest:savedacs
+Timing
 PixelAlive:alivetest
+BB3

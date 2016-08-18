@@ -2,7 +2,7 @@
 
 # script that runs a module through the Quicktest[1] procedure 
 # used just before and after a module is mounted on a blade
-# [1] Quicktest = pretest + pixelAlive (+ timing)
+# [1] Quicktest = (timing+)pixelAlive+BB3
 # N.B.: timing test is only run before mounting
 
 # options:
@@ -33,6 +33,7 @@ parser.add_option("-s", "--stage", dest="stage",
                   help="stage of testing - 'pre' or 'post' (REQUIRED)")
 parser.add_option("-i", "--hubID", dest="hubID",
                   help="hubID value of module, 0-15 (REQUIRED for 'pre' test)")
+parser.add_option("-t", "--timing", action="store_true", dest="timing", default=False, help="Run the timing test")
 (arguments, args) = parser.parse_args()
 
 if not arguments.module:
@@ -78,17 +79,12 @@ if stage == "Pre":
     os.makedirs(testDir)
 
     ###########################################
-    # create module configs
+    # get module configs
     ###########################################
 
-    subprocess.call([pxarDir_ + "/main/mkConfig",
-                     "-t", "TBM08C", 
-                     "-r", "digv21respin", 
-                     "-f", 
-                     "-m", 
-                     "-d", testDir,
-                     "-p", "s/hubId 31/hubId %s/" % (arguments.hubID)])
-
+    os.system("scp 'uicpirepix2@bender.phy.uic.edu:/home/uicpirepix2/ProductionTestResults/"+arguments.module+"_FPIXTest-m20C*/000_FPIXTest_m20/*.dat' "+testDir)
+    subprocess.call("sed -i 's|testboardName [A-Z0-9_][A-Z0-9_]*|testboardName *|' "+testDir+"/configParameters.dat")
+    subprocess.call("sed -i 's|hubId 31|hubId "+arguments.hubID+"|' "+testDir+"/configParameters.dat")
 
 ###########################################
 ###########################################
@@ -108,10 +104,15 @@ elif stage == "Post":
 
 # run pXar command
 ###########################################
-
-os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
+print "You are too stupid to before"
+if arguments.timing:
+    os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
+          " | sed '1s|^|Timing\n|' | " + \
+          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -r commander_Quicktest" + stage + ".root")
+else:
+    os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
           " | " + \
-          pxarDir_ + "/bin/pXar -d " + testDir + " -r commander_Quicktest" + stage + ".root")
+          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -r commander_Quicktest" + stage + ".root")
 
 ###########################################
 # print relevant lines from log file
@@ -119,6 +120,7 @@ os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
 
 linesToPrint = [
     "number of dead pixels",
+    "number of dead bumps",
     "Functional",
 #    "The fraction of properly decoded events is",
 #    "Timings are"
