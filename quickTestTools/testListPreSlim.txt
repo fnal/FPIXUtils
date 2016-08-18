@@ -1,8 +1,5 @@
 Pretest:programroc
-Pretest:setvana
-Timing:tbmphasescan
-Timing:rocdelayscan
-Timing:saveparameters
+Pest:setvana
 Pretest:findworkingpixel
 Pretest:setvthrcompcaldel
 Pretest:savedacs
