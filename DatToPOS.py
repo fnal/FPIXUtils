@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
-import os
 import csv
+import os
 import pickle
 
 parser = argparse.ArgumentParser(description="Convert the calibration results in the Production Test Area to POS format for Jordan")
@@ -206,13 +206,15 @@ def BumpBonds(directory, BadBumps):
     tfile = ROOT.TFile.Open("commander_FPIXTest.root")
     for iroc in range(16):
         hist = tfile.Get("BB3/rescaledThr_C"+str(iroc)+"_V0")
+        hist_raw = tfile.Get("BB3/thr_calSMap_VthrComp_C"+str(iroc)+"_V0")
         pixkey = module+"_ROC"+str(iroc)
         for xbin in range(1,hist.GetNbinsX()+1):
             for ybin in range(1,hist.GetNbinsY()+1):
                 sigma = round(hist.GetBinContent(xbin,ybin),3)
+                raw = round(hist_raw.GetBinContent(xbin,ybin),2)
                 if sigma > 5:
-                    if pixkey in BadBumps: BadBumps[pixkey].append([xbin-1,ybin-1,sigma])
-                    else: BadBumps[pixkey] = [[xbin-1,ybin-1,sigma]]
+                    if pixkey in BadBumps: BadBumps[pixkey].append([xbin-1,ybin-1,sigma,raw])
+                    else: BadBumps[pixkey] = [[xbin-1,ybin-1,sigma,raw]]
     os.chdir(workingdir)
 
 if args.temp=="p17": temperature = "17C"
