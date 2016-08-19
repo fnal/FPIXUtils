@@ -1,3 +1,2 @@
-Timing
 PixelAlive:alivetest
 BB3

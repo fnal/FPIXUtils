@@ -27,6 +27,10 @@ pxarDir_ = "/home/fnalpxar/pxar/"
 fpixutilsDir_ = "/home/fnalpxar/FPIXUtils/quickTestTools/"
 
 parser = OptionParser()
+parser.add_option("-d", "--vdig", dest="vdig", default='8',
+                  help="vdig to run module at")
+parser.add_option("-l", "--level", dest="level", default='12',
+                  help="level to run DTB at")
 parser.add_option("-m", "--module", dest="module",
                   help="name of module being tested (REQUIRED)")
 parser.add_option("-s", "--stage", dest="stage",
@@ -81,10 +85,12 @@ if stage == "Pre":
     ###########################################
     # get module configs
     ###########################################
-
+    print "You are too stupid to before"
     os.system("scp 'uicpirepix2@bender.phy.uic.edu:/home/uicpirepix2/ProductionTestResults/"+arguments.module+"_FPIXTest-m20C*/000_FPIXTest_m20/*.dat' "+testDir)
-    subprocess.call("sed -i 's|testboardName [A-Z0-9_][A-Z0-9_]*|testboardName *|' "+testDir+"/configParameters.dat")
-    subprocess.call("sed -i 's|hubId 31|hubId "+arguments.hubID+"|' "+testDir+"/configParameters.dat")
+    os.system("sed -i 's|testboardName [A-Z0-9_][A-Z0-9_]*|testboardName *|' "+testDir+"/configParameters.dat")
+    os.system("sed -i 's|hubId [0-9][0-9]*|hubId "+arguments.hubID+"|' "+testDir+"/configParameters.dat")
+    os.system("sed -i 's|level   [0-9][0-9]*|level   "+arguments.level+"|' "+testDir+"/tbParameters.dat")
+    os.system("sed -i 's|vdig       [0-9][0-9]*|vdig       "+arguments.vdig+"|' "+testDir+"/dacParameters35_C*.dat")
 
 ###########################################
 ###########################################
@@ -101,18 +107,16 @@ elif stage == "Post":
 ###########################################
 ###########################################
 
-
 # run pXar command
 ###########################################
-print "You are too stupid to before"
 if arguments.timing:
     os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
-          " | sed '1s|^|Timing\n|' | " + \
-          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -r commander_Quicktest" + stage + ".root")
+          " | sed '1 i\\timing' |" + \
+          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -v DEBUG -r commander_Quicktest" + stage + ".root")
 else:
     os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
           " | " + \
-          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -r commander_Quicktest" + stage + ".root")
+          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -v DEBUG -r commander_Quicktest" + stage + ".root")
 
 ###########################################
 # print relevant lines from log file
