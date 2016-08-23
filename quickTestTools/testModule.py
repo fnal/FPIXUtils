@@ -23,21 +23,21 @@ from optparse import OptionParser
 # site-specific directory names
 
 outputDir_ = "/home/fnalpxar/quicktestResults/"
+#pxarDir_ = "/home/fnalpxar/pxar/"
 pxarDir_ = "/home/fnalpxar/pxar/"
 fpixutilsDir_ = "/home/fnalpxar/FPIXUtils/quickTestTools/"
 
 parser = OptionParser()
-parser.add_option("-d", "--vdig", dest="vdig", default='8',
-                  help="vdig to run module at")
-parser.add_option("-l", "--level", dest="level", default='12',
-                  help="level to run DTB at")
 parser.add_option("-m", "--module", dest="module",
                   help="name of module being tested (REQUIRED)")
 parser.add_option("-s", "--stage", dest="stage",
                   help="stage of testing - 'pre' or 'post' (REQUIRED)")
 parser.add_option("-i", "--hubID", dest="hubID",
                   help="hubID value of module, 0-15 (REQUIRED for 'pre' test)")
-parser.add_option("-t", "--timing", action="store_true", dest="timing", default=False, help="Run the timing test")
+parser.add_option("-d", "--vdig", dest="vdig", default='8', help="vdig to run module at (Only works with 'pre' test)")
+parser.add_option("-l", "--level", dest="level", default='12', help="level to run DTB at (Only works with 'pre' test)")
+parser.add_option("-t", "--timing", action="store_true", dest="timing", default=False, help="Adjust Timings (Should only use with 'pre' test)")
+parser.add_option("-v", "--version", dest="version", default="4.6", help="Which version of pXar to use. Options are 4.5 or 4.6")
 (arguments, args) = parser.parse_args()
 
 if not arguments.module:
@@ -53,6 +53,11 @@ elif arguments.stage.lower() not in ["pre","post"]:
 if not arguments.hubID and arguments.stage.lower() == 'pre':
     print "please specify hubID value via '-i'";
     sys.exit(0)
+
+if arguments.version == "4.5":
+    pxarDir_ = "/home/fnalpxar/pxar/"
+elif arguments.version == "4.6":
+    pxarDir_ = "/home/fnalpxar/pxar_4.6/"
 
 stage = arguments.stage.lower().capitalize()
 
@@ -91,6 +96,9 @@ if stage == "Pre":
     os.system("sed -i 's|hubId [0-9][0-9]*|hubId "+arguments.hubID+"|' "+testDir+"/configParameters.dat")
     os.system("sed -i 's|level   [0-9][0-9]*|level   "+arguments.level+"|' "+testDir+"/tbParameters.dat")
     os.system("sed -i 's|vdig       [0-9][0-9]*|vdig       "+arguments.vdig+"|' "+testDir+"/dacParameters35_C*.dat")
+    if arguments.timing and arguments.version=="4.6":
+        os.system("sed -i 's|basea   0x.*|basea   0xdb|' "+testDir+"/tbmParameters_C0*.dat")
+        os.system("sed -i 's|basee   0x.*|basea   0xc8|' "+testDir+"/tbmParameters_C0a.dat")
 
 ###########################################
 ###########################################
@@ -109,7 +117,7 @@ elif stage == "Post":
 
 # run pXar command
 ###########################################
-if arguments.timing:
+if arguments.timing and arguments.version=="4.5":
     os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
           " | sed '1 i\\timing' |" + \
           pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -v DEBUG -r commander_Quicktest" + stage + ".root")
