@@ -98,7 +98,7 @@ if stage == "Pre":
     os.system("sed -i 's|vdig       [0-9][0-9]*|vdig       "+arguments.vdig+"|' "+testDir+"/dacParameters35_C*.dat")
     if arguments.timing and arguments.version=="4.6":
         os.system("sed -i 's|basea   0x.*|basea   0xdb|' "+testDir+"/tbmParameters_C0*.dat")
-        os.system("sed -i 's|basee   0x.*|basea   0xc8|' "+testDir+"/tbmParameters_C0a.dat")
+        os.system("sed -i 's|basee   0x.*|basee   0xc8|' "+testDir+"/tbmParameters_C0a.dat")
 
 ###########################################
 ###########################################
