@@ -66,11 +66,11 @@ replacements=[['TESTS',testString[test].replace('@T','@'+temp)],
               ['BIASVOLTAGE',biasvoltage]]
 
 replacements.append(['OPERATOR',shifter])
-if test=="FPIXROCTest": replacements.append(['Full','Roc'])
 for i in range(4):
     if moduleNames[i] is not '0':
         replacements.append(['USEM'+str(i),'True'])
         replacements.append(['MODULE'+str(i),moduleNames[i]])
+        if moduleNames[i][0] == 'E': replacements.append(['TB'+str(i)+' = Full','TB'+str(i)+' = Roc'])
     else:
         replacements.append(['USEM'+str(i),'False'])
 
