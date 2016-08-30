@@ -13,7 +13,8 @@ for i in range(4):
     moduleName=moduleName.upper()
     if moduleName:
         r = re.compile('[A-Z]-[A-Z]-[A-Z0-9]-[A-Z0-9][A-Z0-9]')
-        if r.match(moduleName) is not None:
+        s = re.compile('[A-Z]-[0-9][0-9]-[BT][RL]')
+        if r.match(moduleName) is not None or s.match(moduleName) is not None:
             moduleNames.append(moduleName)
         else: 
             print 'Incorrect module name format. Aborting'

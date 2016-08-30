@@ -16,7 +16,7 @@ try:
     doCold=argv[2] in affirmativeResponses
     HighVoltage=argv[3] in affirmativeResponses
 except:
-    test=raw_input('\nEnter test name (Pretest, Fulltest, IV, or FPIXTest)\n')
+    test=raw_input('\nEnter test name (Pretest, Fulltest, IV, FPIXTest, or FPIXROCTest)\n')
     doCold=raw_input('\nPerform test at -20C? (y/n)\n').strip() in affirmativeResponses
     HighVoltage=raw_input('\nPerform test at -300V? (y/n)\n').strip() in affirmativeResponses
     print '\n'
@@ -36,6 +36,7 @@ for i in range(len(moduleNames)):
 IVString.rstrip(',')
 testString['IV']=IVString
 testString['FPIXTest']='FPIXTest@T,'+testString['IV']
+testString['FPIXROCTest']='FPIXROCTest@T,'+testString['IV']
 
 if doCold: temp='-20'
 else:      temp='17'
@@ -45,6 +46,7 @@ else:           biasvoltage='-150'
 
 morewebTestString={}
 morewebTestString['FPIXTest']='FPIXTest@T'.replace('@T','@'+temp+'C').replace('-','m').replace('@','-')
+morewebTestString['FPIXROCTest']='FPIXROCTest@T'.replace('@T','@'+temp+'C').replace('-','m').replace('@','-')
 morewebTestString['Pretest']='Pretest-27C'
 
 ############################################################
@@ -64,6 +66,7 @@ replacements=[['TESTS',testString[test].replace('@T','@'+temp)],
               ['BIASVOLTAGE',biasvoltage]]
 
 replacements.append(['OPERATOR',shifter])
+if test=="FPIXROCTest": replacements.append(['Full','Roc'])
 for i in range(4):
     if moduleNames[i] is not '0':
         replacements.append(['USEM'+str(i),'True'])
