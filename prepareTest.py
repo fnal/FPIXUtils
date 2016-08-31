@@ -2,6 +2,7 @@
 
 from sys import argv
 import os
+import re
 import subprocess
 import socket
 from time import strftime
@@ -70,7 +71,8 @@ for i in range(4):
     if moduleNames[i] is not '0':
         replacements.append(['USEM'+str(i),'True'])
         replacements.append(['MODULE'+str(i),moduleNames[i]])
-        if moduleNames[i][0] == 'E': replacements.append(['TB'+str(i)+' = Full','TB'+str(i)+' = Roc'])
+        s = re.compile('[A-Z]-[0-9][0-9]-[BT][RL]')
+        if s.match(moduleNames[i]) is not None: replacements.append(['TB'+str(i)+' = Full','TB'+str(i)+' = Roc'])
     else:
         replacements.append(['USEM'+str(i),'False'])
 
