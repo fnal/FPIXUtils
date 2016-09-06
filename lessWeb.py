@@ -26,6 +26,7 @@ from moduleSummaryPlottingTools import *
 
 from glob import glob
 import os
+from math import log10
 import subprocess
 import sys
 import zipfile
@@ -848,10 +849,11 @@ def makeXML(inputDir):
     else:
         notes.text='Re-uploading new data from: '+os.path.basename(inputDir)
 
-    process = subprocess.Popen(['grep', '-c', 'ERROR', log['fulltest']], stdout=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    pxar_errors=SE(test,'PXAR_ERRORS')
-    pxar_errors.text=stdout.strip()
+    if doCold:
+        process = subprocess.Popen(['grep', '-c', 'ERROR', log['fulltest']], stdout=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        pxar_errors=SE(test,'PXAR_ERRORS')
+        pxar_errors.text=stdout.strip()
 
     if doCold and makePlots and not dacsOnly: tests=[analyzeIV,
               makeSummaryPlots,
