@@ -4,6 +4,7 @@ from array import array
 import collections
 import re
 import os
+from math import floor, ceil
 
 # true dimensions of a sensor in 10^-4 m (active area + periphery)
 PERIPHERY = 12.  # 1.2 mm
@@ -75,7 +76,7 @@ def flipSummaryPlot(plot):
 ###############################################################################
 
 # function to rotate a module summary plot clockwise by 90 degrees
-def rotateSummaryPlot(plot):
+def rotateSummaryPlot(plot, direction = 'clockwise'):
     name = plot.GetName()
     title = plot.GetTitle()
     nBinsX = plot.GetNbinsX()
@@ -97,8 +98,12 @@ def rotateSummaryPlot(plot):
         for y in range(1, nBinsY+1):
             content = plot.GetBinContent(x,y)
             error   = plot.GetBinError(x,y)
-            histo.SetBinContent(y, nBinsX-x+1, content)
-            histo.SetBinError(y, nBinsX-x+1, content)
+            if direction == 'clockwise':
+                histo.SetBinContent(y, nBinsX-x+1, content)
+                histo.SetBinError(y, nBinsX-x+1, content)
+            else:
+                histo.SetBinContent(nBinsY-y+1, x, content)
+                histo.SetBinError(nBinsY-y+1, x, content)
 
     return histo
 
@@ -302,7 +307,7 @@ def setZRange(plot, range):
 # input a summary merged plot and draw it on a canvas
 # add axis ticks and labels
 # return canvas
-def setupSummaryCanvas(summaryPlot, moduleName = None):
+def setupSummaryCanvas(summaryPlot, moduleName = None, bare = False):
 
     pathToHistogram = summaryPlot.GetName()
     splitPath = pathToHistogram.split("/")
@@ -326,6 +331,9 @@ def setupSummaryCanvas(summaryPlot, moduleName = None):
     leftMargin = 2 * ROC_SIZE/3.
     rightMargin = 2 * ROC_SIZE
 
+    if bare:
+        topMargin = bottomMargin = leftMargin = rightMargin = 0
+
     canvas.SetBorderMode(0)
     canvas.SetBorderSize(0)
     canvasWidth = int(SENSOR_WIDTH + leftMargin + rightMargin)
@@ -341,17 +349,25 @@ def setupSummaryCanvas(summaryPlot, moduleName = None):
     gPad.SetTopMargin(topMargin/canvasHeight)
     gPad.SetBottomMargin(bottomMargin/canvasHeight)
 
-    summaryPlot.Draw("colz a") # in color (without axes)
+    if bare:
+        summaryPlot.Draw("col a") # in color (without axes or palette)
+    else:
+        summaryPlot.Draw("colz a") # in color (without axes)
+
     SetOwnership(summaryPlot, False)  # avoid going out of scope at return statement
 
     canvas.Update()
-    palette = summaryPlot.GetListOfFunctions().FindObject("palette")
-    palette.SetX1NDC((canvasWidth-2*rightMargin/3.)/canvasWidth)
-    palette.SetX2NDC((canvasWidth-rightMargin/2.)/canvasWidth)
-    palette.SetY1NDC(0.05)
-    palette.SetY2NDC(0.95)
-    palette.SetLabelSize(0.06)
-    palette.SetLabelFont(42)
+
+    if not bare:
+        palette = summaryPlot.GetListOfFunctions().FindObject("palette")
+        palette.SetX1NDC((canvasWidth-2*rightMargin/3.)/canvasWidth)
+        palette.SetX2NDC((canvasWidth-rightMargin/2.)/canvasWidth)
+        palette.SetY1NDC(0.05)
+        palette.SetY2NDC(0.95)
+        palette.SetLabelSize(0.06)
+        palette.SetLabelFont(42)
+
+
 
     # START ADDING AXES
 
@@ -394,35 +410,41 @@ def setupSummaryCanvas(summaryPlot, moduleName = None):
             line2 = TLine()
             rocBoundaryLine = TLine()
             rocBoundaryLine.SetLineStyle(2)
+            if bare:
+                rocBoundaryLine.SetLineWidth(8)
             if i is 0:
-                line1.DrawLine(x1,
-                               tickLength/5.,
-                               x1,
-                               -2*tickLength)
-                line2.DrawLine(x2,
-                               MODULE_Y_PLOT_SIZE - tickLength/5.,
-                               x2,
-                               MODULE_Y_PLOT_SIZE + 2*tickLength)
+                if not bare:
+                    line1.DrawLine(x1,
+                                   tickLength/5.,
+                                   x1,
+                                   -2*tickLength)
+                    line2.DrawLine(x2,
+                                   MODULE_Y_PLOT_SIZE - tickLength/5.,
+                                   x2,
+                                   MODULE_Y_PLOT_SIZE + 2*tickLength)
                 if roc is not 0:  # no vertical line at left module edge
                     rocBoundaryLine.DrawLine(x1,
                                              0,
                                              x1,
                                              MODULE_Y_PLOT_SIZE)
             else:
-                line1.DrawLine(x1,
-                               tickLength/5.,
-                               x1,
-                               -1*tickLength)
-                line2.DrawLine(x2,
-                               MODULE_Y_PLOT_SIZE - tickLength/5.,
-                               x2,
-                               MODULE_Y_PLOT_SIZE + 1*tickLength)
+                if not bare:
+                    line1.DrawLine(x1,
+                                   tickLength/5.,
+                                   x1,
+                                   -1*tickLength)
+                    line2.DrawLine(x2,
+                                   MODULE_Y_PLOT_SIZE - tickLength/5.,
+                                   x2,
+                                   MODULE_Y_PLOT_SIZE + 1*tickLength)
 
         # move to next ROC
         x_start += ROC_PLOT_SIZE
 
     rocBoundaryLine = TLine()
     rocBoundaryLine.SetLineStyle(2)
+    if bare:
+        rocBoundaryLine.SetLineWidth(8)
     rocBoundaryLine.DrawLine(0,
                              MODULE_Y_PLOT_SIZE/2.,
                              MODULE_X_PLOT_SIZE,
@@ -432,6 +454,8 @@ def setupSummaryCanvas(summaryPlot, moduleName = None):
     # this should be easier since 80 is divisible by 10
     y_offset = 0
     for tick in range(17):
+        if bare:
+            continue
 
         text1 = TPaveText(-1*(tickLength + textBoxWidth + 5),
                           y_offset - textBoxWidth/2.,
@@ -501,6 +525,8 @@ def setupSummaryCanvas(summaryPlot, moduleName = None):
         axisLabels.append(rocLabel)
 
     for label in axisLabels:
+        if bare:
+            continue
 
         label.SetFillColor(0)
         label.SetTextAlign(22)
@@ -521,10 +547,11 @@ def setupSummaryCanvas(summaryPlot, moduleName = None):
     title.SetTextAlign(22)
     title.SetTextFont(42)
     title.SetBorderSize(0)
-    title.Draw()
+    if not bare:
+        title.Draw()
     SetOwnership(title,False)  # avoid going out of scope at return statement
 
-    if dirName is not None and moduleName is not None:
+    if dirName is not None and moduleName is not None and not bare:
         moduleLabel = TPaveText(leftMargin/canvasWidth,
                           (SENSOR_HEIGHT + bottomMargin + 0.6*topMargin)/canvasHeight,
                           (3 * leftMargin)/canvasWidth,
@@ -632,6 +659,7 @@ def getListOf2DHistograms(inputFile, directoryList):
                 pathToHistogram = dir+"/"+plotName
                 plot = inputFile.Get(pathToHistogram)
                 # only consider ROC summary plots
+#                if (plot.GetNbinsX() != 52 and plot.GetNbinsY() != 52) or (plot.GetNbinsX() != 80 and plot.GetNbinsY() != 80):
                 if plot.GetNbinsX() != 52 or plot.GetNbinsY() != 80:
                     continue
                 histogramList.append(pathToHistogram)
@@ -662,7 +690,11 @@ def produce2DHistogramDictionary(inputFileName, mode = 'pxar'):
             version = '0'
             chipIndex = histogram.rfind("_ROC")+4
             afterChipIndex = histogram[chipIndex:].find("_")
-            histoName = histogram[:chipIndex]+histogram[chipIndex+afterChipIndex:]
+            if afterChipIndex >= 0:
+                histoName = histogram[:chipIndex]+histogram[chipIndex+afterChipIndex:]
+            else:
+                histoName = histogram[:chipIndex]
+
         # if it's not already in the list, add it
         if not histoName in histogramDictionary:
             histogramDictionary[histoName] = []
@@ -671,6 +703,7 @@ def produce2DHistogramDictionary(inputFileName, mode = 'pxar'):
         else:
             if not version in histogramDictionary[histoName]:
                 histogramDictionary[histoName].append(version)
+
     return histogramDictionary
 
 ###############################################################################
@@ -731,9 +764,33 @@ def add2DSummaryPlots(inputFileName, histogramDictionary, mode = 'pxar', savePlo
             print "adding 2D summary plot: "+directory+"/"+summaryPlot.GetName()
             summaryPlot.Write()
             if savePlots:
-                outputFileName = directory + "_" + summaryPlot.GetName() + ".png"
+                if mode is 'pxar':
+                    outputFileName = directory + "_" + summaryPlot.GetName() + ".png"
+                else:
+                    outputFileName = summaryPlot.GetName() + ".png"
                 summaryPlot.SaveAs(outputDir + "/" + outputFileName)
             inputFile.Close()
+
+###############################################################################
+
+# just save pngs, don't add canvas to file
+def save2DSummaryPlots(inputFileName, histogramDictionary, mode = 'pxar', zRange=(), bare=False):
+
+    outputDir = inputFileName.split(".root")[0] + "_2DModuleSummaryPlots"
+    if not os.path.isdir(outputDir):
+        os.mkdir(outputDir)
+
+    for histoName, versions in histogramDictionary.items():
+        for version in versions:
+            summaryPlot = produce2DSummaryPlot(inputFileName,histoName,version,mode,zRange,None,bare)
+            if summaryPlot is None:
+                continue
+            directory = histoName.rsplit("/", 1)[0]
+            if mode is 'pxar':
+                outputFileName = directory + "_" + summaryPlot.GetName() + ".png"
+            else:
+                outputFileName = summaryPlot.GetName() + ".png"
+            summaryPlot.SaveAs(outputDir + "/" + outputFileName)
 
 ###############################################################################
 
@@ -775,7 +832,7 @@ def add1DDistributions(inputFileName, histogramDictionary):
 
 # pass in the input file and location of relevant histogram
 # return the canvas with the finished summary plot
-def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar', zRange=(), moduleName = None):
+def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar', zRange=(), moduleName = None, bare = False):
 
     plots = produce2DPlotList(inputFileName, pathToHistogram, version, mode)
     if plots is None:
@@ -783,7 +840,7 @@ def produce2DSummaryPlot(inputFileName, pathToHistogram, version=0, mode='pxar',
     summaryPlot = makeMergedPlot(plots, mode)
     if not zRange: zRange = findZRange(plots)
     setZRange(summaryPlot,zRange)
-    summaryCanvas = setupSummaryCanvas(summaryPlot, moduleName=moduleName)
+    summaryCanvas = setupSummaryCanvas(summaryPlot, moduleName=moduleName, bare=bare)
 
     return summaryCanvas
 
@@ -804,12 +861,27 @@ def produce2DPlotList(inputFileName, pathToHistogram, version=0, mode='pxar'):
         else:
             chipIndex = pathToHistogram.rfind("_ROC")+4
             plotPath = pathToHistogram[:chipIndex]+str(roc)+pathToHistogram[chipIndex:]
-        if not inputFile.Get(plotPath):
-            print "missing plot:", plotPath
-            plot = TH2D("","",52,0,52,80,0,80)  # insert empty plot
-        else:
+
+        if inputFile.Get(plotPath):
             foundPlot = True
             plot = inputFile.Get(plotPath).Clone()
+        else:
+            if not inputFile.Get(plotPath + " (inv)"):
+                print "missing plot:", plotPath
+                plot = TH2D("","",52,0,52,80,0,80)  # insert empty plot
+            else:
+                foundPlot = True
+                inverted_plot = inputFile.Get(plotPath+ " (inv)").Clone()
+                plot = TH2D(inverted_plot.GetName().rstrip(" (inv)"),inverted_plot.GetTitle(),52,0,52,80,0,80)  # insert empty plot
+                nBinsX = inverted_plot.GetNbinsX()
+                nBinsY = inverted_plot.GetNbinsY()
+                for x in range(1, nBinsX+1):
+                    for y in range(1, nBinsY+1):
+                        content = inverted_plot.GetBinContent(x,y)
+                        error   = inverted_plot.GetBinError(x,y)
+                        plot.SetBinContent(nBinsX-x+1, nBinsY-y+1, content)
+                        plot.SetBinError(nBinsX-x+1, nBinsY-y+1, error)
+
         plotName = pathToHistogram.lstrip("/")
         if mode == 'pxar':
             plot.SetName(plotName + "_V" + str(version) + "_Summary" + str(roc))
