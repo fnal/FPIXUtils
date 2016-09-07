@@ -90,13 +90,13 @@ def produceRTIPartsDictionary():
 # use wafer position, e.g. "63A" as key
 
 def produceROCGradeDictionary(wafer):
-    inputFile = "/Users/lantonel/FPIXUtils/ROCTestingResults/" + wafer + ".json"
+    inputFile = "/Users/lantonel/FPIXUtils/databaseTools/ROCTestingResults/" + wafer + ".json"
 
     dictionary = {}
 
     if not os.path.exists(inputFile):
         print inputFile, "not found, skipping..."
-        return dictionary
+        return pd.DataFrame()
     with open(inputFile) as data_file:
         for line in data_file:
             if len(line) < 100:
@@ -137,9 +137,9 @@ def produceSensorGradeDictionary(inputFile):
 
 def getROCCoordinates(partsDictionary, moduleName, chipIndex):
     errorCode = ["?","?","?","?"]
-    if moduleName not in partsDictionary:
+    if moduleName not in partsDictionary.index:
         return errorCode
-    entry = partsDictionary[moduleName]["ROC"+str(chipIndex)]
+    entry = partsDictionary.loc[moduleName]["ROC"+str(chipIndex)].rstrip()
     if len(entry) < 4:
         return errorCode
 
@@ -190,13 +190,10 @@ def printROCCoordinates(partsDictionary, moduleName):
 def getListOfROCWafers(partsDictionary):
 
     listOfWafers = []
-    dictionary = partsDictionary.to_dict(orient='index')
 
-    for moduleName in dictionary:
-        if "module" in moduleName:
-            print moduleName, getROCCoordinates(dictionary, moduleName, 0)
+    for moduleName in partsDictionary.index:
         for chipIndex in range(16):
-            wafer = getROCCoordinates(dictionary, moduleName, chipIndex)[0]
+            wafer = getROCCoordinates(partsDictionary, moduleName, chipIndex)[0]
 
             if wafer != "?" and wafer not in listOfWafers:
                 listOfWafers.append(wafer)
