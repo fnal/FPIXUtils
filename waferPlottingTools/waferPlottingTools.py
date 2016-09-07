@@ -30,22 +30,50 @@ MODULE_Y_PLOT_SIZE = 2 * ROC_PLOT_SIZE
 
 ###############################################################################
 
-def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = None):
+def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = None, overlay = True):
+
+    rotatedWafers = {
+        308 : [], # ?
+        311 : [], # ?
+        316 : [], # ?
+        325 : [], # none
+        326 : [], # ?
+        327 : ['all'],
+        328 : ['all'],
+        329 : [], # ?
+        332 : ['all'],
+        333 : ['all'], # ?
+        334 : [],
+        335 : ['all'],
+        336 : ['all'], # ?
+        337 : ['all'],
+        338 : ['BB','FR','FL'],
+        339 : [], # none
+        340 : [], # none
+        341 : ['all'],
+        342 : ['TT','LL','CL','CR','RR','FR','BB'], # FL not rotated...
+        343 : ['all'],
+        344 : ['TT','FL','LL','CR','RR','FR','BB'], # CL not rotated...
+        345 : ['all'], # ?
+        346 : ['all'], # ?
+    }
 
     title = inputPath.split("/")
 
     canvas = TCanvas(wafer,"")
+
+    canvas.SetLogz(True)
 
     canvas.SetFillStyle(0)
     canvas.SetBorderMode(0)
     canvas.SetBorderSize(0)
     # including periphery calculations
     canvas.SetCanvasSize(2232, 2088)
+#    canvas.SetCanvasSize(558, 522)
     canvas.SetMargin(0,0,0,0)
     SetOwnership(canvas, False)  # avoid going out of scope at return statement
 
-    # 
-    
+
     lowEdge = 186./1044.
     highEdge = 1. - lowEdge
     leftEdge = 0.5 - (672./2.)/1116.
@@ -85,6 +113,7 @@ def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = 
     canvas.Divide(12)
     for pad in range(12):
         canvas.cd(pad+1)
+#        gPad.SetLogz(True)
         location = padList[pad]['location']
         x1 = location[0]
         y1 = location[1]
@@ -134,12 +163,29 @@ def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = 
         canvas.cd(padIndices[plot['position']])
 
         # rotate histogram according to its position on the wafer
-        if plot['position'] == 'TT':
-            histo = flipSummaryPlot(plot['plot'])
-        elif plot['position'] != 'BB':
-            histo = rotateSummaryPlot(plot['plot'])
+
+        flipped = False
+        if int(wafer) in rotatedWafers:
+            if plot['position'] in rotatedWafers[int(wafer)] or 'all' in rotatedWafers[int(wafer)]:
+                flipped = True
+
+        if not flipped:
+            if plot['position'] == 'TT':
+                histo = flipSummaryPlot(plot['plot'])
+            elif plot['position'] == 'BB':
+                histo = plot['plot']
+            else:
+                histo = rotateSummaryPlot(plot['plot'])
+
         else:
-            histo = plot['plot']
+            if plot['position'] == 'TT':
+                histo = plot['plot']
+            elif plot['position'] == 'BB':
+                histo = flipSummaryPlot(plot['plot'])
+            else:
+                histo = rotateSummaryPlot(plot['plot'],'counterclockwise')
+
+
         histo.SetDirectory(0)
         SetOwnership(histo,False)
 
@@ -154,6 +200,32 @@ def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = 
         histo.Draw('cola a')
         gPad.Update()
         canvas.Update()
+
+        if not overlay:
+            continue
+
+        if plot['position'] == 'TT' or plot['position'] == 'BB':
+            moduleBox = TPaveText(0.38, 0.1, 0.62, 0.9, "NDC NB")
+        else:
+            moduleBox = TPaveText(0.05, 0.75, 0.95, 0.97, "NDC NB")
+        moduleBox.SetFillStyle(0)
+        moduleBox.SetFillColor(0)
+        moduleBox.SetTextAlign(22)
+        moduleBox.SetTextFont(40)
+        moduleBox.SetTextSize(0.2)
+        moduleBox.SetTextColor(17)
+        moduleBox.SetBorderSize(0)
+        moduleBox.AddText(plot['module'])
+        moduleBox.AddText(plot['bias'])
+        moduleBox.AddText('X-ray: ' + str(plot['xraygrade']))
+        moduleBox.AddText('IV: ' + str(plot['ivgrade']))
+        moduleBox.AddText('Grade: ' + str(plot['grade']))
+        SetOwnership(moduleBox,False)
+        moduleBox.Draw()
+        gPad.Update()
+        canvas.Update()
+
+
 
     # draw wafer box in bottom left
     canvas.cd(padIndices['TL'])
@@ -181,12 +253,18 @@ def saveSensorWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = 
 
     # draw z-scale in bottom right
     canvas.cd(padIndices['BR'])
-    palette = TPaletteAxis(0.3, 0.1, 0.5, 0.9, histo)
-    palette.SetLabelSize(0.025)
-#    palette.SetLabelFont(42)
+    palette = TPaletteAxis(0.3, 0.1, 0.8, 0.9, histo)
     palette.Draw()
+    palette.GetAxis().SetLabelFont(43)
+    palette.GetAxis().SetLabelColor(2)
+    palette.GetAxis().SetLabelSize(100)
 
     canvas.SaveAs("SensorWafer_"+wafer+"_"+inputPath.replace("/","_")+".png")
+#    outputFile = TFile("SensorWafer_"+wafer+"_"+inputPath.replace("/","_")+".root", "RECREATE")
+#    print "SensorWafer_"+wafer+"_"+inputPath.replace("/","_")+".root"
+#    outputFile.cd()
+#    canvas.Write()
+#    outputFile.Close()
 
 
 ###############################################################################
@@ -246,8 +324,9 @@ def saveROCWaferCanvas(wafer, inputPath, plotDictionary, zMin = None, zMax = Non
     colors = [kWhite,kBlue+1,kViolet+1,kYellow+1,kRed+1]
     canvas.cd()
     waferGrades = produceROCGradeDictionary(wafer)
-    for roc,grade in waferGrades.iteritems():
-        position = roc.split('-')[1]
+    for index,row in waferGrades.iterrows():
+        grade = row['Grade']
+        position = row['ROC ID'].split('-')[1]
         pad = int(position[0]) * 10 + int(position[1]) + 1
         subpad = ord(position[2]) - ord('A') + 1
         canvas.cd(pad)
