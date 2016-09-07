@@ -96,22 +96,22 @@ inputDirName = '/Users/lantonel/PlotsAndTables/UniqueTestResults'
 
 #######################################################
 
-def resetBadPlots(plots, name):
+def resetBadPlots(plots, module):
 
-    global nROCsAnalyzed
+    with open('moduleInfo.json') as json_data:
+        gradeDictionary = json.load(json_data)
 
-    for rocToIgnore in rocsToIgnore:
-        if rocToIgnore['module'] not in name:
-            continue
-
-        for roc in rocToIgnore['rocs']:
-            print "skipping ROC " + str(roc)
-            nROCsAnalyzed -= 1
-            histo = plots[roc].Clone()
-            histo.SetDirectory(0)
-            histo.Reset()
-            histo.SetTitle("bad")
-            plots[roc] = histo
+        for roc in range(16):
+            failure = gradeDictionary[module]["ROC"+str(roc)+" Failure"]
+#            print module, str(roc), failure
+#            if not pd.isnull(failure) and failure != "Partially Detached":
+            if not pd.isnull(failure):
+                print "skipping ROC " + str(roc) + ": " + str(failure)
+                histo = plots[roc].Clone()
+                histo.SetDirectory(0)
+                histo.Reset()
+                histo.SetTitle("bad")
+                plots[roc] = histo
 
 #######################################################
 
@@ -232,6 +232,7 @@ def create2DBinaryPlots(config, outputFile):
             if not plots:
                 continue
             makeBinaryPlots(plots, config['min'], config['max'])
+            resetBadPlots(plots, module)
             if summary is None:
                 summary = makeMergedPlot(plots)
             else:
@@ -258,6 +259,7 @@ installed = []
 gradeANotInstalled = []
 gradeBNotInstalled = []
 gradeCNotInstalled = []
+detachedROCs = []
 for module in gradeDictionary:
     if not pd.isnull(gradeDictionary[module]["Position"]):
         installed.append(module)
@@ -268,10 +270,19 @@ for module in gradeDictionary:
     elif gradeDictionary[module]["Grade"] == "C":
         gradeCNotInstalled.append(module)
 
+    hasDetachedRoc = False
+    for roc in range(16):
+        if gradeDictionary[module]["ROC"+str(roc)+" Failure"] == "Partially Detached":
+            hasDetachedRoc = True
+            break
+    if hasDetachedRoc:
+        detachedROCs.append(module)
+
 #installed = ['M-G-1-41','M-G-1-36','M-K-1-14']
 #gradeANotInstalled = ['M-O-2-07','M-J-3-05','M-I-4-13']
 
 allGradeA = installed + gradeANotInstalled
+allModules = installed + gradeANotInstalled + gradeBNotInstalled + gradeCNotInstalled
 
 installedConfig = {
     'modules' : installed,
@@ -303,6 +314,19 @@ gradeAConfig = {
     'color' : kBlack,
 }
 
+allModulesConfig = {
+    'modules' : allModules,
+    'legendEntry' : 'All Modules',
+    'color' : kBlue,
+}
+
+detachedROCsConfig = {
+    'modules' : detachedROCs,
+    'legendEntry' : 'Partially Detached ROCs',
+    'color' : kRed,
+}
+
+
 
 moduleListsToPlot = [installedConfig, gradeANotInstalledConfig, gradeBNotInstalledConfig, gradeCNotInstalledConfig]
 #moduleListsToPlot = [installedConfig, gradeANotInstalledConfig, gradeBNotInstalledConfig]
@@ -323,7 +347,7 @@ turnOn = {
     'xunit' : 'VCal units',
     'yunit' : '# pixels',
 }
-rawValue1DPlots.append(turnOn)
+#rawValue1DPlots.append(turnOn)
 
 noise = {
     'title' : 'Pixel Noise',
@@ -332,7 +356,7 @@ noise = {
     'xunit' : 'VCal units',
     'yunit' : '# pixels',
 }
-rawValue1DPlots.append(noise)
+#rawValue1DPlots.append(noise)
 
 #######################################################
 
@@ -347,7 +371,7 @@ badBumps = {
     'xunit' : '# bad bumps',
     'yunit' : '# modules',
 }
-binary1DPlots.append(badBumps)
+#binary1DPlots.append(badBumps)
 
 #######################################################
 
@@ -356,7 +380,9 @@ binary2DPlots = []
 badBumpMap = {
     'title' : 'Bad Bump Locations',
     'path' : 'BB3/rescaledThr',
-    'series' : [installedConfig, gradeAConfig],
+#    'series' : [installedConfig, gradeAConfig],
+    'series' : [allModulesConfig],
+#    'series' : [detachedROCsConfig],
     'min' : 5,
     'max' : 999,
 }
