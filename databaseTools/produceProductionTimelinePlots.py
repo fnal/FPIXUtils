@@ -54,6 +54,15 @@ assemblyTimePlot = TH1F("assemblyTime", "Module assembly & testing times; time [
 assemblyTimePlot.SetStats(False)
 assemblyTimePlot.SetLineColor(kRed+1)
 assemblyTimePlot.SetLineWidth(3)
+assemblyTimePlotPurdue = TH1F("assemblyTimePurdue", "Module assembly & testing times; time [days]; # modules", nBins, 0, maxDays)
+assemblyTimePlotPurdue.SetStats(False)
+assemblyTimePlotPurdue.SetLineColor(kOrange+1)
+assemblyTimePlotPurdue.SetLineWidth(3)
+assemblyTimePlotUNL = TH1F("assemblyTimeUNL", "Module assembly & testing times; time [days]; # modules", nBins, 0, maxDays)
+assemblyTimePlotUNL.SetStats(False)
+assemblyTimePlotUNL.SetLineColor(kYellow+1)
+assemblyTimePlotUNL.SetLineWidth(3)
+
 testingTimePlot = TH1F("testingTime", "Module assembly & testing times; time [days]; # modules", nBins, 0, maxDays)
 testingTimePlot.SetStats(False)
 testingTimePlot.SetLineColor(kBlue+1)
@@ -72,15 +81,17 @@ for module in modules:
         print module, "not yet judged"
         continue
 
-    nModules += 1
     data = gradeDictionary[module]
-    date = str(gradeDictionary[module]["Received"])
-    if not pd.isnull(gradeDictionary[module]["Shipped"]):
-        ship = str(gradeDictionary[module]["Shipped"])
+
+    nModules += 1
+
+    date = str(data["Received"])
+    if not pd.isnull(data["Shipped"]):
+        ship = str(data["Shipped"])
     else:
         ship = '2015-11-02 00:00:00'
-    if not pd.isnull(gradeDictionary[module]["Judged"]):
-        judge = str(gradeDictionary[module]["Judged"])
+    if not pd.isnull(data["Judged"]):
+        judge = str(data["Judged"])
     else:
         judge = '2015-11-02 00:00:00'
 
@@ -97,9 +108,12 @@ for module in modules:
     assemblyTime = math.floor((ship_object - date_object).days)
     if assemblyTime:
         if assemblyTime > maxDays:
-            assemblyTimePlot.Fill(maxDays - 0.1)
-        else:
-            assemblyTimePlot.Fill(assemblyTime)
+            assemblyTime = maxDays - 0.1
+        assemblyTimePlot.Fill(assemblyTime)
+        if data['assembly site'] == 'Purdue':
+            assemblyTimePlotPurdue.Fill(assemblyTime)
+        elif data['assembly site'] == 'Nebraska':
+            assemblyTimePlotUNL.Fill(assemblyTime)
     testingTime = math.floor((judge_object - ship_object).days)
     if testingTime:
         if testingTime > maxDays:
@@ -142,7 +156,7 @@ totalTimePlot.Draw("same")
 timeLegend = TLegend(0.5, 0.6, 0.9, 0.9)
 timeLegend.SetBorderSize(0)
 timeLegend.SetFillStyle(0)
-timeLegend.AddEntry(0, str(nModules) + " grade A/B modules processed", "H")
+timeLegend.AddEntry(0, str(nModules) + " modules processed", "H")
 timeLegend.AddEntry(assemblyTimePlot, "Assembly Time", "L")
 timeLegend.AddEntry(testingTimePlot, "Testing Time", "L")
 timeLegend.AddEntry(totalTimePlot, "Total Processing Time", "L")
@@ -152,6 +166,40 @@ timeCanvas.Write()
 timeCanvas.SaveAs("Times.pdf")
 
 ##########
+
+assemblyCanvas = TCanvas("assemblyPlot")
+globalMax = -999
+if assemblyTimePlot.GetMaximum() > globalMax:
+    globalMax = assemblyTimePlot.GetMaximum()
+if assemblyTimePlotPurdue.GetMaximum() > globalMax:
+    globalMax = testingTimePlotPurdue.GetMaximum()
+if assemblyTimePlotUNL.GetMaximum() > globalMax:
+    globalMax = totalTimePlotUNL.GetMaximum()
+
+globalMax *= 1.1
+assemblyTimePlot.SetMaximum(globalMax)
+assemblyTimePlotPurdue.SetMaximum(globalMax)
+assemblyTimePlotUNL.SetMaximum(globalMax)
+
+
+assemblyTimePlot.Draw()
+assemblyTimePlotPurdue.Draw("same")
+assemblyTimePlotUNL.Draw("same")
+
+
+assemblyLegend = TLegend(0.5, 0.6, 0.9, 0.9)
+assemblyLegend.SetBorderSize(0)
+assemblyLegend.SetFillStyle(0)
+assemblyLegend.AddEntry(0, str(nModules) + " modules processed", "H")
+assemblyLegend.AddEntry(assemblyTimePlot, "Assembly time (Total)", "L")
+assemblyLegend.AddEntry(assemblyTimePlotPurdue, "Assembly time (Purdue)", "L")
+assemblyLegend.AddEntry(assemblyTimePlotUNL, "Assembly time (UNL)", "L")
+assemblyLegend.Draw()
+
+assemblyCanvas.Write()
+assemblyCanvas.SaveAs("AssemblyBySite.pdf")
+
+######
 
 canvas2 = TCanvas("ModulesPerBatch")
 #legend = TLegend(0.6, 0.6, 0.9, 0.9)
