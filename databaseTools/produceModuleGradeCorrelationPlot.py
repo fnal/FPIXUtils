@@ -32,21 +32,36 @@ with open('moduleInfo.json') as json_data:
     gradeDictionary = json.load(json_data)
 
 df = pd.DataFrame.from_dict(gradeDictionary, orient='index')
-df = df[['Grade','Moreweb Grade m20','Moreweb Grade p17']]
+df = df[['Grade','Moreweb Grade m20','Moreweb Grade p17','Moreweb Grade xray']]
+
 
 def getMorewebGrade(row):
+    grade = None
     if not pd.isnull(row['Moreweb Grade m20']):
-        return row['Moreweb Grade m20']
+        grade = row['Moreweb Grade m20']
     elif not pd.isnull(row['Moreweb Grade p17']):
-        return row['Moreweb Grade p17']
+        grade = row['Moreweb Grade p17']
+    if not pd.isnull(row['Moreweb Grade xray']):
+        if row['Moreweb Grade xray'] > grade:
+            grade = row['Moreweb Grade xray']
+    if grade:
+        return grade
     else:
         return 'I'
+
 
 df['Moreweb Grade'] = df.apply(lambda row: getMorewebGrade(row), axis=1)
 df.rename(columns = {'Grade' : 'Lessweb Grade'}, inplace=True)
 
 df = df[['Lessweb Grade','Moreweb Grade']]
 df.fillna(value='I',inplace=True)
+
+#list = df[(df['Lessweb Grade'] == 'B') & (df['Moreweb Grade'] == 'A')].index.tolist()
+#for module in list:
+#    print module
+#print df[df['Moreweb Grade xray'] == 'B']
+#sys.exit(0)
+
 
 dictionary = df.to_dict(orient='index')
 
