@@ -81,7 +81,7 @@ def SummaryPlots():
                 if histlist[ihist] == "Scurves/dist_thr_scurveVcal_Vcal_C0_V0": hist.GetXaxis().SetRangeUser(0,75)
                 if can.GetLogy(): hist.SetMinimum(0.5)
                 else: hist.SetMinimum(0)
-                if hist.ClassName()[:3]=="TH1": hist.SetMaximum(maximum[ihist])
+                hist.SetMaximum(maximum[ihist])
                 hist.Draw("hist")
             else: hist.Draw("hist same")
             filename = tfilelist[ifile].GetName()
