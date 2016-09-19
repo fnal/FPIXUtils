@@ -18,8 +18,6 @@ import subprocess
 import glob
 from optparse import OptionParser
 
-
-
 # site-specific directory names
 
 outputDir_ = "/home/fnalpxar/quicktestResults/"
@@ -36,6 +34,7 @@ parser.add_option("-i", "--hubID", dest="hubID",
                   help="hubID value of module, 0-15 (REQUIRED for 'pre' test)")
 parser.add_option("-d", "--vdig", dest="vdig", default='8', help="vdig to run module at (Only works with 'pre' test)")
 parser.add_option("-l", "--level", dest="level", default='12', help="level to run DTB at (Only works with 'pre' test)")
+parser.add_option("-n", "--noconfigs", action="store_true", dest="noconfigs", default=False, help="No testing configs. Use default ones.")
 parser.add_option("-t", "--timing", action="store_true", dest="timing", default=False, help="Adjust Timings (Should only use with 'pre' test)")
 parser.add_option("-v", "--version", dest="version", default="4.6", help="Which version of pXar to use. Options are 4.5 or 4.6")
 (arguments, args) = parser.parse_args()
@@ -65,6 +64,7 @@ stage = arguments.stage.lower().capitalize()
 ###########################################
 ###########################################
 
+TestList = "PixelAlive:alivetest\nBB3"
 if stage == "Pre":
 
     ###########################################
@@ -91,7 +91,8 @@ if stage == "Pre":
     # get module configs
     ###########################################
     print "You are too stupid to before"
-    os.system("scp 'uicpirepix2@bender.phy.uic.edu:/home/uicpirepix2/ProductionTestResults/"+arguments.module+"_FPIXTest-m20C*/000_FPIXTest_m20/*.dat' "+testDir)
+    if arguments.noconfigs: os.system("cp /home/fnalpxar/quicktestResults/DefaultConfigs/*.dat "+testDir)
+    else: os.system("scp 'uicpirepix2@bender.phy.uic.edu:/home/uicpirepix2/ProductionTestResults/"+arguments.module+"_FPIXTest-m20C*/000_FPIXTest_m20/*.dat' "+testDir)
     os.system("sed -i 's|testboardName [A-Z0-9_][A-Z0-9_]*|testboardName *|' "+testDir+"/configParameters.dat")
     os.system("sed -i 's|hubId [0-9][0-9]*|hubId "+arguments.hubID+"|' "+testDir+"/configParameters.dat")
     os.system("sed -i 's|level   [0-9][0-9]*|level   "+arguments.level+"|' "+testDir+"/tbParameters.dat")
@@ -117,14 +118,15 @@ elif stage == "Post":
 
 # run pXar command
 ###########################################
+if arguments.noconfigs:
+    TestList = TestList.replace("PixelAlive:alivetest","Pretest\nPixelAlive:alivetest")
 if arguments.timing and arguments.version=="4.5":
-    os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
-          " | sed '1 i\\timing' |" + \
-          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -v DEBUG -r commander_Quicktest" + stage + ".root")
+    TestList = TestList.replace("PixelAlive:alivetest","PixelAlive:alivetest\nTiming")
+
+if arguments.noconfigs:
+    os.system("echo -e '" + TestList + "' |" + pxarDir_ + "/bin/pXar -d " + testDir + " -v DEBUG -r commander_Quicktest" + stage + ".root")
 else:
-    os.system("cat " + fpixutilsDir_ + "/testList" + stage + ".txt" + \
-          " | " + \
-          pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -v DEBUG -r commander_Quicktest" + stage + ".root")
+    os.system("echo -e '" + TestList + "' |" + pxarDir_ + "/bin/pXar -d " + testDir + " -T 35 -v DEBUG -r commander_Quicktest" + stage + ".root")
 
 ###########################################
 # print relevant lines from log file
