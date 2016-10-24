@@ -9,6 +9,8 @@ parser.add_argument("-d","--directory", dest="directory", default="../Production
 parser.add_argument("-v","--verbose", dest="verbose", action="store_true", default=False, help="Enable Verbose Output")
 args = parser.parse_args()
 
+ROCPattern = re.compile("E-[0-9][0-9]-[A-Z][A-Z]")
+
 import ROOT
 ROOT.gStyle.SetOptStat(000000)
 
@@ -42,9 +44,9 @@ def histsearch(histname,tfile,phfilter=""):
     return hist
 
 def MakeIVPlot(directory):
-    ROCPattern = re.compile("E-[0-9][0-9]-[A-Z][A-Z]")
     ROCName = directory[ROCPattern.search(directory).start():ROCPattern.search(directory).end()]
-    IVData = open(directory+"/001_IV_m20/ivCurve.log", 'r')
+    IVFile = os.popen("find "+directory+" -name ivCurve.log").readline().strip()
+    IVData = open(IVFile, 'r')
     IVHist = ROOT.TH1D(ROCName+"IV","IV Curve",61,-5,605)
     for line in IVData:
         if line[0]=="#": continue
@@ -56,18 +58,19 @@ def MakeIVPlot(directory):
 def SummaryTable():
     Results = []
     for idir in os.listdir(args.directory):
+        if not ROCPattern.search(idir): continue
         result = []
-        filename = args.directory+idir+"/000_FPIXROCTest_m20/commander_FPIXROCTest.log"
-        if args.verbose: print "Processing: "+filename
-        ROCPattern = re.compile("E-[0-9][0-9]-[A-Z][A-Z]")
-        ROCName = filename[ROCPattern.search(filename).start():ROCPattern.search(filename).end()]
+        logfile = os.popen("find "+args.directory+idir+" -name '*.root' | grep 000 | sed 's|.root|.log|'").readline().strip()
+        if args.verbose: print "Processing: "+logfile
+        ROCName = logfile[ROCPattern.search(logfile).start():ROCPattern.search(logfile).end()]
         result.append(ROCName)
-        result.append(os.popen("grep 'number of dead pixels' "+filename+" | awk '{print $10}'").readline().strip())
-        result.append(os.popen("grep 'number of red-efficiency pixels' "+filename+" | awk '{print $9}'").readline().strip())
-        rootfile=ROOT.TFile(args.directory+idir+"/000_FPIXROCTest_m20/commander_FPIXROCTest.root")
+        result.append(os.popen("grep 'number of dead pixels' "+logfile).readline().strip().split()[-1])
+        result.append(os.popen("grep 'number of red-efficiency pixels' "+logfile).readline().strip().split()[-1])
+        filename = os.popen("find "+args.directory+idir+" -name '*.root' | grep 000").readline().strip()
+        rootfile=ROOT.TFile(filename)
         result.append(str(round(rootfile.Get("Scurves/dist_thr_scurveVcal_Vcal_C0_V0").GetMean(),2)))
         result.append(str(round(TH2ToTH1(rootfile.Get("Scurves/sig_scurveVcal_Vcal_C0_V0")).GetMean(),3)))
-        result.append(os.popen("grep 'number of dead bumps' "+filename+" | awk '{print $10}'").readline().strip())
+        result.append(os.popen("grep 'number of dead bumps' "+logfile).readline().strip().split()[-1])
         Results.append(result)
     print "\n================================================================================"
     print "Summary Table"
@@ -86,8 +89,10 @@ def SummaryPlots():
     maximum = [0]*len(histlist)
     phfilter = "min"
     for idir in os.listdir(args.directory):
-        if args.verbose: print "Loading: "+args.directory+idir+"/000_FPIXROCTest_m20/commander_FPIXROCTest.root"
-        tfilelist.append(ROOT.TFile(args.directory+idir+"/000_FPIXROCTest_m20/commander_FPIXROCTest.root"))
+        if not ROCPattern.search(idir): continue
+        filename = os.popen("find "+args.directory+idir+" -name '*.root' | grep 000").readline().strip()
+        if args.verbose: print "Loading: "+filename
+        tfilelist.append(ROOT.TFile(filename))
         for ihist in range(len(histlist)):
             if histlist[ihist].find("*") != -1:
                 hist=histsearch(histlist[ihist],tfilelist[-1],phfilter)
@@ -104,6 +109,7 @@ def SummaryPlots():
     phfilter="min"
     for ihist in range(len(histlist)):
         hists=[]
+        #if histlist[ihist].find("thr_scurveVcal_Vcal")!=-1 or histlist[ihist].find("sig_scurveVcal_Vcal")!=-1 or histlist[ihist].find("IV")!=-1: can.SetLogy(1)
         if histlist[ihist].find("thr_scurveVcal_Vcal")!=-1 or histlist[ihist].find("IV")!=-1: can.SetLogy(1)
         else: can.SetLogy(0)
         if histlist[ihist].find("PH_c")!=-1 or histlist[ihist]=="IV": leg = ROOT.TLegend(0.6,0.2,0.9,0.5)
@@ -127,13 +133,13 @@ def SummaryPlots():
                 if histlist[ihist] == "Scurves/dist_thr_scurveVcal_Vcal_C0_V0": hist.GetXaxis().SetRangeUser(0,75)
                 if histlist[ihist] == "Scurves/sig_scurveVcal_Vcal_C0_V0": hist.GetXaxis().SetRangeUser(0,10)
                 if histlist[ihist] == "GainPedestal/gainPedestalNonLinearity_C0_V0": hist.GetXaxis().SetRangeUser(0.85,1.05)
-                if can.GetLogy(): hist.SetMinimum(0.5)
+                if histlist[ihist]=="IV": hist.SetMinimum(5.0e-8)
+                elif can.GetLogy(): hist.SetMinimum(0.5)
                 else: hist.SetMinimum(0)
                 hist.SetMaximum(maximum[ihist])
                 hist.Draw("hist")
             else: hist.Draw("hist same")
             filename = tfilelist[ifile].GetName()
-            ROCPattern = re.compile("E-[0-9][0-9]-[A-Z][A-Z]")
             ROCName = filename[ROCPattern.search(filename).start():ROCPattern.search(filename).end()]
             leg.AddEntry(hist,ROCName,"l")
         leg.Draw()
