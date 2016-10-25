@@ -35,6 +35,7 @@ parser.add_option("-i", "--hubID", dest="hubID",
 parser.add_option("-d", "--vdig", dest="vdig", default='8', help="vdig to run module at (Only works with 'pre' test)")
 parser.add_option("-l", "--level", dest="level", default='12', help="level to run DTB at (Only works with 'pre' test)")
 parser.add_option("-n", "--noconfigs", action="store_true", dest="noconfigs", default=False, help="No testing configs. Use default ones.")
+parser.add_option("-r", "--readlines", action="store_true", dest="readback", default=False, help="Run the readback teat instead of BB3")
 parser.add_option("-t", "--timing", action="store_true", dest="timing", default=False, help="Adjust Timings (Should only use with 'pre' test)")
 parser.add_option("-v", "--version", dest="version", default="4.6", help="Which version of pXar to use. Options are 4.5 or 4.6")
 (arguments, args) = parser.parse_args()
@@ -65,6 +66,7 @@ stage = arguments.stage.lower().capitalize()
 ###########################################
 
 TestList = "PixelAlive:alivetest\nBB3"
+if arguments.readback: TestList = TestList.replace("BB3","readback")
 if stage == "Pre":
 
     ###########################################
@@ -132,13 +134,8 @@ else:
 # print relevant lines from log file
 ###########################################
 
-linesToPrint = [
-    "number of dead pixels",
-    "number of dead bumps",
-    "Functional",
-#    "The fraction of properly decoded events is",
-#    "Timings are"
-    ]
+linesToPrint = ["number of dead pixels","number of dead bumps","Functional"]
+if arguments.readback: linesToPrint = ["number of dead pixels","calibrated Vbg"]
 
 print
 print "TEST RESULT SUMMARY:"
