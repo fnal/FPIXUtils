@@ -59,6 +59,7 @@ def SummaryTable():
     Results = []
     for idir in os.listdir(args.directory):
         if not ROCPattern.search(idir): continue
+        if idir.find("Busted") != -1: continue
         result = []
         logfile = os.popen("find "+args.directory+idir+" -name '*.root' | grep 000 | sed 's|.root|.log|'").readline().strip()
         if args.verbose: print "Processing: "+logfile
@@ -90,6 +91,7 @@ def SummaryPlots():
     phfilter = "min"
     for idir in os.listdir(args.directory):
         if not ROCPattern.search(idir): continue
+        if idir.find("Busted") != -1: continue
         filename = os.popen("find "+args.directory+idir+" -name '*.root' | grep 000").readline().strip()
         if args.verbose: print "Loading: "+filename
         tfilelist.append(ROOT.TFile(filename))

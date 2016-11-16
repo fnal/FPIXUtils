@@ -46,7 +46,7 @@ def histsearch(histname,tfile,phfilter=""):
 
 def MakeIVPlot(directory):
     ROCName = directory[ROCPattern.search(directory).start():ROCPattern.search(directory).end()]
-    IVFile = os.popen("find "+directory+" -name ivCurve.log | grep -v Duplicate").readline().strip()
+    IVFile = os.popen("find "+directory+" -name ivCurve.log | egrep -v 'Duplicate|Busted'").readline().strip()
     IVData = open(IVFile, 'r')
     IVHist = ROOT.TH1D(ROCName+"IV","IV Curve",61,-5,605)
     for line in IVData:
@@ -79,7 +79,7 @@ for iroc in ROCListAll:
 for iroc in ROCList:
     shorttfilelist = []
     for idir in args.directories:
-        filename = os.popen("find "+idir+" -name '*.root' | grep 000 | grep -v Duplicate | grep "+iroc).readline().strip()
+        filename = os.popen("find "+idir+" -name '*.root' | grep 000 | egrep -v 'Duplicate|Busted' | grep "+iroc).readline().strip()
         dirname = filename[:filename.find("000")]
         if args.verbose: print "Loading: "+filename
         shorttfilelist.append(ROOT.TFile(filename))
