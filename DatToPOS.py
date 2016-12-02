@@ -54,6 +54,14 @@ def ModuleName(directory):
     if ModuleName in modulemap: ModuleName = modulemap[ModuleName]
     return ModuleName
 
+def GetData(hist):
+    data = {}
+    if hist==None: return data
+    for ibin in range(1,hist.GetNbinsX()+1):
+        if hist.GetBinContent(ibin)==0: continue
+        else: data[round(hist.GetBinLowEdge(ibin),3)] = round(hist.GetBinContent(ibin),3)
+    return data
+
 def ProcessTBM(directory):
     os.chdir(inputdir+"/"+directory+"/000_FPIXTest_"+args.temp)
     TBMPhase = int(os.popen("grep basee tbmParameters_C0a.dat | awk '{print $3}'").readline().strip(),16)
@@ -168,7 +176,6 @@ def ProcessMasks(directory):
     MaskFile.close()
     os.chdir(workingdir)
 
-
 def PixelAlive(directory, DeadPixels):
     os.chdir(inputdir+"/"+directory+"/000_FPIXTest_"+args.temp)
     module = ModuleName(directory)
@@ -217,12 +224,40 @@ def BumpBonds(directory, BadBumps):
                     else: BadBumps[pixkey] = [[xbin-1,ybin-1,sigma,raw]]
     os.chdir(workingdir)
 
+def Readback(directory, ReadbackInfo):
+    os.chdir(inputdir+"/"+directory+"/000_FPIXTest_"+args.temp)
+    module = ModuleName(directory)
+    tfile = ROOT.TFile.Open("commander_FPIXTest.root")
+    ModuleData = []
+    for iroc in range(16):
+        ROCData = {}
+        VbgHist = tfile.Get("Readback/Vbg_readback_V0")
+        VDHist = tfile.Get("Readback/rbVd_C"+str(iroc)+"_V0")
+        RawVDHist = tfile.Get("Readback/dacVd_C"+str(iroc)+"_V0")
+        VAHist = tfile.Get("Readback/rbVa_C"+str(iroc)+"_V0")
+        RawVAHist = tfile.Get("Readback/dacVa_C"+str(iroc)+"_V0")
+        IAHist = tfile.Get("Readback/rbIa_C"+str(iroc)+"_V0")
+        TBIAHist = tfile.Get("Readback/tbIa_C"+str(iroc)+"_V0")
+        VbgData = GetData(VbgHist)
+        if iroc in VbgData: ROCData["Vbg"] = VbgData[iroc]
+        else: ROCData["Vbg"] = 0.0
+        ROCData["VD"] = GetData(VDHist)
+        ROCData["RawVD"] = GetData(RawVDHist)
+        ROCData["VA"] = GetData(VAHist)
+        ROCData["RawVA"] = GetData(RawVAHist)
+        ROCData["IA"] = GetData(IAHist)
+        ROCData["TBIA"] = GetData(TBIAHist)
+        ModuleData.append(ROCData)
+    ReadbackInfo[module]=ModuleData
+    os.chdir(workingdir)
+
 if args.temp=="p17": temperature = "17C"
 if args.temp=="m20": temperature = "m20C"
 modulelist = os.popen("/bin/ls "+args.input+" | egrep 'M-[A-Z]-[A-Z0-9]-[A-Z0-9][A-Z0-9]_.*-"+temperature+"'").readlines()
 DeadPixels = {}
 SCurveInfo = {}
 BadBumps = {}
+ReadbackInfo = {}
 for module in modulelist:
     if selectedmodules==[]: skipmodule = False
     else: skipmodule = True
@@ -242,11 +277,13 @@ for module in modulelist:
         PixelAlive(module,DeadPixels)
         SCurves(module,SCurveInfo)
         BumpBonds(module,BadBumps)
+        Readback(module,ReadbackInfo)
 
 if args.summary:
     os.chdir(outputdir)
     pickle.dump(DeadPixels, open(args.output+"_DeadPixelSummary.p", "wb" ) )
     pickle.dump(SCurveInfo, open(args.output+"_SCurveInfo.p", "wb" ) )
     pickle.dump(BadBumps, open(args.output+"_BadBumps.p", "wb" ) )
+    pickle.dump(ReadbackInfo, open(args.output+"_ReadbackInfo.p", "wb" ) )
     os.chdir(workingdir)
 if args.verbose: print "Done!"
