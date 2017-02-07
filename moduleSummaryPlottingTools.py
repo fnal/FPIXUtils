@@ -113,6 +113,9 @@ def rotateSummaryPlot(plot, direction = 'clockwise'):
 # Input 16 plots (one per ROC) and return one merged plot with variable bins
 # fill in units of 50um to account for larger edge pixels
 def makeMergedPlot(plots, mode = 'pxar'):
+    if plots.count(None)==15:
+        for plot in plots:
+            if plot != None: return plot
 
     flipTopRow(plots)
 
@@ -201,6 +204,7 @@ def findZRange(plots):
     globalMin = 0.00002
 
     for roc in range(len(plots)):
+        if plots[roc] == None: continue
         plot = plots[roc].Clone()
 
         # don't consider empty plots from dead ROCs
